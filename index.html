@@ -31,7 +31,7 @@
         <span>Every listing verified on-site with building caretakers. No viewing fees before walkthrough.</span>
       </div>
       <div class="hidden md:flex items-center gap-4 text-[11px]">
-        <span><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> Nairobi: +254 700 000 000</span>
+        <span><i class="fa-solid fa-envelope text-emerald-400 mr-1"></i> dukazone79@gmail.com</span>
         <span><i class="fa-brands fa-whatsapp text-emerald-400 mr-1"></i> Support Desk</span>
       </div>
     </div>
@@ -135,43 +135,53 @@
     </div>
   </main>
 
-  <!-- M-PESA LISTING MODAL -->
+  <!-- FORMSPREE LEAD & LISTING SUBMISSION MODAL -->
   <div id="listingModal" class="fixed inset-0 bg-slate-950/70 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
       <div class="flex items-center gap-3 mb-4">
         <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
-          <i class="fa-solid fa-mobile-screen-button"></i>
+          <i class="fa-solid fa-house-chimney-medical"></i>
         </div>
         <div>
-          <h3 class="font-extrabold text-slate-900">Post a Verified Listing</h3>
-          <p class="text-xs text-slate-500">Instant M-Pesa STK Push Activation</p>
+          <h3 class="font-extrabold text-slate-900">Submit Listing / Inquire</h3>
+          <p class="text-xs text-slate-500">Connects directly with the MakaoKenya desk</p>
         </div>
       </div>
-      <div class="space-y-3 text-xs">
+
+      <form action="https://formspree.io/f/mppqgyvl" method="POST" class="space-y-3 text-xs">
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Listing Type</label>
-          <select class="w-full bg-slate-100 p-2.5 rounded-lg border-none font-semibold">
-            <option>Standard Rental Listing (30 Days) - KES 1,000</option>
-            <option>Featured For-Sale Listing (60 Days) - KES 2,500</option>
-            <option>Agency Unlimited Package (Month) - KES 7,500</option>
+          <label class="block font-bold text-slate-700 mb-1">Your Full Name</label>
+          <input type="text" name="name" required placeholder="e.g. Samuel Mwangi" class="w-full bg-slate-100 p-2.5 rounded-lg border-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Your Email Address</label>
+          <input type="email" name="email" required placeholder="name@example.com" class="w-full bg-slate-100 p-2.5 rounded-lg border-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">WhatsApp / Phone Number</label>
+          <input type="tel" name="phone" required placeholder="+254 7XX XXX XXX" class="w-full bg-slate-100 p-2.5 rounded-lg border-none focus:ring-2 focus:ring-emerald-500 font-mono" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Submission Type</label>
+          <select name="category" class="w-full bg-slate-100 p-2.5 rounded-lg border-none font-semibold focus:ring-2 focus:ring-emerald-500">
+            <option value="Landlord: List a Rental Unit">Landlord: List a Rental Unit</option>
+            <option value="Landlord/Owner: List Property for Sale">Owner: List Property for Sale</option>
+            <option value="Renter: Help Me Find a Verified Home">Renter: Help Me Find a Verified Home</option>
+            <option value="Diaspora Investor Consultation">Diaspora Investor Consultation</option>
           </select>
         </div>
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Property Location & Building</label>
-          <input type="text" placeholder="e.g. Ruaka, Silver Springs Court" class="w-full bg-slate-100 p-2.5 rounded-lg border-none" />
+          <label class="block font-bold text-slate-700 mb-1">Property Details & Notes</label>
+          <textarea name="message" rows="3" placeholder="Provide neighborhood, rent/price expectation, or specific questions..." class="w-full bg-slate-100 p-2.5 rounded-lg border-none focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Safaricom M-Pesa Phone Number</label>
-          <input id="mpesaPhone" type="tel" placeholder="07XXXXXXXX or 01XXXXXXXX" class="w-full bg-slate-100 p-2.5 rounded-lg border-none font-mono font-bold" />
-        </div>
-        <div id="mpesaStatus" class="p-3 bg-emerald-50 text-emerald-800 rounded-lg hidden font-medium"></div>
-        <button id="mpesaBtn" onclick="triggerMpesa()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 mt-2">
-          <span>Pay via M-Pesa STK Push</span>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 mt-3 shadow-md shadow-emerald-200">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Send Submission</span>
         </button>
-      </div>
+      </form>
     </div>
   </div>
 
@@ -290,9 +300,9 @@
                 <span class="text-[10px] text-slate-400 block font-bold">Deposit / Terms</span>
                 <span class="text-xs font-bold text-slate-700">${item.deposit}</span>
               </div>
-              <a href="https://wa.me/254700000000?text=Hello%2C%20I%20am%20inquiring%20about%20${encodeURIComponent(item.title)}%20in%20${encodeURIComponent(item.location)}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shadow-sm shadow-emerald-200">
-                <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
-              </a>
+              <button onclick="openModal()" class="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shadow-sm shadow-emerald-200">
+                <i class="fa-solid fa-comment-dots text-sm"></i> Inquire Now
+              </button>
             </div>
           </div>
         </div>
@@ -315,26 +325,6 @@
 
     function openModal() { document.getElementById("listingModal").classList.remove("hidden"); }
     function closeModal() { document.getElementById("listingModal").classList.add("hidden"); }
-
-    function triggerMpesa() {
-      const phone = document.getElementById("mpesaPhone").value;
-      const statusBox = document.getElementById("mpesaStatus");
-      const btn = document.getElementById("mpesaBtn");
-
-      if (!phone || phone.length < 9) {
-        alert("Please enter a valid Safaricom phone number (e.g., 0712345678)");
-        return;
-      }
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending STK Push to ${phone}...`;
-      statusBox.classList.remove("hidden");
-      statusBox.textContent = `Prompt sent to ${phone}. Enter your M-Pesa PIN on your phone to complete listing activation.`;
-
-      setTimeout(() => {
-        statusBox.textContent = "Payment Verified! Listing is being published to the MakaoKenya live index.";
-        btn.innerHTML = `<i class="fa-solid fa-check"></i> Verified`;
-      }, 3500);
-    }
 
     renderProperties(properties);
   </script>
