@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MakaoKenya - Verified Properties for Rent & Sale</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP TICKER -->
+  <header class="bg-emerald-950 text-emerald-100 text-xs py-2 px-4 border-b border-emerald-900">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 uppercase tracking-wider">Zero Scams</span>
+        <span>Every listing verified on-site with building caretakers. No viewing fees before walkthrough.</span>
+      </div>
+      <div class="hidden md:flex items-center gap-4 text-[11px]">
+        <span><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> Nairobi: +254 700 000 000</span>
+        <span><i class="fa-brands fa-whatsapp text-emerald-400 mr-1"></i> Support Desk</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVBAR -->
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <a href="#" class="flex items-center gap-2">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-xl font-extrabold shadow-md shadow-emerald-200">
+            M
+          </div>
+          <div>
+            <span class="text-xl font-extrabold text-slate-900 tracking-tight">Makao<span class="text-emerald-600">Kenya</span></span>
+            <span class="block text-[9px] font-bold uppercase tracking-widest text-slate-400 -mt-1">Verified Real Estate</span>
+          </div>
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+          <a href="#" class="text-emerald-600 font-bold hover:text-emerald-700">Rentals</a>
+          <a href="#" class="hover:text-emerald-600">For Sale</a>
+          <a href="#" class="hover:text-emerald-600">Commercial & Plots</a>
+          <a href="#" class="hover:text-emerald-600">New Developments</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openModal()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-bold px-3.5 py-2 rounded-lg transition-all shadow-sm shadow-emerald-200">
+          <i class="fa-solid fa-circle-plus"></i>
+          <span>Post Listing</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="bg-gradient-to-b from-emerald-900 to-slate-900 text-white py-12 px-4">
+    <div class="max-w-5xl mx-auto text-center space-y-4">
+      <div class="inline-flex items-center gap-2 bg-emerald-800/60 border border-emerald-600/40 text-emerald-200 text-xs px-3 py-1 rounded-full">
+        <i class="fa-solid fa-shield-halved text-emerald-400"></i> Nairobi &bull; Kiambu &bull; Machakos &bull; Mombasa
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">
+        Find Verified Homes to Rent or Buy in Kenya
+      </h1>
+      <p class="text-slate-300 text-sm md:text-base max-w-2xl mx-auto">
+        No middleman confusion. Browse audited apartments, standalone houses, and plots with transparent service charges and direct caretaker contacts.
+      </p>
+
+      <!-- SEARCH BOX -->
+      <div class="bg-white rounded-2xl p-3 shadow-xl max-w-4xl mx-auto text-slate-800 mt-6 grid grid-cols-1 md:grid-cols-4 gap-2 text-left">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Purpose</label>
+          <select id="filterType" onchange="filterProperties()" class="w-full bg-slate-100 rounded-lg p-2.5 text-sm font-semibold border-none focus:ring-2 focus:ring-emerald-500">
+            <option value="all">All Properties</option>
+            <option value="rent">To Rent</option>
+            <option value="sale">For Sale</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Location</label>
+          <select id="filterLocation" onchange="filterProperties()" class="w-full bg-slate-100 rounded-lg p-2.5 text-sm font-semibold border-none focus:ring-2 focus:ring-emerald-500">
+            <option value="all">All Locations</option>
+            <option value="Kilimani">Kilimani, Nairobi</option>
+            <option value="Westlands">Westlands, Nairobi</option>
+            <option value="Ruaka">Ruaka, Kiambu</option>
+            <option value="Roysambu">Roysambu / TRM</option>
+            <option value="Syokimau">Syokimau, Mombasa Rd</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Property Type</label>
+          <select id="filterBedrooms" onchange="filterProperties()" class="w-full bg-slate-100 rounded-lg p-2.5 text-sm font-semibold border-none focus:ring-2 focus:ring-emerald-500">
+            <option value="all">Any Size</option>
+            <option value="Bedsitter">Bedsitter / Studio</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3+ Bedrooms</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button onclick="filterProperties()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all">
+            <i class="fa-solid fa-magnifying-glass"></i> Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTINGS FEED -->
+  <main class="max-w-7xl mx-auto px-4 py-10 flex-1">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 class="text-xl md:text-2xl font-extrabold text-slate-900">Featured Verified Listings</h2>
+        <p class="text-xs text-slate-500">Updated daily with verified water supply and KPLC token status</p>
+      </div>
+      <span id="resultCount" class="text-xs font-bold bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full">Showing 4 properties</span>
+    </div>
+
+    <!-- GRID -->
+    <div id="listingsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Cards rendered via JS -->
+    </div>
+  </main>
+
+  <!-- M-PESA LISTING MODAL -->
+  <div id="listingModal" class="fixed inset-0 bg-slate-950/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-slate-900">Post a Verified Listing</h3>
+          <p class="text-xs text-slate-500">Instant M-Pesa STK Push Activation</p>
+        </div>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Listing Type</label>
+          <select class="w-full bg-slate-100 p-2.5 rounded-lg border-none font-semibold">
+            <option>Standard Rental Listing (30 Days) - KES 1,000</option>
+            <option>Featured For-Sale Listing (60 Days) - KES 2,500</option>
+            <option>Agency Unlimited Package (Month) - KES 7,500</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Property Location & Building</label>
+          <input type="text" placeholder="e.g. Ruaka, Silver Springs Court" class="w-full bg-slate-100 p-2.5 rounded-lg border-none" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Safaricom M-Pesa Phone Number</label>
+          <input id="mpesaPhone" type="tel" placeholder="07XXXXXXXX or 01XXXXXXXX" class="w-full bg-slate-100 p-2.5 rounded-lg border-none font-mono font-bold" />
+        </div>
+        <div id="mpesaStatus" class="p-3 bg-emerald-50 text-emerald-800 rounded-lg hidden font-medium"></div>
+        <button id="mpesaBtn" onclick="triggerMpesa()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 mt-2">
+          <span>Pay via M-Pesa STK Push</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-8 px-4 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-white text-base">MakaoKenya</span>
+        <span>&copy; 2026. Built for verified Kenyan real estate.</span>
+      </div>
+      <div class="flex gap-4">
+        <a href="#" class="hover:text-white">Terms</a>
+        <a href="#" class="hover:text-white">Anti-Scam Guide</a>
+        <a href="#" class="hover:text-white">EARB Guidelines</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const properties = [
+      {
+        id: 1,
+        title: "Modern 2-Bedroom Master Ensuite",
+        location: "Kilimani",
+        suburb: "Kindaruma Road, Nairobi",
+        type: "rent",
+        beds: "2",
+        priceKES: "65,000",
+        deposit: "1 Month Rent + Service Charge",
+        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
+        verified: true,
+        caretakerChecked: "Oct 2026",
+        features: ["Borehole Water", "KPLC Tokens", "High Speed Lift", "Backup Generator", "Balcony"]
+      },
+      {
+        id: 2,
+        title: "Executive 4-Bedroom Maisonette + DSQ",
+        location: "Ruaka",
+        suburb: "Off Limuru Road, Kiambu",
+        type: "sale",
+        beds: "3",
+        priceKES: "14,500,000",
+        deposit: "Ready Freehold Title Deed",
+        image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
+        verified: true,
+        caretakerChecked: "Oct 2026",
+        features: ["Own Compound", "DSQ Ensuite", "Solar Water Heating", "Perimeter Electric Fence"]
+      },
+      {
+        id: 3,
+        title: "High-Yield Studio / Bedsitter",
+        location: "Roysambu",
+        suburb: "Near TRM Mall, Thika Road",
+        type: "rent",
+        beds: "Bedsitter",
+        priceKES: "16,000",
+        deposit: "1 Month Deposit",
+        image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=80",
+        verified: true,
+        caretakerChecked: "Oct 2026",
+        features: ["Constant City Water", "Prepaid KPLC", "Fiber Internet Ready", "CCTV Security"]
+      },
+      {
+        id: 4,
+        title: "3-Bedroom Apartment in Gated Estate",
+        location: "Syokimau",
+        suburb: "Community Rd, near SGR Station",
+        type: "rent",
+        beds: "3",
+        priceKES: "42,000",
+        deposit: "1 Month Rent",
+        image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
+        verified: true,
+        caretakerChecked: "Oct 2026",
+        features: ["Borehole Backup", "Dedicated Parking", "Children Play Area", "24hr Guard"]
+      }
+    ];
+
+    function renderProperties(list) {
+      const grid = document.getElementById("listingsGrid");
+      document.getElementById("resultCount").textContent = `Showing ${list.length} properties`;
+      grid.innerHTML = list.map(item => `
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col">
+          <div class="relative h-48 w-full bg-slate-200">
+            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover" />
+            <div class="absolute top-3 left-3 flex gap-2">
+              <span class="px-2.5 py-1 text-[10px] font-extrabold uppercase rounded-md tracking-wider ${item.type === 'rent' ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}">
+                ${item.type === 'rent' ? 'To Rent' : 'For Sale'}
+              </span>
+              ${item.verified ? `
+                <span class="px-2.5 py-1 text-[10px] font-bold rounded-md bg-amber-500 text-slate-950 flex items-center gap-1 shadow">
+                  <i class="fa-solid fa-check-double text-[9px]"></i> Physical Verified
+                </span>
+              ` : ''}
+            </div>
+            <div class="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-xs font-bold">
+              KES ${item.priceKES} ${item.type === 'rent' ? '/ mo' : ''}
+            </div>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot"></i> ${item.suburb}
+              </div>
+              <h3 class="font-extrabold text-slate-900 text-base mt-1 leading-snug">${item.title}</h3>
+              <div class="flex flex-wrap gap-1.5 mt-3">
+                ${item.features.map(f => `
+                  <span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                    ${f}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+            <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-slate-400 block font-bold">Deposit / Terms</span>
+                <span class="text-xs font-bold text-slate-700">${item.deposit}</span>
+              </div>
+              <a href="https://wa.me/254700000000?text=Hello%2C%20I%20am%20inquiring%20about%20${encodeURIComponent(item.title)}%20in%20${encodeURIComponent(item.location)}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shadow-sm shadow-emerald-200">
+                <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterProperties() {
+      const type = document.getElementById("filterType").value;
+      const loc = document.getElementById("filterLocation").value;
+      const bed = document.getElementById("filterBedrooms").value;
+
+      const filtered = properties.filter(p => {
+        const matchesType = (type === "all" || p.type === type);
+        const matchesLoc = (loc === "all" || p.location === loc);
+        const matchesBed = (bed === "all" || p.beds === bed);
+        return matchesType && matchesLoc && matchesBed;
+      });
+      renderProperties(filtered);
+    }
+
+    function openModal() { document.getElementById("listingModal").classList.remove("hidden"); }
+    function closeModal() { document.getElementById("listingModal").classList.add("hidden"); }
+
+    function triggerMpesa() {
+      const phone = document.getElementById("mpesaPhone").value;
+      const statusBox = document.getElementById("mpesaStatus");
+      const btn = document.getElementById("mpesaBtn");
+
+      if (!phone || phone.length < 9) {
+        alert("Please enter a valid Safaricom phone number (e.g., 0712345678)");
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending STK Push to ${phone}...`;
+      statusBox.classList.remove("hidden");
+      statusBox.textContent = `Prompt sent to ${phone}. Enter your M-Pesa PIN on your phone to complete listing activation.`;
+
+      setTimeout(() => {
+        statusBox.textContent = "Payment Verified! Listing is being published to the MakaoKenya live index.";
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> Verified`;
+      }, 3500);
+    }
+
+    renderProperties(properties);
+  </script>
+</body>
+</html>
