@@ -1,29 +1,585 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrueHome Kenya</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WF2FJ8C3J0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-WF2FJ8C3J0');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrueHome Kenya - Verified Rentals & Direct Caretakers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
 </head>
-<body>
-    <header>
-        <h1>TrueHome Kenya</h1>
-        <p>Find Your Perfect Property in Kenya</p>
-    </header>
-    <main>
-        <section id="contact">
-            <h2>Contact Us</h2>
-            <p>Direct Call: <a href="tel:+254700000000">+254 700 000 000</a></p>
-            <form action="#" method="post">
-                <label for="name">Name:</label><br>
-                <input type="text" id="name" name="name" required><br><br>
-                <label for="email">Email:</label><br>
-                <input type="email" id="email" name="email" required><br><br>
-                <label for="message">Inquiry:</label><br>
-                <textarea id="message" name="message" rows="4" required></textarea><br><br>
-                <input type="submit" value="Send Inquiry">
-            </form>
-        </section>
-    </main>
+<body class="bg-[#f9f9fb] text-[#2a2b2c] antialiased min-h-screen flex flex-col">
+
+  <!-- TOP TRUST BAR -->
+  <header class="bg-slate-900 text-slate-100 text-xs py-2 px-4 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500 text-slate-950 uppercase tracking-wider">
+          <i class="fa-solid fa-shield-halved mr-1"></i> Anti-Scam Shield
+        </span>
+        <span class="text-slate-300">Every house linked to its on-site caretaker. Never pay viewing fees before inspection.</span>
+      </div>
+      <div class="hidden md:flex items-center gap-4 text-[11px] text-slate-300">
+        <button onclick="openPostModal()" class="text-blue-400 hover:underline font-semibold">Post Listing (Owners)</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVBAR -->
+  <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <a href="#" class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-[#006aff] flex items-center justify-center text-white font-black text-lg shadow-sm">
+            T
+          </div>
+          <span class="text-2xl font-black tracking-tight text-[#006aff]">TrueHome<span class="text-[#2a2b2c]">Kenya</span></span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-700">
+          <button onclick="setFilterType('rent')" id="tabRent" class="text-[#006aff] border-b-2 border-[#006aff] py-5 font-bold transition">Rentals</button>
+          <button onclick="setFilterType('sale')" id="tabSale" class="hover:text-[#006aff] py-5 transition">For Sale</button>
+          <button onclick="openPostModal()" class="hover:text-[#006aff] py-5 transition">Landlord Portal</button>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="openPostModal()" class="bg-[#006aff] hover:bg-[#0053cc] text-white text-xs md:text-sm font-bold px-4 py-2.5 rounded-md transition shadow-sm">
+          List Your Property
+        </button>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="border-t border-gray-100 bg-white px-4 py-2.5 shadow-sm">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
+        <div class="relative flex-1 min-w-[200px]">
+          <input type="text" id="searchLocation" oninput="applyFilters()" placeholder="Search neighborhood or building (e.g. Ruaka, Kilimani)..." class="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-300 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]" />
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
+        </div>
+
+        <select id="filterType" onchange="applyFilters()" class="text-xs font-semibold bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#006aff]">
+          <option value="all">Rent & Sale</option>
+          <option value="rent" selected>For Rent</option>
+          <option value="sale">For Sale</option>
+        </select>
+
+        <select id="filterPrice" onchange="applyFilters()" class="text-xs font-semibold bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#006aff]">
+          <option value="all">Price: Any</option>
+          <option value="under30k">Under KES 30,000</option>
+          <option value="30k-70k">KES 30,000 - 70,000</option>
+          <option value="over70k">KES 70,000+</option>
+        </select>
+
+        <select id="filterBeds" onchange="applyFilters()" class="text-xs font-semibold bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#006aff]">
+          <option value="all">Beds: Any</option>
+          <option value="Bedsitter">Studio / Bedsitter</option>
+          <option value="1">1+ Bedrooms</option>
+          <option value="2">2+ Bedrooms</option>
+          <option value="3">3+ Bedrooms</option>
+        </select>
+
+        <button onclick="resetFilters()" class="text-xs font-bold text-gray-500 hover:text-gray-800 px-2 py-2">
+          Reset
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LISTINGS FEED -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+    <div class="flex justify-between items-end mb-4 border-b border-gray-200 pb-3">
+      <div>
+        <h1 id="pageHeading" class="text-xl md:text-2xl font-bold text-gray-900">Verified Rental Listings in Kenya</h1>
+        <p class="text-xs text-gray-500 mt-0.5">Direct on-site caretakers assigned to every unit &bull; Zero viewing fees</p>
+      </div>
+      <div class="text-xs font-bold text-gray-600">
+        <span id="resultCount">4 Properties</span>
+      </div>
+    </div>
+
+    <div id="listingsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </main>
+
+  <!-- SLIDE-OVER INSPECTION DRAWER -->
+  <div id="detailDrawer" class="fixed inset-0 bg-black/60 z-50 hidden flex justify-end transition-opacity">
+    <div class="bg-white w-full max-w-xl h-full shadow-2xl flex flex-col overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded">
+          <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Caretaker Verified
+        </span>
+        <button onclick="closeDetailDrawer()" class="text-gray-400 hover:text-gray-700 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="drawerContent" class="p-6 space-y-6 flex-1"></div>
+    </div>
+  </div>
+
+  <!-- RENTER INQUIRY MODAL (EMAIL VIA FORMSPREE) -->
+  <div id="inquiryModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeInquiryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-envelope-open-text"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Request a Free Walkthrough</h3>
+          <p id="inquiryPropertyTitle" class="text-xs text-gray-500 font-medium"></p>
+        </div>
+      </div>
+
+      <form action="https://formspree.io/f/mppqgyvl" method="POST" class="space-y-3 text-xs">
+        <input type="hidden" id="inquiryPropertyInput" name="property_inquired" value="" />
+        <input type="hidden" id="inquiryRecipientInput" name="unit_caretaker_contact" value="" />
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Your Full Name</label>
+          <input type="text" name="renter_name" required placeholder="e.g. David Mwangi" class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]" />
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Your Phone Number</label>
+          <input type="tel" name="renter_phone" required placeholder="07XXXXXXXX" class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]" />
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Your Email</label>
+          <input type="email" name="renter_email" required placeholder="name@example.com" class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]" />
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Preferred Viewing Day & Time</label>
+          <textarea name="message" rows="2.5" placeholder="e.g. Available this Saturday at 10 AM..." class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-md transition flex items-center justify-center gap-2 shadow-sm text-xs mt-2">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Send Free Viewing Request</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- LANDLORD INTAKE MODAL (SEPARATES OWNER FROM CARETAKER) -->
+  <div id="postModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closePostModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg bg-[#006aff]/10 text-[#006aff] flex items-center justify-center text-lg">
+          <i class="fa-solid fa-house-chimney-user"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">List Property on TrueHome Kenya</h2>
+          <p class="text-xs text-gray-500">Assign your on-site caretaker to manage physical viewings</p>
+        </div>
+      </div>
+
+      <form action="https://formspree.io/f/mppqgyvl" method="POST" class="space-y-4 text-xs">
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2.5">
+          <p class="font-extrabold text-[11px] uppercase tracking-wider text-slate-700">1. Property Owner Details (Private)</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Owner Name</label>
+              <input type="text" name="owner_name" required placeholder="Legal Owner Name" class="w-full bg-white border border-gray-300 p-2 rounded-md focus:outline-none focus:border-[#006aff]" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Owner M-Pesa Phone</label>
+              <input type="tel" name="owner_mpesa_phone" required placeholder="07XXXXXXXX" class="w-full bg-white border border-gray-300 p-2 rounded-md focus:outline-none focus:border-[#006aff]" />
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-blue-50/60 border border-blue-200 rounded-lg p-3 space-y-2.5">
+          <p class="font-extrabold text-[11px] uppercase tracking-wider text-blue-900">2. On-Site Caretaker Details (Public for Viewings)</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Caretaker Name</label>
+              <input type="text" name="caretaker_name" required placeholder="e.g. Caretaker Francis" class="w-full bg-white border border-gray-300 p-2 rounded-md focus:outline-none focus:border-[#006aff]" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Caretaker Direct Phone</label>
+              <input type="tel" name="caretaker_phone" required placeholder="07XXXXXXXX (for calls)" class="w-full bg-white border border-gray-300 p-2 rounded-md focus:outline-none focus:border-[#006aff]" />
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Caretaker Location / Station</label>
+            <input type="text" name="caretaker_station" placeholder="e.g. Gatehouse A, or Unit G1" class="w-full bg-white border border-gray-300 p-2 rounded-md focus:outline-none focus:border-[#006aff]" />
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <p class="font-extrabold text-[11px] uppercase tracking-wider text-slate-700">3. House Specs & Location</p>
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Building Name & House / Apt Number</label>
+            <input type="text" name="property_address" required placeholder="e.g. Silver Springs Court, Apt B4, Ruaka" class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Monthly Rent (KES)</label>
+              <input type="text" name="rent_price" required placeholder="e.g. 45,000" class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]" />
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Bedrooms</label>
+              <select name="bedrooms" class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md font-semibold focus:outline-none focus:border-[#006aff]">
+                <option value="Bedsitter">Bedsitter / Studio</option>
+                <option value="1 Bedroom">1 Bedroom</option>
+                <option value="2 Bedrooms">2 Bedrooms</option>
+                <option value="3+ Bedrooms">3+ Bedrooms</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Water, Tokens & Amenities</label>
+            <textarea name="amenities" rows="2" placeholder="Borehole backup, KPLC prepaid token meter, elevator, CCTV..." class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md focus:bg-white focus:outline-none focus:border-[#006aff]"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-[#006aff] hover:bg-[#0053cc] text-white font-bold py-3 rounded-md transition flex items-center justify-center gap-2 shadow-sm text-sm">
+          <span>Submit for Verification</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-gray-200 text-gray-500 text-xs py-8 px-4 mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-gray-800 text-sm">TrueHome Kenya</span>
+        <span>&copy; 2026. Every house verified with its direct on-site caretaker.</span>
+      </div>
+      <div class="flex gap-4 font-semibold">
+        <a href="#" class="hover:text-gray-800">Zero-Fee Policy</a>
+        <a href="#" class="hover:text-gray-800">Caretaker Guide</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const properties = [
+      {
+        id: 1,
+        title: "2-Bed Modern Master Ensuite",
+        location: "Kilimani",
+        address: "Kindaruma Rd, Kilimani, Nairobi",
+        building: "Royal Crest Court, Unit 4B",
+        type: "rent",
+        beds: 2,
+        baths: 2,
+        sqft: "1,150",
+        priceKES: "65,000",
+        priceNumeric: 65000,
+        deposit: "1 Month Deposit + 1 Month Rent",
+        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80",
+        verified: true,
+        caretaker: {
+          name: "Francis Mwangi",
+          phone: "0711222333",
+          station: "Gatehouse B",
+          hours: "Mon–Sat: 8:00 AM – 5:30 PM"
+        },
+        description: "Executive 2-bedroom master ensuite apartment with borehole water backup, high-speed lift, and 24/7 guarded access.",
+        amenities: ["Borehole Water", "KPLC Tokens", "Elevator", "Backup Generator", "Balcony"]
+      },
+      {
+        id: 2,
+        title: "Executive 4-Bedroom Maisonette + DSQ",
+        location: "Ruaka",
+        address: "Off Limuru Road, Ruaka, Kiambu",
+        building: "Silver Oak Ridge, House #12",
+        type: "sale",
+        beds: 4,
+        baths: 4,
+        sqft: "2,400",
+        priceKES: "14,500,000",
+        priceNumeric: 14500000,
+        deposit: "Ready Freehold Title Deed",
+        image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80",
+        verified: true,
+        caretaker: {
+          name: "Karanja Mbugua",
+          phone: "0722333444",
+          station: "Resident Caretaker - Main Gate",
+          hours: "Daily: 9:00 AM – 6:00 PM"
+        },
+        description: "Brand new standalone maisonette with DSQ in a secure gated community near Two Rivers Mall.",
+        amenities: ["Own Compound", "Solar Heating", "Electric Fence", "Parking 3 Cars"]
+      },
+      {
+        id: 3,
+        title: "High-Yield Studio / Bedsitter",
+        location: "Roysambu",
+        address: "Near TRM Mall, Thika Road, Nairobi",
+        building: "Lumumba Plaza, 3rd Floor Apt 304",
+        type: "rent",
+        beds: "Bedsitter",
+        baths: 1,
+        sqft: "380",
+        priceKES: "16,000",
+        priceNumeric: 16000,
+        deposit: "1 Month Deposit",
+        image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
+        verified: true,
+        caretaker: {
+          name: "Wanjiku Njoroge",
+          phone: "0733444555",
+          station: "Ground Floor Office",
+          hours: "Mon–Fri: 8:30 AM – 5:00 PM"
+        },
+        description: "Modern studio with fitted kitchen cabinets and ceramic tile finish, walking distance to TRM.",
+        amenities: ["Constant City Water", "Prepaid KPLC", "Fiber Ready", "Biometric Gate"]
+      },
+      {
+        id: 4,
+        title: "3-Bedroom Apartment in Gated Community",
+        location: "Syokimau",
+        address: "Community Rd, near SGR Station, Syokimau",
+        building: "Airport View Heights, Unit C8",
+        type: "rent",
+        beds: 3,
+        baths: 2,
+        sqft: "1,450",
+        priceKES: "42,000",
+        priceNumeric: 42000,
+        deposit: "1 Month Deposit",
+        image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80",
+        verified: true,
+        caretaker: {
+          name: "Peter Omondi",
+          phone: "0744555666",
+          station: "Estate Caretaker Office",
+          hours: "Mon–Sat: 9:00 AM – 5:00 PM"
+        },
+        description: "Spacious family apartment with borehole backup, dedicated parking, and kids play area.",
+        amenities: ["Borehole Backup", "Dedicated Parking", "Kids Play Area", "Perimeter Wall"]
+      }
+    ];
+
+    function renderListings(items) {
+      const grid = document.getElementById("listingsGrid");
+      document.getElementById("resultCount").textContent = `${items.length} Properties Available`;
+
+      if (items.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-gray-500">
+            <i class="fa-solid fa-house-chimney-crack text-4xl mb-3 text-gray-300"></i>
+            <p class="text-base font-bold text-gray-700">No properties match your filters</p>
+            <button onclick="resetFilters()" class="mt-4 bg-[#006aff] text-white text-xs font-bold px-4 py-2 rounded-md">Reset Filters</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => `
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col group" onclick="openDetailDrawer(${p.id})">
+          <div class="relative h-52 w-full bg-gray-100 overflow-hidden">
+            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+            <div class="absolute top-3 left-3 flex gap-1.5">
+              <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded ${p.type === 'rent' ? 'bg-[#006aff] text-white' : 'bg-emerald-600 text-white'}">
+                ${p.type === 'rent' ? 'For Rent' : 'For Sale'}
+              </span>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-white text-gray-800 shadow-sm flex items-center gap-1">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-[10px]"></i> Verified
+              </span>
+            </div>
+            <div class="absolute bottom-3 left-3 bg-[#111827]/80 backdrop-blur-sm text-white px-3 py-1 rounded text-sm font-black">
+              KES ${p.priceKES} ${p.type === 'rent' ? '<span class="text-xs font-normal text-gray-300">/mo</span>' : ''}
+            </div>
+          </div>
+
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <span><strong>${p.beds}</strong> ${p.beds === 'Bedsitter' ? '' : 'bd'}</span>
+                <span class="text-gray-300">&bull;</span>
+                <span><strong>${p.baths}</strong> ba</span>
+                <span class="text-gray-300">&bull;</span>
+                <span><strong>${p.sqft}</strong> sqft</span>
+              </div>
+              <p class="text-xs text-gray-600 mt-1 font-medium truncate">${p.address}</p>
+
+              <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-shield text-emerald-600 text-xs"></i>
+                  <span class="text-gray-600 text-[11px]">Caretaker: <strong class="text-gray-900">${p.caretaker.name}</strong></span>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">On-Site</span>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-2 gap-2" onclick="event.stopPropagation()">
+              <button onclick="openInquiryModal(${p.id})" class="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded transition">
+                <i class="fa-solid fa-envelope text-xs"></i> Inquire Free
+              </button>
+              <a href="tel:${p.caretaker.phone}" class="flex items-center justify-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-xs py-2 rounded transition">
+                <i class="fa-solid fa-phone text-xs"></i> Call Caretaker
+              </a>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openDetailDrawer(id) {
+      const p = properties.find(item => item.id === id);
+      if (!p) return;
+
+      const container = document.getElementById("drawerContent");
+      container.innerHTML = `
+        <div class="rounded-lg overflow-hidden h-64 bg-gray-100">
+          <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover" />
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between">
+            <h2 class="text-2xl font-black text-gray-900">KES ${p.priceKES} ${p.type === 'rent' ? '<span class="text-sm font-normal text-gray-500">/mo</span>' : ''}</h2>
+            <span class="text-xs font-bold text-gray-500">${p.deposit}</span>
+          </div>
+          <p class="text-xs font-bold text-[#006aff] mt-1">${p.building}</p>
+          <div class="flex items-center gap-2 text-sm font-bold text-gray-800 mt-2">
+            <span>${p.beds} ${p.beds === 'Bedsitter' ? '' : 'Beds'}</span> &bull;
+            <span>${p.baths} Baths</span> &bull;
+            <span>${p.sqft} sqft</span>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">${p.address}</p>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">Assigned Caretaker</p>
+              <h3 class="text-sm font-bold text-gray-900">${p.caretaker.name}</h3>
+              <p class="text-[11px] text-gray-500">${p.caretaker.station}</p>
+            </div>
+            <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+              Verified Keys On-Site
+            </span>
+          </div>
+
+          <p class="text-[11px] text-gray-500"><i class="fa-regular fa-clock mr-1"></i> ${p.caretaker.hours}</p>
+
+          <div class="bg-amber-50 border border-amber-200 rounded p-2 text-[11px] text-amber-900 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-amber-600"></i>
+            <span><strong>Zero Viewing Fees:</strong> Caretakers show this house free of charge.</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="openInquiryModal(${p.id})" class="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded transition">
+              <i class="fa-solid fa-envelope text-xs"></i> Send Request
+            </button>
+            <a href="tel:${p.caretaker.phone}" class="flex items-center justify-center gap-1.5 bg-[#006aff] hover:bg-[#0053cc] text-white font-bold text-xs py-2.5 rounded transition">
+              <i class="fa-solid fa-phone text-xs"></i> Call Caretaker
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">House Overview</h4>
+          <p class="text-xs text-gray-700 leading-relaxed">${p.description}</p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Amenities</h4>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            ${p.amenities.map(a => `
+              <div class="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded border border-gray-100">
+                <i class="fa-solid fa-check text-emerald-600 text-xs"></i>
+                <span>${a}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      document.getElementById("detailDrawer").classList.remove("hidden");
+    }
+
+    function closeDetailDrawer() {
+      document.getElementById("detailDrawer").classList.add("hidden");
+    }
+
+    function openInquiryModal(id) {
+      const p = properties.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById("inquiryPropertyTitle").textContent = `${p.title} (${p.building})`;
+      document.getElementById("inquiryPropertyInput").value = `${p.title} - ${p.building} (${p.address})`;
+      document.getElementById("inquiryRecipientInput").value = `Caretaker: ${p.caretaker.name} (Phone: ${p.caretaker.phone})`;
+      document.getElementById("inquiryModal").classList.remove("hidden");
+    }
+
+    function closeInquiryModal() {
+      document.getElementById("inquiryModal").classList.add("hidden");
+    }
+
+    function applyFilters() {
+      const locText = document.getElementById("searchLocation").value.toLowerCase();
+      const type = document.getElementById("filterType").value;
+      const price = document.getElementById("filterPrice").value;
+      const beds = document.getElementById("filterBeds").value;
+
+      const filtered = properties.filter(p => {
+        const matchesLoc = !locText || p.location.toLowerCase().includes(locText) || p.address.toLowerCase().includes(locText) || p.title.toLowerCase().includes(locText) || p.building.toLowerCase().includes(locText);
+        const matchesType = (type === "all" || p.type === type);
+        
+        let matchesPrice = true;
+        if (price === "under30k") matchesPrice = (p.priceNumeric < 30000);
+        else if (price === "30k-70k") matchesPrice = (p.priceNumeric >= 30000 && p.priceNumeric <= 70000);
+        else if (price === "over70k") matchesPrice = (p.priceNumeric > 70000);
+
+        let matchesBeds = true;
+        if (beds !== "all") {
+          if (beds === "Bedsitter") matchesBeds = (p.beds === "Bedsitter");
+          else matchesBeds = (typeof p.beds === "number" && p.beds >= parseInt(beds));
+        }
+
+        return matchesLoc && matchesType && matchesPrice && matchesBeds;
+      });
+
+      renderListings(filtered);
+    }
+
+    function setFilterType(type) {
+      document.getElementById("filterType").value = type;
+      if (type === 'rent') {
+        document.getElementById("tabRent").className = "text-[#006aff] border-b-2 border-[#006aff] py-5 font-bold transition";
+        document.getElementById("tabSale").className = "hover:text-[#006aff] py-5 transition";
+        document.getElementById("pageHeading").textContent = "Verified Rental Listings in Kenya";
+      } else {
+        document.getElementById("tabSale").className = "text-[#006aff] border-b-2 border-[#006aff] py-5 font-bold transition";
+        document.getElementById("tabRent").className = "hover:text-[#006aff] py-5 transition";
+        document.getElementById("pageHeading").textContent = "Verified Properties for Sale in Kenya";
+      }
+      applyFilters();
+    }
+
+    function resetFilters() {
+      document.getElementById("searchLocation").value = "";
+      document.getElementById("filterType").value = "rent";
+      document.getElementById("filterPrice").value = "all";
+      document.getElementById("filterBeds").value = "all";
+      setFilterType('rent');
+    }
+
+    function openPostModal() { document.getElementById("postModal").classList.remove("hidden"); }
+    function closePostModal() { document.getElementById("postModal").classList.add("hidden"); }
+
+    renderListings(properties.filter(p => p.type === 'rent'));
+  </script>
 </body>
 </html>
