@@ -1,334 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrueHome Kenya - Verified Homes & Apartments</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        #map { height: 100%; width: 100%; }
-        .price-pin { background: #006aff; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 1px solid white; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .package-card { cursor: pointer; transition: all 0.2s ease-in-out; }
-        .package-card.selected { border-color: #2563eb; background-color: #eff6ff; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueHome Kenya - Verified Homes & Apartments</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #map { height: 100%; width: 100%; }
+    .price-pin { background: #006aff; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; text-align: center; border: 1px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .property-card:hover { border-color: #2563eb; transform: translateY(-2px); transition: all 0.2s ease; }
+    input, select { pointer-events: auto !important; }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-900 flex flex-col h-screen overflow-hidden font-sans">
 
-    <!-- Header / Navbar -->
-    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between z-10 shrink-0">
-        <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-house-chimney text-blue-600 text-2xl"></i>
-            <span class="text-xl font-bold tracking-tight text-blue-900">TrueHome <span class="text-blue-600">Kenya</span></span>
-        </div>
-        <div class="flex items-center space-x-4">
-            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition">
-                <i class="fa-solid fa-plus mr-2"></i>List Property
-            </button>
-        </div>
-    </header>
+  <!-- Nav Bar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between z-10 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl"><i class="fa-solid fa-house"></i> TH</div>
+      <span class="text-xl font-bold text-gray-800 tracking-tight">TrueHome <span class="text-blue-600">Kenya</span></span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a href="list.html" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <i class="fa-solid fa-plus mr-1"></i> List Property
+      </a>
+    </div>
+  </header>
 
-    <!-- Filter Bar -->
-    <div class="bg-white border-b border-gray-200 px-6 py-3 shadow-sm z-10 shrink-0">
-        <form id="searchForm" onsubmit="handleSearch(event)" class="flex flex-wrap gap-3 items-center">
-            <!-- Location Search -->
-            <div class="relative flex-1 min-w-[200px]">
-                <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="locationInput" placeholder="Nairobi, Westlands, Kilimani..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
+  <!-- Filter Bar -->
+  <div class="bg-white border-b border-gray-200 px-6 py-3 z-10 shrink-0 shadow-sm">
+    <form id="filterForm" onsubmit="event.preventDefault();" class="flex flex-wrap items-center gap-3">
+      <!-- Search input & blue button -->
+      <div class="flex items-center flex-1 min-w-[240px]">
+        <input type="text" id="locationInput" placeholder="Enter location (e.g. Kilimani, Westlands)" class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-r-0">
+        <button type="button" id="searchBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-lg text-sm font-semibold transition flex items-center gap-1">
+          <i class="fa-solid fa-magnifying-glass"></i> Search
+        </button>
+      </div>
 
-            <!-- Rent / Sale -->
-            <select id="typeSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="all">For Rent & Sale</option>
-                <option value="rent">For Rent</option>
-                <option value="sale">For Sale</option>
-            </select>
+      <!-- Purpose Dropdown -->
+      <select id="purposeSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Purposes</option>
+        <option value="For Rent">For Rent</option>
+        <option value="For Sale">For Sale</option>
+      </select>
 
-            <!-- Price Range -->
-            <select id="priceSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="all">Any Price</option>
-                <option value="0-50000">Under KSh 50,000</option>
-                <option value="50000-100000">KSh 50,000 - 100,000</option>
-                <option value="100000+">KSh 100,000+</option>
-            </select>
+      <!-- Min & Max Price -->
+      <div class="flex items-center space-x-2">
+        <input type="number" id="minPrice" placeholder="Min KSh" class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <span class="text-gray-400">-</span>
+        <input type="number" id="maxPrice" placeholder="Max KSh" class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
 
-            <!-- Bedrooms -->
-            <select id="bedsSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="all">Bedrooms (Any)</option>
-                <option value="1">1+ Bedrooms</option>
-                <option value="2">2+ Bedrooms</option>
-                <option value="3">3+ Bedrooms</option>
-            </select>
+      <!-- Bedrooms Dropdown -->
+      <select id="bedroomsSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Bedrooms</option>
+        <option value="Bedsitter/Studio">Bedsitter/Studio</option>
+        <option value="1 Bed">1 Bed</option>
+        <option value="2 Beds">2 Beds</option>
+        <option value="3 Beds">3 Beds</option>
+        <option value="4+ Beds">4+ Beds</option>
+      </select>
 
-            <!-- Amenities -->
-            <select id="amenitiesSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="all">Amenities (Any)</option>
-                <option value="parking">Parking</option>
-                <option value="wifi">Borehole / WiFi</option>
-                <option value="security">24/7 Security</option>
-            </select>
+      <!-- Kenya Amenities Dropdown -->
+      <select id="amenitiesSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Kenya Amenities</option>
+        <option value="Borehole">Borehole</option>
+        <option value="Generator">Generator</option>
+        <option value="DSQ">DSQ</option>
+        <option value="Electric Fence">Electric Fence</option>
+        <option value="Cabro Paving">Cabro Paving</option>
+        <option value="Fiber Internet">Fiber Internet</option>
+      </select>
+    </form>
+  </div>
 
-            <!-- Search Button -->
-            <button type="submit" id="searchBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
-            </button>
-        </form>
+  <!-- Zillow Split Screen Layout -->
+  <main class="flex-1 flex overflow-hidden">
+    <!-- Map Left -->
+    <div class="w-1/2 h-full relative">
+      <div id="map"></div>
     </div>
 
-    <!-- Main Zillow Split Layout -->
-    <div class="flex-1 flex overflow-hidden">
-        <!-- Map View (Left Panel) -->
-        <div class="w-1/2 h-full relative border-r border-gray-200">
-            <div id="map"></div>
+    <!-- Cards Right -->
+    <div class="w-1/2 h-full overflow-y-auto p-4 bg-gray-100 grid grid-cols-1 gap-4" id="cardsContainer">
+      <!-- Property Card 1 -->
+      <div class="property-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row">
+        <div class="relative w-full md:w-48 h-48 bg-gray-200 shrink-0">
+          <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=500&q=80" alt="Property" class="w-full h-full object-cover">
+          <div class="absolute top-2 left-2 bg-blue-600 text-white font-bold text-xs px-2 py-1 rounded shadow">
+            KSh 65,000 / mo
+          </div>
+          <div class="absolute bottom-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium">
+            <i class="fa-solid fa-circle-check"></i> Verified Landlord
+          </div>
         </div>
-
-        <!-- Property Listings (Right Panel) -->
-        <div class="w-1/2 h-full overflow-y-auto p-6 bg-gray-50">
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-xl font-bold text-gray-800" id="listingCount">Properties in Kenya</h1>
-                <span class="text-sm text-gray-500">Verified listings</span>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-lg text-gray-800">Modern 2 Bed Apartment in Kilimani</h3>
+            <p class="text-gray-500 text-sm mb-2"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> Argwings Kodhek Rd, Kilimani, Nairobi</p>
+            <div class="flex flex-wrap gap-1 mb-2">
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2 Beds</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">Borehole</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">Generator</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">Fiber Internet</span>
             </div>
-
-            <!-- Property Grid -->
-            <div id="propertyGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Cards dynamically populated -->
-            </div>
+          </div>
+          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <a href="tel:+254700000000" class="flex-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-semibold text-xs py-2 rounded-lg text-center flex items-center justify-center gap-1">
+              <i class="fa-solid fa-phone"></i> Call Caretaker
+            </a>
+            <a href="https://wa.me/254700000000" target="_blank" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold text-xs py-2 rounded-lg text-center flex items-center justify-center gap-1">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp Agent
+            </a>
+          </div>
         </div>
+      </div>
+
+      <!-- Property Card 2 -->
+      <div class="property-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row">
+        <div class="relative w-full md:w-48 h-48 bg-gray-200 shrink-0">
+          <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=500&q=80" alt="Property" class="w-full h-full object-cover">
+          <div class="absolute top-2 left-2 bg-blue-600 text-white font-bold text-xs px-2 py-1 rounded shadow">
+            KSh 18,500,000
+          </div>
+          <div class="absolute bottom-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium">
+            <i class="fa-solid fa-circle-check"></i> Verified Landlord
+          </div>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-lg text-gray-800">Luxury 4 Bed Townhouse in Lavington</h3>
+            <p class="text-gray-500 text-sm mb-2"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> James Gichuru Rd, Lavington, Nairobi</p>
+            <div class="flex flex-wrap gap-1 mb-2">
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">4+ Beds</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">DSQ</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">Electric Fence</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">Cabro Paving</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <a href="tel:+254711111111" class="flex-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-semibold text-xs py-2 rounded-lg text-center flex items-center justify-center gap-1">
+              <i class="fa-solid fa-phone"></i> Call Caretaker
+            </a>
+            <a href="https://wa.me/254711111111" target="_blank" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold text-xs py-2 rounded-lg text-center flex items-center justify-center gap-1">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp Agent
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
+  </main>
 
-    <!-- Modal for Listing Package Selection -->
-    <div id="packageModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Select a Listing Package</h2>
-                    <p class="text-gray-500 text-sm">Choose the tier that fits your property promotion needs</p>
-                </div>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-2 text-xl">&times;</button>
-            </div>
+  <script>
+    // Initialize Leaflet Map centered on Nairobi
+    const map = L.map('map').setView([-1.286389, 36.817223], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-            <form id="packageForm" onsubmit="handlePackageSubmit(event)">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <!-- Standard Launch Card -->
-                    <label for="tier-standard" class="package-card selected border-2 border-blue-600 bg-blue-50 rounded-xl p-4 flex flex-col justify-between" onclick="selectPackage('tier-standard')">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <input type="radio" id="tier-standard" name="listingTier" value="standard" checked class="w-4 h-4 text-blue-600">
-                                <span class="text-xs font-semibold px-2 py-1 bg-gray-200 rounded text-gray-700">Basic</span>
-                            </div>
-                            <h3 class="font-bold text-gray-900">Standard Launch</h3>
-                            <p class="text-2xl font-bold text-blue-600 mt-2">KSh 1,500</p>
-                            <p class="text-xs text-gray-500 mt-1">30 Days Active Listing</p>
-                        </div>
-                        <ul class="text-xs text-gray-600 mt-4 space-y-1">
-                            <li><i class="fa-solid fa-check text-green-500 mr-1"></i> Standard Map Pin</li>
-                            <li><i class="fa-solid fa-check text-green-500 mr-1"></i> Direct WhatsApp Link</li>
-                        </ul>
-                    </label>
+    // Map pins
+    const properties = [
+      { lat: -1.2921, lng: 36.7847, price: 'KSh 65k' },
+      { lat: -1.2721, lng: 36.7687, price: 'KSh 18.5M' }
+    ];
 
-                    <!-- Featured Boost Card -->
-                    <label for="tier-featured" class="package-card border-2 border-gray-200 rounded-xl p-4 flex flex-col justify-between" onclick="selectPackage('tier-featured')">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <input type="radio" id="tier-featured" name="listingTier" value="featured" class="w-4 h-4 text-blue-600">
-                                <span class="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-800 rounded">Popular</span>
-                            </div>
-                            <h3 class="font-bold text-gray-900">Featured Boost</h3>
-                            <p class="text-2xl font-bold text-blue-600 mt-2">KSh 3,500</p>
-                            <p class="text-xs text-gray-500 mt-1">60 Days Featured</p>
-                        </div>
-                        <ul class="text-xs text-gray-600 mt-4 space-y-1">
-                            <li><i class="fa-solid fa-check text-green-500 mr-1"></i> Top Search Priority</li>
-                            <li><i class="fa-solid fa-check text-green-500 mr-1"></i> Highlighted Map Pin</li>
-                        </ul>
-                    </label>
-
-                    <!-- Agency Pro Card -->
-                    <label for="tier-agency" class="package-card border-2 border-gray-200 rounded-xl p-4 flex flex-col justify-between" onclick="selectPackage('tier-agency')">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <input type="radio" id="tier-agency" name="listingTier" value="agency" class="w-4 h-4 text-blue-600">
-                                <span class="text-xs font-semibold px-2 py-1 bg-purple-100 text-purple-800 rounded">Pro</span>
-                            </div>
-                            <h3 class="font-bold text-gray-900">Agency Pro</h3>
-                            <p class="text-2xl font-bold text-blue-600 mt-2">KSh 7,500</p>
-                            <p class="text-xs text-gray-500 mt-1">90 Days Unlimited</p>
-                        </div>
-                        <ul class="text-xs text-gray-600 mt-4 space-y-1">
-                            <li><i class="fa-solid fa-check text-green-500 mr-1"></i> Social Media Promo</li>
-                            <li><i class="fa-solid fa-check text-green-500 mr-1"></i> Verified Badge</li>
-                        </ul>
-                    </label>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Cancel</button>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Continue Listing</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        const properties = [
-            {
-                id: 1,
-                title: "Modern 2 Bedroom Apartment",
-                location: "Westlands, Nairobi",
-                price: "KSh 65,000/mo",
-                type: "rent",
-                beds: 2,
-                baths: 2,
-                lat: -1.2676,
-                lng: 36.8112,
-                img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80",
-                caretakerTel: "tel:+254712345678",
-                caretakerWa: "https://api.whatsapp.com/send?phone=254712345678&text=Hi%20Caretaker,%20I%20am%20interested%20in%20Modern%202%20Bedroom%20Apartment",
-                agentTel: "tel:+254787654321",
-                agentWa: "https://api.whatsapp.com/send?phone=254787654321&text=Hi%20Agent,%20I%20am%20interested%20in%20Modern%202%20Bedroom%20Apartment"
-            },
-            {
-                id: 2,
-                title: "Luxury 3 Bedroom Villa",
-                location: "Kilimani, Nairobi",
-                price: "KSh 120,000/mo",
-                type: "rent",
-                beds: 3,
-                baths: 3,
-                lat: -1.2901,
-                lng: 36.7865,
-                img: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=600&q=80",
-                caretakerTel: "tel:+254722111222",
-                caretakerWa: "https://api.whatsapp.com/send?phone=254722111222&text=Hi%20Caretaker,%20I%20am%20interested%20in%20Luxury%203%20Bedroom%20Villa",
-                agentTel: "tel:+254733333444",
-                agentWa: "https://api.whatsapp.com/send?phone=254733333444&text=Hi%20Agent,%20I%20am%20interested%20in%20Luxury%203%20Bedroom%20Villa"
-            },
-            {
-                id: 3,
-                title: "Spacious Studio Apartment",
-                location: "Kileleshwa, Nairobi",
-                price: "KSh 35,000/mo",
-                type: "rent",
-                beds: 1,
-                baths: 1,
-                lat: -1.2815,
-                lng: 36.7950,
-                img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80",
-                caretakerTel: "tel:+254744555666",
-                caretakerWa: "https://api.whatsapp.com/send?phone=254744555666&text=Hi%20Caretaker,%20I%20am%20interested%20in%20Spacious%20Studio%20Apartment",
-                agentTel: "tel:+254755666777",
-                agentWa: "https://api.whatsapp.com/send?phone=254755666777&text=Hi%20Agent,%20I%20am%20interested%20in%20Spacious%20Studio%20Apartment"
-            }
-        ];
-
-        let map;
-
-        function initMap() {
-            map = L.map('map').setView([-1.286389, 36.817223], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
-            renderListings(properties);
-        }
-
-        function renderListings(list) {
-            const grid = document.getElementById('propertyGrid');
-            grid.innerHTML = '';
-
-            document.getElementById('listingCount').innerText = `${list.length} Properties Available`;
-
-            list.forEach(prop => {
-                const customIcon = L.divIcon({
-                    className: 'price-pin',
-                    html: prop.price.split('/')[0]
-                });
-                L.marker([prop.lat, prop.lng], { icon: customIcon }).addTo(map)
-                    .bindPopup(`<b>${prop.title}</b><br>${prop.price}`);
-
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition";
-                card.innerHTML = `
-                    <img src="${prop.img}" alt="${prop.title}" class="w-full h-44 object-cover">
-                    <div class="p-4">
-                        <span class="text-xs font-semibold px-2 py-0.5 bg-blue-50 text-blue-600 rounded">Verified</span>
-                        <h3 class="font-bold text-gray-900 mt-2 text-base line-clamp-1">${prop.title}</h3>
-                        <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                            <i class="fa-solid fa-location-dot text-xs"></i> ${prop.location}
-                        </p>
-                        <p class="text-lg font-extrabold text-blue-600 mt-2">${prop.price}</p>
-                        <div class="flex items-center gap-3 text-xs text-gray-500 mt-2 border-t border-b border-gray-100 py-2">
-                            <span><i class="fa-solid fa-bed mr-1"></i>${prop.beds} Beds</span>
-                            <span><i class="fa-solid fa-bath mr-1"></i>${prop.baths} Baths</span>
-                        </div>
-                        <div class="mt-4 space-y-2">
-                            <div class="flex gap-2">
-                                <a href="${prop.caretakerTel}" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs py-2 px-2 rounded text-center font-medium flex items-center justify-center gap-1">
-                                    <i class="fa-solid fa-phone"></i> Caretaker
-                                </a>
-                                <a href="${prop.caretakerWa}" target="_blank" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs py-2 px-2 rounded text-center font-medium flex items-center justify-center gap-1">
-                                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                                </a>
-                            </div>
-                            <div class="flex gap-2">
-                                <a href="${prop.agentTel}" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs py-2 px-2 rounded text-center font-medium flex items-center justify-center gap-1">
-                                    <i class="fa-solid fa-user-tie"></i> Agent
-                                </a>
-                                <a href="${prop.agentWa}" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-2 px-2 rounded text-center font-medium flex items-center justify-center gap-1">
-                                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function handleSearch(e) {
-            e.preventDefault();
-            const loc = document.getElementById('locationInput').value.toLowerCase();
-            const filtered = properties.filter(p => p.location.toLowerCase().includes(loc) || p.title.toLowerCase().includes(loc));
-            renderListings(filtered);
-        }
-
-        function selectPackage(id) {
-            document.querySelectorAll('.package-card').forEach(card => {
-                card.classList.remove('selected', 'border-blue-600', 'bg-blue-50');
-                card.classList.add('border-gray-200');
-            });
-            
-            const radio = document.getElementById(id);
-            if (radio) {
-                radio.checked = true;
-                const card = radio.closest('.package-card');
-                if (card) {
-                    card.classList.add('selected', 'border-blue-600', 'bg-blue-50');
-                    card.classList.remove('border-gray-200');
-                }
-            }
-        }
-
-        function openModal() {
-            document.getElementById('packageModal').classList.remove('hidden');
-            document.getElementById('packageModal').classList.add('flex');
-        }
-
-        function closeModal() {
-            document.getElementById('packageModal').classList.add('hidden');
-            document.getElementById('packageModal').classList.remove('flex');
-        }
-
-        function handlePackageSubmit(e) {
-            e.preventDefault();
-            const selectedTier = document.querySelector('input[name="listingTier"]:checked')?.value;
-            alert(`Selected package tier: ${selectedTier}`);
-            closeModal();
-        }
-
-        window.onload = initMap;
-    </script>
+    properties.forEach(p => {
+      const pinIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="price-pin">${p.price}</div>`,
+        iconSize: [80, 30],
+        iconAnchor: [40, 15]
+      });
+      L.marker([p.lat, p.lng], { icon: pinIcon }).addTo(map);
+    });
+  </script>
 </body>
 </html>
