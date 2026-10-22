@@ -10,220 +10,223 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     #map { height: 100%; min-height: 400px; width: 100%; }
-    .price-pin { background: #2563eb; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .price-pin { background: #2563eb; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex flex-col h-screen overflow-hidden font-sans">
-  
-  <!-- Navigation Header -->
-  <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center z-20">
-    <div class="flex items-center space-x-3">
-      <div class="bg-blue-600 text-white p-2 rounded-lg">
-        <i class="fa-solid fa-house-chimney text-xl"></i>
-      </div>
-      <span class="text-xl font-bold text-gray-900 tracking-tight">TrueHome <span class="text-blue-600">Kenya</span></span>
-    </div>
-    <div class="flex items-center space-x-3">
-      <span class="hidden md:inline-block text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">
-        <i class="fa-solid fa-fire text-amber-600 mr-1"></i> Promo: Free Listings for Landlords
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm z-10">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-2xl font-bold text-blue-600 flex items-center gap-2">
+        <i class="fa-solid font-bold fa-house-circle-check"></i> TrueHome <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">Kenya</span>
+      </a>
+      <span class="hidden md:inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 font-medium px-2.5 py-1 rounded-full border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Landlord Special: First 2 Listings Free!
       </span>
-      <a href="list.html" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1.5 shadow-sm">
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="list.html" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-plus"></i> List Property
       </a>
     </div>
   </header>
 
-  <!-- Kenya Filter Bar -->
-  <section class="bg-white border-b border-gray-200 px-6 py-2.5 z-10 shadow-sm">
-    <div class="flex flex-wrap items-center gap-3">
-      <div class="flex items-center flex-1 min-w-[220px] border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
-        <input type="text" placeholder="Search location (Kilimani, Westlands, Karen, Ruaka)..." class="w-full px-3 py-1.5 text-sm outline-none text-gray-700" />
-        <button class="bg-blue-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-blue-700 transition">
-          <i class="fa-solid fa-magnifying-glass"></i>
+  <!-- Search & Filter Bar -->
+  <section class="bg-white border-b border-gray-200 p-4 shrink-0 shadow-sm z-10">
+    <div class="max-w-7xl mx-auto flex flex-col gap-3">
+      <div class="flex flex-wrap gap-3 items-center">
+        <!-- Location -->
+        <div class="relative flex-1 min-w-[200px]">
+          <i class="fa-solid fa-location-dot absolute left-3 top-3 text-gray-400"></i>
+          <select id="location-select" class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+            <option value="">All Kenya Locations</option>
+            <option value="Nairobi">Nairobi</option>
+            <option value="Mombasa">Mombasa</option>
+            <option value="Kisumu">Kisumu</option>
+            <option value="Nakuru">Nakuru</option>
+            <option value="Eldoret">Eldoret</option>
+            <option value="Kiambu">Kiambu</option>
+          </select>
+        </div>
+
+        <!-- Rent / Sale -->
+        <select id="type-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+          <option value="rent">For Rent</option>
+          <option value="sale">For Sale</option>
+        </select>
+
+        <!-- KSh Price Range -->
+        <div class="flex items-center gap-2">
+          <input type="number" id="min-price" placeholder="Min KSh" class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <span class="text-gray-400">-</span>
+          <input type="number" id="max-price" placeholder="Max KSh" class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <!-- Bedrooms -->
+        <select id="bed-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+          <option value="">Bedrooms (Any)</option>
+          <option value="0">Bedsitter / Studio</option>
+          <option value="1">1 Bedroom</option>
+          <option value="2">2 Bedrooms</option>
+          <option value="3">3+ Bedrooms</option>
+        </select>
+
+        <button id="search-btn" class="bg-gray-900 hover:bg-black text-white text-sm font-medium px-5 py-2 rounded-lg transition">
+          Search
         </button>
       </div>
-      <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option>For Rent</option>
-        <option>For Sale</option>
-      </select>
-      <div class="flex items-center gap-1 border border-gray-300 rounded-lg px-2 py-1 bg-white">
-        <input type="number" placeholder="Min KSh" class="w-20 px-1 text-sm outline-none text-gray-700" />
-        <span class="text-gray-400 text-sm">-</span>
-        <input type="number" placeholder="Max KSh" class="w-20 px-1 text-sm outline-none text-gray-700" />
+
+      <!-- Utilities Checkboxes -->
+      <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-600 pt-1 border-t border-gray-100">
+        <span class="text-gray-400">Utilities & Amenities:</span>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" value="Borehole" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Borehole
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" value="Generator" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Generator
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" value="DSQ" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> DSQ
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" value="Fence" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Electric Fence
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" value="Cabro" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Cabro Paving
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" value="Fiber" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> High-Speed Fiber
+        </label>
       </div>
-      <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="">Bedrooms</option>
-        <option>Bedsitter / Studio</option>
-        <option>1 Bed</option>
-        <option>2 Beds</option>
-        <option>3 Beds</option>
-        <option>4+ Beds</option>
-      </select>
-      <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="">Must-Haves</option>
-        <option>Borehole Water</option>
-        <option>Backup Generator</option>
-        <option>DSQ</option>
-        <option>Perimeter Electric Fence</option>
-        <option>Cabro Paving</option>
-        <option>Fiber Internet</option>
-      </select>
     </div>
   </section>
 
-  <!-- Zillow Split Screen Layout -->
-  <div class="flex-1 flex flex-col md:flex-row-reverse overflow-hidden">
-    <!-- Property Cards Column (Right Side) -->
-    <div class="w-full md:w-1/2 overflow-y-auto p-4 space-y-4 bg-gray-50">
-      <div class="flex justify-between items-center px-1">
-        <div>
-          <h1 class="text-base font-bold text-gray-800">Verified Properties in Nairobi</h1>
-          <p class="text-xs text-gray-500">Contact the landlord or caretaker directly — zero viewing charges</p>
-        </div>
-        <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">2 Active</span>
-      </div>
-
-      <!-- Card 1 -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-        <div class="relative h-48 bg-gray-200">
-          <img id="img1" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600" class="w-full h-full object-cover">
-          <div class="absolute top-2 left-2 flex gap-1.5">
-            <span class="bg-emerald-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
-              <i class="fa-solid fa-circle-check"></i> Verified Landlord
-            </span>
-          </div>
-          <span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md">
-            <i class="fa-regular fa-clock"></i> 3 days on TrueHome
-          </span>
-          <button onclick="prevImg(1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-          <button onclick="nextImg(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-        </div>
-        <div class="p-4">
-          <div class="flex justify-between items-start">
-            <div class="text-2xl font-bold text-blue-600">KSh 65,000 <span class="text-sm font-normal text-gray-500">/ mo</span></div>
-            <span class="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded">For Rent</span>
-          </div>
-          <h2 class="font-bold text-gray-800 text-lg mt-0.5">2 Bdrm Apartment in Kilimani</h2>
-          <p class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-location-dot text-red-500"></i> Argwings Kodhek Rd, Nairobi</p>
-          <div class="flex items-center space-x-3 text-xs text-gray-600 mb-3">
-            <span><i class="fa-solid fa-bed text-blue-500"></i> 2 Beds</span>
-            <span><i class="fa-solid fa-bath text-blue-500"></i> 2 Baths</span>
-            <span><i class="fa-solid fa-droplet text-blue-500"></i> Borehole</span>
-            <span><i class="fa-solid fa-shield-halved text-blue-500"></i> Security</span>
-          </div>
-          <!-- Direct Caretaker Contact -->
-          <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
-              <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">JM</div>
-              <div>
-                <div class="text-xs font-bold text-gray-800">John Mwangi (Caretaker)</div>
-                <div class="text-[10px] text-emerald-700 font-semibold"><i class="fa-solid fa-shield-check"></i> Title & ID Verified</div>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <a href="https://api.whatsapp.com/send?phone=254712345678" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition flex items-center gap-1 shadow-sm">
-                <i class="fa-brands fa-whatsapp"></i> WhatsApp
-              </a>
-              <a href="tel:+254712345678" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1 shadow-sm">
-                <i class="fa-solid fa-phone"></i> Call
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
-        <div class="relative h-48 bg-gray-200">
-          <img id="img2" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600" class="w-full h-full object-cover">
-          <div class="absolute top-2 left-2 flex gap-1.5">
-            <span class="bg-emerald-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
-              <i class="fa-solid fa-circle-check"></i> Verified Landlord
-            </span>
-          </div>
-          <span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md">
-            <i class="fa-regular fa-clock"></i> 14 days on TrueHome
-          </span>
-          <button onclick="prevImg(2)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-          <button onclick="nextImg(2)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-        </div>
-        <div class="p-4">
-          <div class="flex justify-between items-start">
-            <div class="text-2xl font-bold text-blue-600">KSh 65,000,000</div>
-            <span class="text-xs bg-green-50 text-green-700 font-semibold px-2 py-0.5 rounded">For Sale</span>
-          </div>
-          <h2 class="font-bold text-gray-800 text-lg mt-0.5">Luxury 4 Bedroom Villa</h2>
-          <p class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-location-dot text-red-500"></i> Karen, Nairobi</p>
-          <div class="flex items-center space-x-3 text-xs text-gray-600 mb-3">
-            <span><i class="fa-solid fa-bed text-blue-500"></i> 4 Beds</span>
-            <span><i class="fa-solid fa-bath text-blue-500"></i> 5 Baths</span>
-            <span><i class="fa-solid fa-bolt text-blue-500"></i> Generator</span>
-            <span><i class="fa-solid fa-shield-halved text-blue-500"></i> Electric Fence</span>
-          </div>
-          <!-- Direct Agent Contact -->
-          <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
-              <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">SO</div>
-              <div>
-                <div class="text-xs font-bold text-gray-800">Samuel Omondi (Agent)</div>
-                <div class="text-[10px] text-emerald-700 font-semibold"><i class="fa-solid fa-shield-check"></i> EARB Registered</div>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <a href="https://api.whatsapp.com/send?phone=254711000000" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition flex items-center gap-1 shadow-sm">
-                <i class="fa-brands fa-whatsapp"></i> WhatsApp
-              </a>
-              <a href="tel:+254711000000" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1 shadow-sm">
-                <i class="fa-solid fa-phone"></i> Call
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Map Column (Left Side) -->
-    <div class="w-full md:w-1/2 h-full">
+  <!-- Main Zillow Split Layout -->
+  <main class="flex-1 flex overflow-hidden">
+    <!-- Left Map View -->
+    <div class="w-1/2 h-full hidden lg:block border-r border-gray-200 relative">
       <div id="map"></div>
     </div>
-  </div>
+
+    <!-- Right Listing Cards List -->
+    <div class="w-full lg:w-1/2 h-full overflow-y-auto p-4 bg-gray-50">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-lg font-bold text-gray-800">Verified Homes & Apartments in Kenya</h1>
+        <span id="results-count" class="text-xs font-semibold text-gray-500 bg-gray-200 px-2.5 py-1 rounded-full">3 Listings Found</span>
+      </div>
+
+      <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Card 1 -->
+        <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
+          <div class="relative h-44 bg-gray-200">
+            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" alt="Kilimani Studio" class="w-full h-full object-cover">
+            <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+              <i class="fa-solid fa-circle-check"></i> Verified Landlord
+            </span>
+            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
+              2 days on TrueHome
+            </span>
+          </div>
+          <div class="p-3.5">
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xl font-extrabold text-blue-700">KSh 35,000<span class="text-xs font-normal text-gray-500">/mo</span></span>
+              <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Kilimani, Nairobi</span>
+            </div>
+            <h2 class="font-bold text-gray-800 text-sm mb-1">Modern Executive 1 Bed Apartment</h2>
+            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bed text-gray-400 mr-1"></i>1 Bed &bull; <i class="fa-solid fa-shower text-gray-400 mr-1"></i>1 Bath &bull; Borehole, Fiber, Generator</p>
+            <div class="flex gap-2 pt-2 border-t border-gray-100">
+              <a href="tel:+254712345678" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
+                <i class="fa-solid fa-phone mr-1"></i> Call Caretaker
+              </a>
+              <a href="https://wa.me/254712345678" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg transition">
+                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
+          <div class="relative h-44 bg-gray-200">
+            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80" alt="Lavington Villa" class="w-full h-full object-cover">
+            <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+              <i class="fa-solid fa-circle-check"></i> Verified Landlord
+            </span>
+            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
+              5 days on TrueHome
+            </span>
+          </div>
+          <div class="p-3.5">
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xl font-extrabold text-blue-700">KSh 120,000<span class="text-xs font-normal text-gray-500">/mo</span></span>
+              <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Lavington, Nairobi</span>
+            </div>
+            <h2 class="font-bold text-gray-800 text-sm mb-1">Spacious 3 Bed Townhouse + DSQ</h2>
+            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bed text-gray-400 mr-1"></i>3 Beds &bull; <i class="fa-solid fa-shower text-gray-400 mr-1"></i>3 Baths &bull; DSQ, Fence, Cabro</p>
+            <div class="flex gap-2 pt-2 border-t border-gray-100">
+              <a href="tel:+254722987654" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
+                <i class="fa-solid fa-phone mr-1"></i> Call Caretaker
+              </a>
+              <a href="https://wa.me/254722987654" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg transition">
+                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
+          <div class="relative h-44 bg-gray-200">
+            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80" alt="Nyali Apartment" class="w-full h-full object-cover">
+            <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+              <i class="fa-solid fa-circle-check"></i> Verified Landlord
+            </span>
+            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
+              1 day on TrueHome
+            </span>
+          </div>
+          <div class="p-3.5">
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xl font-extrabold text-blue-700">KSh 65,000<span class="text-xs font-normal text-gray-500">/mo</span></span>
+              <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Nyali, Mombasa</span>
+            </div>
+            <h2 class="font-bold text-gray-800 text-sm mb-1">Luxury 2 Bed Ocean View Flat</h2>
+            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bed text-gray-400 mr-1"></i>2 Beds &bull; <i class="fa-solid fa-shower text-gray-400 mr-1"></i>2 Baths &bull; Borehole, Generator, Fiber</p>
+            <div class="flex gap-2 pt-2 border-t border-gray-100">
+              <a href="tel:+254733112233" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
+                <i class="fa-solid fa-phone mr-1"></i> Call Caretaker
+              </a>
+              <a href="https://wa.me/254733112233" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg transition">
+                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
     const map = L.map('map').setView([-1.286389, 36.817223], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const listings = [
-      { lat: -1.2921, lng: 36.7821, price: 'KSh 65k', title: '2 Bdrm Kilimani' },
-      { lat: -1.3197, lng: 36.7062, price: 'KSh 65M', title: 'Karen Villa' }
+    const locations = [
+      { lat: -1.2921, lng: 36.7847, price: "KSh 35k" },
+      { lat: -1.2721, lng: 36.7722, price: "KSh 120k" },
+      { lat: -4.0435, lng: 39.6682, price: "KSh 65k" }
     ];
 
-    listings.forEach(item => {
-      const icon = L.divIcon({
+    locations.forEach(loc => {
+      const pin = L.divIcon({
         className: 'custom-pin',
-        html: `<div class="price-pin">${item.price}</div>`
+        html: `<div class="price-pin">${loc.price}</div>`
       });
-      L.marker([item.lat, item.lng], { icon: icon }).addTo(map).bindPopup(`<b>${item.title}</b><br>${item.price}`);
+      L.marker([loc.lat, loc.lng], { icon: pin }).addTo(map);
     });
-
-    const photos = {
-      1: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600'],
-      2: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600']
-    };
-    const currentIdx = { 1: 0, 2: 0 };
-
-    function prevImg(id) {
-      if (!photos[id]) return;
-      currentIdx[id] = (currentIdx[id] - 1 + photos[id].length) % photos[id].length;
-      document.getElementById('img' + id).src = photos[id][currentIdx[id]];
-    }
-
-    function nextImg(id) {
-      if (!photos[id]) return;
-      currentIdx[id] = (currentIdx[id] + 1) % photos[id].length;
-      document.getElementById('img' + id).src = photos[id][currentIdx[id]];
-    }
   </script>
 </body>
 </html>
