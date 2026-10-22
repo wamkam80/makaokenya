@@ -13,12 +13,13 @@
   <style type="text/tailwindcss">
     .inp { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500; }
     .lbl { @apply mb-1 block text-sm font-medium text-slate-700; }
-    .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition; }
+    .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60; }
     .btn-primary { @apply bg-emerald-600 text-white hover:bg-emerald-700; }
     .btn-ghost { @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
     .btn-danger { @apply border border-red-200 bg-white text-red-600 hover:bg-red-50; }
     .navlink { @apply whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
     .navlink.active { @apply bg-emerald-50 text-emerald-700; }
+    .filebox { @apply block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700; }
   </style>
   <style>
     [hidden] { display: none !important; }
@@ -40,7 +41,7 @@
 
   <!-- ========== HEADER ========== -->
   <header class="sticky top-0 z-[1100] border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
       <a href="#browse" class="flex items-center gap-2 text-xl font-extrabold">
         <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-600 text-white">
           <i class="fa-solid fa-house-circle-check"></i>
@@ -52,7 +53,12 @@
         <a href="#verify" data-nav="verify" class="navlink"><i class="fa-solid fa-shield-halved mr-1"></i> Get verified</a>
         <a href="#mine" data-nav="mine" class="navlink"><i class="fa-solid fa-list-check mr-1"></i> My listings</a>
       </nav>
-      <a href="#list" data-nav="list" class="btn btn-primary hidden sm:inline-flex"><i class="fa-solid fa-plus"></i> List a property</a>
+      <div class="flex items-center gap-2">
+        <button id="accountBtn" hidden data-action="account" class="btn btn-ghost px-3">
+          <i class="fa-solid fa-user"></i><span id="accountLabel" class="max-w-[7rem] truncate">Sign in</span>
+        </button>
+        <a href="#list" data-nav="list" class="btn btn-primary hidden sm:inline-flex"><i class="fa-solid fa-plus"></i> List a property</a>
+      </div>
     </div>
     <nav class="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-1 md:hidden">
       <a href="#browse" data-nav="browse" class="navlink">Browse</a>
@@ -118,6 +124,28 @@
       </div>
     </section>
 
+    <!-- ========== SIGN IN ========== -->
+    <section id="view-signin" hidden class="mx-auto max-w-md px-4 py-10">
+      <div class="rounded-xl border border-slate-200 bg-white p-6">
+        <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-right-to-bracket"></i></div>
+        <h1 class="mt-3 text-center text-2xl font-extrabold">Sign in</h1>
+        <p id="signinReason" class="mt-1 text-center text-sm text-slate-600">Sign in to list properties and get verified.</p>
+        <form id="signinForm" class="mt-5 space-y-3">
+          <div>
+            <label class="lbl" for="siEmail">Email address</label>
+            <input id="siEmail" type="email" required autocomplete="email" class="inp" placeholder="you@example.com">
+          </div>
+          <button type="submit" class="btn btn-primary w-full"><i class="fa-solid fa-envelope"></i> Email me a sign-in link</button>
+        </form>
+        <div id="signinSent" hidden class="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <p class="font-semibold"><i class="fa-solid fa-envelope-circle-check"></i> Check your email</p>
+          <p class="mt-1">We sent a sign-in link to <strong id="signinEmailShown"></strong>. Open it on this phone or computer to continue. Check your spam folder if it doesn't arrive within a few minutes.</p>
+          <button data-action="signin-again" class="mt-3 font-semibold underline">Use a different email</button>
+        </div>
+        <p class="mt-5 text-center text-xs text-slate-500">No password needed. Browsing listings is free and needs no account.</p>
+      </div>
+    </section>
+
     <!-- ========== LIST A PROPERTY ========== -->
     <section id="view-list" hidden class="mx-auto max-w-3xl px-4 py-6">
       <h1 id="formHeading" class="text-2xl font-extrabold">List a property</h1>
@@ -168,7 +196,7 @@
 
         <fieldset class="space-y-3">
           <legend class="mb-2 font-semibold">Photo</legend>
-          <input id="lfPhoto" type="file" accept="image/*" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700">
+          <input id="lfPhoto" type="file" accept="image/*" class="filebox">
           <div id="photoPreview"></div>
         </fieldset>
 
@@ -208,7 +236,7 @@
 
     <!-- ========== VERIFY ========== -->
     <section id="view-verify" hidden class="mx-auto max-w-2xl px-4 py-6">
-      <h1 class="text-2xl font-extrabold">Landlord verification</h1>
+      <h1 class="text-2xl font-extrabold">Landlord &amp; agent verification</h1>
       <div id="verifyBody" class="mt-4"></div>
     </section>
 
@@ -223,8 +251,8 @@
   </main>
 
   <footer class="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500">
-    © <span id="year"></span> TrueHome Kenya · Demo version: listings and verification requests are saved only in this browser.
-    <button data-action="reset-demo" class="underline hover:text-slate-700">Reset demo data</button>
+    © <span id="year"></span> TrueHome Kenya · <span id="modeNote"></span>
+    <button id="resetDemoBtn" data-action="reset-demo" class="underline hover:text-slate-700">Reset demo data</button>
   </footer>
 
   <!-- ========== DETAIL MODAL ========== -->
@@ -236,9 +264,20 @@
   <div id="toast" hidden class="fixed bottom-4 left-1/2 z-[3000] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script>
   (function () {
     'use strict';
+
+    /* =====================================================================
+       Mode: LIVE when config.js has Supabase settings, otherwise DEMO
+       ===================================================================== */
+    const CFG = window.TRUEHOME_CONFIG || {};
+    const LIVE = Boolean(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase && window.supabase.createClient);
+    const sb = LIVE ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey) : null;
+    let session = null;
+    const uid = () => (session && session.user ? session.user.id : null);
 
     /* ---------- Helpers ---------- */
     const $ = (s) => document.querySelector(s);
@@ -273,10 +312,34 @@
     function toast(msg, type) {
       const el = $('#toast');
       el.textContent = msg;
-      el.className = el.className.replace(/bg-\S+/g, '') + (type === 'error' ? ' bg-red-600' : ' bg-slate-900');
+      el.classList.remove('bg-red-600', 'bg-slate-900');
+      el.classList.add(type === 'error' ? 'bg-red-600' : 'bg-slate-900');
       el.hidden = false;
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { el.hidden = true; }, 3500);
+      toastTimer = setTimeout(() => { el.hidden = true; }, type === 'error' ? 6000 : 3500);
+    }
+
+    function friendly(err) {
+      const m = (err && (err.message || err.error_description)) || String(err);
+      if (/failed to fetch|networkerror|load failed/i.test(m)) return 'Network problem. Check your connection and try again.';
+      if (/row-level security|permission denied|not authorized|jwt/i.test(m)) return 'You are not allowed to do that. Please sign in again.';
+      if (/one_pending_request_per_user|duplicate key/i.test(m)) return 'You already have a verification request under review.';
+      if (/rate limit|too many/i.test(m)) return 'Too many attempts. Please wait a few minutes and try again.';
+      if (/mime type|invalid.*type/i.test(m)) return 'That file type is not allowed. Use a photo (JPG/PNG) or a PDF.';
+      if (/exceeded the maximum allowed size|payload too large/i.test(m)) return 'That file is too large.';
+      return m;
+    }
+
+    function setBusy(btn, on, label) {
+      if (!btn) return;
+      if (on) {
+        btn.dataset.idle = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${esc(label || 'Saving…')}`;
+      } else {
+        btn.disabled = false;
+        if (btn.dataset.idle) btn.innerHTML = btn.dataset.idle;
+      }
     }
 
     /* Kenyan phone -> "2547XXXXXXXX" / "2541XXXXXXXX", or null if invalid */
@@ -296,9 +359,12 @@
       if (n >= 1e3) return Math.round(n / 1e3) + 'K';
       return String(n);
     }
+    const newId = () => (window.crypto && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
 
     /* ---------- Reference data ---------- */
-    const KEYS = { listings: 'thk_listings_v1', profile: 'thk_profile_v1' };
+    const KEYS = { listings: 'thk_listings_v1', profile: 'thk_profile_v1', afterLogin: 'thk_after_login' };
 
     const TYPES = {
       apartment:  { label: 'Apartment',  icon: 'fa-building',      color: 'from-sky-500 to-indigo-600' },
@@ -331,7 +397,9 @@
     const COUNTIES = [...new Set(LOCATIONS.map((l) => l.county))];
     const locByName = (n) => LOCATIONS.find((l) => l.name === n) || LOCATIONS[0];
 
-    /* ---------- Sample data (contact disabled) ---------- */
+    /* =====================================================================
+       DEMO data store (browser only)
+       ===================================================================== */
     function seedListings() {
       const now = Date.now();
       const rows = [
@@ -345,7 +413,7 @@
         { title: '3 bedroom beachside apartment', purpose: 'rent', type: 'apartment', price: 90000, beds: 3, baths: 3, location: 'Nyali', contactName: 'Coast Lettings', role: 'agent', verified: false, description: 'Sea view, swimming pool, 5 minutes walk to the beach.' },
         { title: '3 bedroom bungalow in Milimani', purpose: 'rent', type: 'house', price: 60000, beds: 3, baths: 2, location: 'Milimani, Kisumu', contactName: 'Achieng', role: 'landlord', verified: true, description: 'Quiet neighbourhood, large compound, near Kisumu CBD.' },
         { title: 'Cosy 2 bedroom apartment', purpose: 'rent', type: 'apartment', price: 25000, beds: 2, baths: 1, location: 'Milimani, Nakuru', contactName: 'Mwangi', role: 'caretaker', verified: false, description: 'Close to Nakuru town, reliable water, secure parking.' },
-        { title: '3 bedroom apartment near SGR station', purpose: 'sale', type: 'apartment', price: 9800000, beds: 3, baths: 2, location: 'Syokimau', contactName: 'Nyumba Bora', role: 'agent', verified: true, description: 'Ready to move in, lift, backup generator, children\u2019s play area.' },
+        { title: '3 bedroom apartment near SGR station', purpose: 'sale', type: 'apartment', price: 9800000, beds: 3, baths: 2, location: 'Syokimau', contactName: 'Nyumba Bora', role: 'agent', verified: true, description: 'Ready to move in, lift, backup generator, children’s play area.' },
         { title: 'Open-plan office space, 1,200 sq ft', purpose: 'rent', type: 'commercial', price: 180000, beds: 0, baths: 2, location: 'Westlands', dLat: -0.003, dLng: 0.004, contactName: 'Prime Homes', role: 'agent', verified: true, description: 'Grade A building, fibre ready, 3 parking slots included.' },
         { title: '1 bedroom near Kasarani Stadium', purpose: 'rent', type: 'apartment', price: 18000, beds: 1, baths: 1, location: 'Kasarani', contactName: 'Wafula', role: 'caretaker', verified: false, description: 'Newly built, spacious kitchen, constant water.' },
         { title: '4 bedroom maisonette with DSQ', purpose: 'sale', type: 'house', price: 22000000, beds: 4, baths: 3, location: 'Elgon View', contactName: 'Kiprop', role: 'landlord', verified: true, description: 'Leafy suburb, large garden, close to schools and hospitals.' }
@@ -363,40 +431,217 @@
       });
     }
 
-    /* ---------- State ---------- */
-    let listings = store.get(KEYS.listings, null);
-    if (!Array.isArray(listings)) {
-      listings = seedListings();
-      store.set(KEYS.listings, listings);
+    function loadLocal() {
+      let ls = store.get(KEYS.listings, null);
+      if (!Array.isArray(ls)) {
+        ls = seedListings();
+        store.set(KEYS.listings, ls);
+      }
+      let pr = store.get(KEYS.profile, null);
+      if (!pr || typeof pr !== 'object' || !pr.status) pr = { status: 'none' };
+      return { ls, pr };
     }
-    let profile = store.get(KEYS.profile, null);
-    if (!profile || typeof profile !== 'object' || !profile.status) profile = { status: 'none' };
+
+    /* =====================================================================
+       LIVE data store (Supabase)
+       ===================================================================== */
+    function fromRow(r) {
+      return {
+        id: r.id,
+        ownerId: r.owner_id,
+        owner: r.owner_id && r.owner_id === uid() ? 'me' : 'other',
+        demo: false,
+        title: r.title,
+        purpose: r.purpose,
+        type: r.type,
+        price: Number(r.price),
+        beds: Number(r.beds) || 0,
+        baths: Number(r.baths) || 0,
+        location: r.location,
+        county: r.county,
+        lat: Number(r.lat),
+        lng: Number(r.lng),
+        contactName: r.contact_name,
+        role: r.role,
+        phone: r.phone,
+        description: r.description || '',
+        photo: r.photo_url || null,
+        verified: !!r.owner_verified,
+        createdAt: new Date(r.created_at).getTime()
+      };
+    }
+
+    function toRow(d) {
+      return {
+        title: d.title, purpose: d.purpose, type: d.type, price: d.price,
+        beds: d.beds, baths: d.baths, location: d.location, county: d.county,
+        lat: d.lat, lng: d.lng, contact_name: d.contactName, role: d.role,
+        phone: d.phone, description: d.description || null, photo_url: d.photo || null
+      };
+    }
+
+    const fileExt = (file) => {
+      const m = /\.([a-z0-9]{2,5})$/i.exec(file.name || '');
+      if (m) return m[1].toLowerCase();
+      return (file.type.split('/')[1] || 'bin').replace('jpeg', 'jpg');
+    };
+
+    function photoPathFromUrl(url) {
+      const marker = '/storage/v1/object/public/listing-photos/';
+      const i = url ? url.indexOf(marker) : -1;
+      return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length));
+    }
+
+    const remote = {
+      async loadListings() {
+        const { data, error } = await sb.from('listings_public')
+          .select('*').order('created_at', { ascending: false }).limit(1000);
+        if (error) throw error;
+        return data.map(fromRow);
+      },
+
+      async uploadPhoto(dataUrl) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const path = `${uid()}/${newId()}.jpg`;
+        const { error } = await sb.storage.from('listing-photos')
+          .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+        if (error) throw error;
+        return sb.storage.from('listing-photos').getPublicUrl(path).data.publicUrl;
+      },
+
+      async saveListing(data, id) {
+        const d = { ...data };
+        if (d.photo && d.photo.startsWith('data:')) d.photo = await remote.uploadPhoto(d.photo);
+        if (id) {
+          const { error } = await sb.from('listings')
+            .update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', id);
+          if (error) throw error;
+        } else {
+          const { error } = await sb.from('listings').insert(toRow(d));
+          if (error) throw error;
+        }
+      },
+
+      async deleteListing(l) {
+        const { error } = await sb.from('listings').delete().eq('id', l.id);
+        if (error) throw error;
+        const path = photoPathFromUrl(l.photo);
+        if (path) await sb.storage.from('listing-photos').remove([path]).catch(() => {});
+      },
+
+      async loadProfile() {
+        if (!uid()) return { status: 'none' };
+        const [pRes, rRes] = await Promise.all([
+          sb.from('profiles').select('verified, verified_at').eq('id', uid()).maybeSingle(),
+          sb.from('verification_requests')
+            .select('id, status, full_name, id_number, id_doc_path, deed_doc_path, review_note, created_at')
+            .eq('user_id', uid()).order('created_at', { ascending: false }).limit(1)
+        ]);
+        if (pRes.error) throw pRes.error;
+        if (rRes.error) throw rRes.error;
+        const p = pRes.data;
+        const r = rRes.data && rRes.data[0];
+        if (p && p.verified) {
+          return { status: 'verified', name: r ? r.full_name : '', verifiedAt: p.verified_at };
+        }
+        if (r && r.status === 'pending') {
+          return {
+            status: 'pending', requestId: r.id, name: r.full_name,
+            idLast3: String(r.id_number).slice(-3),
+            idFileName: r.id_doc_path.split('/').pop(),
+            deedFileName: r.deed_doc_path.split('/').pop(),
+            docPaths: [r.id_doc_path, r.deed_doc_path],
+            submittedAt: new Date(r.created_at).getTime()
+          };
+        }
+        if (r && r.status === 'rejected') return { status: 'rejected', note: r.review_note || '' };
+        return { status: 'none' };
+      },
+
+      async submitVerification(f) {
+        const ts = Date.now();
+        const idPath = `${uid()}/id-${ts}.${fileExt(f.idFile)}`;
+        const deedPath = `${uid()}/ownership-${ts}.${fileExt(f.deedFile)}`;
+        const bucket = sb.storage.from('verification-docs');
+        const up1 = await bucket.upload(idPath, f.idFile, { contentType: f.idFile.type || undefined, upsert: false });
+        if (up1.error) throw up1.error;
+        const up2 = await bucket.upload(deedPath, f.deedFile, { contentType: f.deedFile.type || undefined, upsert: false });
+        if (up2.error) { await bucket.remove([idPath]).catch(() => {}); throw up2.error; }
+        const { error } = await sb.from('verification_requests').insert({
+          full_name: f.fullName,
+          id_number: f.idNumber,
+          agent_reg_no: f.agentReg || null,
+          property_ref: f.propertyRef || null,
+          id_doc_path: idPath,
+          deed_doc_path: deedPath
+        });
+        if (error) { await bucket.remove([idPath, deedPath]).catch(() => {}); throw error; }
+      },
+
+      async withdrawVerification(pr) {
+        const { error } = await sb.from('verification_requests').delete().eq('id', pr.requestId);
+        if (error) throw error;
+        if (pr.docPaths) await sb.storage.from('verification-docs').remove(pr.docPaths).catch(() => {});
+      }
+    };
+
+    /* =====================================================================
+       App state
+       ===================================================================== */
+    let listings = [];
+    let profile = { status: 'none' };
+    let loading = LIVE;
+    let loadError = null;
 
     let editingId = null;
     let currentPhoto = null;
     let lastItems = [];
     let mobileView = 'list';
+    let pendingView = null;
 
-    const isVerified = (l) => (l.owner === 'me' ? profile.status === 'verified' : !!l.verified);
+    const isVerified = (l) => (LIVE
+      ? !!l.verified
+      : (l.owner === 'me' ? profile.status === 'verified' : !!l.verified));
 
-    function saveListings(backup) {
+    function saveLocalListings(backup) {
       if (store.set(KEYS.listings, listings)) return true;
       if (backup) listings = backup;
       toast('Storage is full. Delete a listing or use a smaller photo.', 'error');
       return false;
     }
-    function saveProfile() {
+    function saveLocalProfile() {
       if (!store.set(KEYS.profile, profile)) toast('Could not save. Browser storage is full.', 'error');
     }
 
-    /* ---------- UI fragments ---------- */
+    async function reloadData() {
+      if (!LIVE) {
+        const { ls, pr } = loadLocal();
+        listings = ls; profile = pr;
+        renderAll();
+        return;
+      }
+      loading = true; loadError = null;
+      renderResults();
+      try {
+        const [ls, pr] = await Promise.all([remote.loadListings(), remote.loadProfile()]);
+        listings = ls; profile = pr;
+      } catch (err) {
+        loadError = friendly(err);
+      }
+      loading = false;
+      renderAll();
+    }
+
+    /* =====================================================================
+       UI fragments
+       ===================================================================== */
     function placeholder(type, h) {
       const t = TYPES[type] || TYPES.house;
       return `<div class="${h} w-full bg-gradient-to-br ${t.color} grid place-items-center">
         <i class="fa-solid ${t.icon} text-5xl text-white/80"></i></div>`;
     }
     const photoHTML = (l, h) => (l.photo
-      ? `<img src="${esc(l.photo)}" alt="${esc(l.title)}" class="${h} w-full object-cover">`
+      ? `<img src="${esc(l.photo)}" alt="${esc(l.title)}" loading="lazy" class="${h} w-full object-cover">`
       : placeholder(l.type, h));
 
     const verifiedBadge = (v) => (v
@@ -430,7 +675,9 @@
       </article>`;
     }
 
-    /* ---------- Filters & results ---------- */
+    /* =====================================================================
+       Filters & results
+       ===================================================================== */
     function getFilters() {
       return {
         q: $('#fQ').value.trim().toLowerCase(),
@@ -461,17 +708,50 @@
       return out;
     }
 
+    function hasActiveFilter() {
+      const f = getFilters();
+      return Boolean(f.q || f.purpose || f.type || f.county || f.beds || f.max || f.verified);
+    }
+
     function renderResults() {
+      if (loading) {
+        $('#resultCount').textContent = 'Loading…';
+        $('#results').innerHTML = Array.from({ length: 4 }).map(() =>
+          '<div class="h-72 animate-pulse rounded-xl border border-slate-200 bg-white"></div>').join('');
+        lastItems = [];
+        renderMarkers([]);
+        return;
+      }
+      if (loadError) {
+        $('#resultCount').textContent = '';
+        $('#results').innerHTML = `<div class="col-span-full rounded-xl border border-red-200 bg-white p-8 text-center">
+            <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+            <p class="mt-2 font-medium">Couldn't load properties.</p>
+            <p class="text-sm text-slate-500">${esc(loadError)}</p>
+            <button data-action="retry" class="btn btn-ghost mt-3"><i class="fa-solid fa-rotate"></i> Try again</button>
+          </div>`;
+        lastItems = [];
+        renderMarkers([]);
+        return;
+      }
       const items = filteredListings();
       lastItems = items;
       $('#resultCount').textContent = `${items.length} ${items.length === 1 ? 'property' : 'properties'}`;
-      $('#results').innerHTML = items.length
-        ? items.map(cardHTML).join('')
-        : `<div class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-             <i class="fa-solid fa-house-circle-xmark text-3xl text-slate-400"></i>
-             <p class="mt-2 font-medium">No properties match your filters.</p>
-             <button data-action="clear-filters" class="btn btn-ghost mt-3">Clear filters</button>
-           </div>`;
+      let empty = '';
+      if (!items.length) {
+        empty = hasActiveFilter()
+          ? `<div class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+               <i class="fa-solid fa-house-circle-xmark text-3xl text-slate-400"></i>
+               <p class="mt-2 font-medium">No properties match your filters.</p>
+               <button data-action="clear-filters" class="btn btn-ghost mt-3">Clear filters</button>
+             </div>`
+          : `<div class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+               <i class="fa-solid fa-house-chimney text-3xl text-slate-400"></i>
+               <p class="mt-2 font-medium">No properties listed yet.</p>
+               <a href="#list" class="btn btn-primary mt-3"><i class="fa-solid fa-plus"></i> Be the first to list</a>
+             </div>`;
+      }
+      $('#results').innerHTML = items.length ? items.map(cardHTML).join('') : empty;
       renderMarkers(items);
     }
 
@@ -483,7 +763,9 @@
       renderResults();
     }
 
-    /* ---------- Main map ---------- */
+    /* =====================================================================
+       Main map
+       ===================================================================== */
     const map = L.map('map', { scrollWheelZoom: true }).setView([-1.286, 36.817], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -498,6 +780,7 @@
       markers = {};
       activeId = null;
       items.forEach((l) => {
+        if (!Number.isFinite(l.lat) || !Number.isFinite(l.lng)) return;
         const icon = L.divIcon({
           className: 'pin-wrap',
           iconSize: [0, 0],
@@ -512,11 +795,12 @@
     }
 
     function fitToResults() {
-      if (!lastItems.length || map.getSize().x === 0) return;
-      if (lastItems.length === 1) {
-        map.setView([lastItems[0].lat, lastItems[0].lng], 14);
+      const pts = lastItems.filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lng));
+      if (!pts.length || map.getSize().x === 0) return;
+      if (pts.length === 1) {
+        map.setView([pts[0].lat, pts[0].lng], 14);
       } else {
-        map.fitBounds(L.latLngBounds(lastItems.map((l) => [l.lat, l.lng])), { padding: [40, 40], maxZoom: 14 });
+        map.fitBounds(L.latLngBounds(pts.map((l) => [l.lat, l.lng])), { padding: [40, 40], maxZoom: 14 });
       }
     }
 
@@ -549,7 +833,6 @@
       setMobileView('map', false);
       setTimeout(() => {
         map.invalidateSize();
-        // Make sure the pin exists even if filters hide it
         if (!markers[id]) clearFilters();
         map.setView([l.lat, l.lng], 16);
         highlight(id);
@@ -557,7 +840,9 @@
       }, 150);
     }
 
-    /* ---------- Detail modal ---------- */
+    /* =====================================================================
+       Detail modal
+       ===================================================================== */
     function openDetail(id) {
       const l = listings.find((x) => x.id === id);
       if (!l) return;
@@ -572,7 +857,7 @@
           <button data-demo-contact class="btn btn-ghost flex-1"><i class="fa-solid fa-phone"></i> Call</button>`;
       } else if (phone) {
         contactButtons = `
-          <a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="btn flex-1 bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</a>
+          <a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener noreferrer" class="btn flex-1 bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</a>
           <a href="tel:+${phone}" class="btn btn-ghost flex-1"><i class="fa-solid fa-phone"></i> Call</a>`;
       } else {
         contactButtons = '<p class="text-sm text-red-600">This listing has no valid phone number.</p>';
@@ -581,7 +866,7 @@
       const tiles = (l.type === 'land' || l.type === 'commercial')
         ? ''
         : `<div class="grid grid-cols-3 gap-2 text-center">
-            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${l.beds > 0 ? l.beds : 'Studio'}</p><p class="text-xs text-slate-500">Bedrooms</p></div>
+            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${l.beds > 0 ? Number(l.beds) : 'Studio'}</p><p class="text-xs text-slate-500">Bedrooms</p></div>
             <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${Number(l.baths)}</p><p class="text-xs text-slate-500">Bathrooms</p></div>
             <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${esc((TYPES[l.type] || TYPES.house).label)}</p><p class="text-xs text-slate-500">Type</p></div>
           </div>`;
@@ -611,7 +896,7 @@
             <div class="flex gap-2">${contactButtons}</div>
           </div>
           <button data-map-id="${esc(l.id)}" class="btn btn-ghost w-full"><i class="fa-solid fa-map-location-dot"></i> View on map</button>
-          <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Safety tip: never pay a deposit or viewing fee before visiting the property and confirming who owns it.</p>
+          <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Safety tip: never pay a deposit or viewing fee before visiting the property and confirming who owns it.${v ? '' : ' This lister has not been verified yet.'}</p>
           ${l.demo ? '<p class="text-center text-xs text-slate-400">Sample listing for demonstration only.</p>' : ''}
         </div>`;
       $('#detailModal').hidden = false;
@@ -624,7 +909,9 @@
       document.body.style.overflow = '';
     }
 
-    /* ---------- Listing form ---------- */
+    /* =====================================================================
+       Listing form
+       ===================================================================== */
     let formMap = null;
     let formMarker = null;
 
@@ -660,6 +947,9 @@
         : '<p class="text-xs text-slate-500">Optional. Photos are resized automatically to save space.</p>';
     }
 
+    const SUBMIT_NEW = '<i class="fa-solid fa-paper-plane"></i> Publish listing';
+    const SUBMIT_EDIT = '<i class="fa-solid fa-floppy-disk"></i> Save changes';
+
     function resetForm() {
       $('#listingForm').reset();
       $('#lfPhone').setCustomValidity('');
@@ -667,7 +957,7 @@
       renderPhotoPreview();
       updatePriceLabel();
       $('#formHeading').textContent = 'List a property';
-      $('#lfSubmit').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish listing';
+      $('#lfSubmit').innerHTML = SUBMIT_NEW;
       const loc = LOCATIONS[0];
       $('#lfLocation').value = loc.name;
       moveFormPin(loc.lat, loc.lng);
@@ -691,11 +981,11 @@
       renderPhotoPreview();
       updatePriceLabel();
       $('#formHeading').textContent = 'Edit listing';
-      $('#lfSubmit').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save changes';
+      $('#lfSubmit').innerHTML = SUBMIT_EDIT;
       moveFormPin(l.lat, l.lng, 15);
     }
 
-    function compressImage(file, maxW = 1000, quality = 0.72) {
+    function compressImage(file, maxW = 1200, quality = 0.75) {
       return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const img = new Image();
@@ -718,22 +1008,42 @@
       if (location.hash === '#list') route(); else location.hash = '#list';
     }
 
-    function deleteListing(id) {
+    async function deleteListing(id, btn) {
       const l = listings.find((x) => x.id === id && x.owner === 'me');
       if (!l || !confirm(`Delete "${l.title}"? This cannot be undone.`)) return;
+      if (LIVE) {
+        setBusy(btn, true, 'Deleting…');
+        try {
+          await remote.deleteListing(l);
+          listings = listings.filter((x) => x.id !== id);
+          renderAll();
+          toast('Listing deleted.');
+        } catch (err) {
+          setBusy(btn, false);
+          toast(friendly(err), 'error');
+        }
+        return;
+      }
       const backup = listings.slice();
       listings = listings.filter((x) => x.id !== id);
-      if (saveListings(backup)) { renderAll(); toast('Listing deleted.'); }
+      if (saveLocalListings(backup)) { renderAll(); toast('Listing deleted.'); }
     }
 
-    /* ---------- My listings ---------- */
+    /* =====================================================================
+       My listings
+       ===================================================================== */
     function renderMine() {
       const mine = listings.filter((l) => l.owner === 'me').sort((a, b) => b.createdAt - a.createdAt);
-      const banner = profile.status === 'verified'
-        ? '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><i class="fa-solid fa-circle-check"></i> You are verified. All your listings show the Verified badge.</div>'
-        : profile.status === 'pending'
-          ? '<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><i class="fa-solid fa-clock"></i> Your verification is under review. <a href="#verify" class="font-semibold underline">View status</a></div>'
-          : '<div class="rounded-xl border border-slate-200 bg-white p-4 text-sm"><i class="fa-solid fa-shield-halved text-emerald-600"></i> Your listings show as Unverified. <a href="#verify" class="font-semibold text-emerald-700 underline">Get verified</a> to build trust with tenants.</div>';
+      let banner;
+      if (profile.status === 'verified') {
+        banner = '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><i class="fa-solid fa-circle-check"></i> You are verified. All your listings show the Verified badge.</div>';
+      } else if (profile.status === 'pending') {
+        banner = '<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><i class="fa-solid fa-clock"></i> Your verification is under review. <a href="#verify" class="font-semibold underline">View status</a></div>';
+      } else if (profile.status === 'rejected') {
+        banner = '<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900"><i class="fa-solid fa-circle-xmark"></i> Your verification was not approved. <a href="#verify" class="font-semibold underline">See why and resubmit</a></div>';
+      } else {
+        banner = '<div class="rounded-xl border border-slate-200 bg-white p-4 text-sm"><i class="fa-solid fa-shield-halved text-emerald-600"></i> Your listings show as Unverified. <a href="#verify" class="font-semibold text-emerald-700 underline">Get verified</a> to build trust with tenants.</div>';
+      }
 
       const list = mine.length
         ? mine.map((l) => `
@@ -758,18 +1068,74 @@
       $('#mineBody').innerHTML = banner + list;
     }
 
-    /* ---------- Verification ---------- */
+    /* =====================================================================
+       Verification
+       ===================================================================== */
+    function verifyFormHTML() {
+      const note = LIVE
+        ? `<div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+             <i class="fa-solid fa-lock"></i> Your documents are stored privately and seen only by the TrueHome Kenya review team. We check agents against the Estate Agents Registration Board register and properties against an official land search.
+           </div>`
+        : `<div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+             <i class="fa-solid fa-triangle-exclamation"></i> Demo version: your files are <strong>not uploaded or stored</strong>. Only the file names are recorded. Please don't use real documents.
+           </div>`;
+      return `
+        <div class="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+          <div class="flex items-start gap-3">
+            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+              <h2 class="text-lg font-semibold">Get the Verified badge</h2>
+              <p class="text-sm text-slate-600">Tenants trust verified listers more. Submit your National ID and proof that you own or manage the property: a Title Deed, or a management agreement if you're an agent or caretaker.</p>
+            </div>
+          </div>
+          ${note}
+          <form id="verifyForm" class="mt-5 space-y-4">
+            <div>
+              <label class="lbl" for="vfName">Full name (as on ID)</label>
+              <input id="vfName" class="inp" required minlength="3" maxlength="60" autocomplete="name">
+            </div>
+            <div>
+              <label class="lbl" for="vfId">National ID number</label>
+              <input id="vfId" class="inp" required inputmode="numeric" pattern="[0-9]{7,8}" title="7 or 8 digits" placeholder="e.g. 12345678">
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="lbl" for="vfProp">Title / LR number <span class="font-normal text-slate-400">(optional)</span></label>
+                <input id="vfProp" class="inp" maxlength="80" placeholder="e.g. Nairobi/Block 1/234">
+              </div>
+              <div>
+                <label class="lbl" for="vfAgent">EARB reg. number <span class="font-normal text-slate-400">(agents)</span></label>
+                <input id="vfAgent" class="inp" maxlength="40" placeholder="Agents only">
+              </div>
+            </div>
+            <div>
+              <label class="lbl" for="vfIdFile">National ID (photo or PDF)</label>
+              <input id="vfIdFile" type="file" required accept="image/*,application/pdf" class="filebox">
+            </div>
+            <div>
+              <label class="lbl" for="vfDeedFile">Title Deed or management agreement</label>
+              <input id="vfDeedFile" type="file" required accept="image/*,application/pdf" class="filebox">
+            </div>
+            <label class="flex items-start gap-2 text-sm text-slate-700">
+              <input type="checkbox" required class="mt-1 h-4 w-4 accent-emerald-600">
+              I confirm I own or am authorised to let/sell the properties I list, and I agree to TrueHome Kenya checking these documents.
+            </label>
+            <button type="submit" class="btn btn-primary w-full sm:w-auto"><i class="fa-solid fa-paper-plane"></i> Submit for review</button>
+          </form>
+        </div>`;
+    }
+
     function renderVerify() {
       const body = $('#verifyBody');
       if (profile.status === 'verified') {
         body.innerHTML = `
           <div class="rounded-xl border border-emerald-200 bg-white p-6 text-center">
             <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-2xl text-emerald-600"><i class="fa-solid fa-circle-check"></i></div>
-            <h2 class="mt-3 text-lg font-semibold">You're verified, ${esc(profile.name)}</h2>
+            <h2 class="mt-3 text-lg font-semibold">You're verified${profile.name ? ', ' + esc(profile.name) : ''}</h2>
             <p class="mt-1 text-sm text-slate-600">All your listings now show the Verified badge.</p>
             <div class="mt-4 flex justify-center gap-2">
               <a href="#mine" class="btn btn-primary">My listings</a>
-              <button data-action="withdraw" class="btn btn-ghost">Reset verification</button>
+              ${LIVE ? '' : '<button data-action="withdraw" class="btn btn-ghost">Reset verification</button>'}
             </div>
           </div>`;
         return;
@@ -791,66 +1157,82 @@
               <div class="flex justify-between gap-4"><dt class="text-slate-500">Ownership document</dt><dd class="truncate font-medium">${esc(profile.deedFileName)}</dd></div>
             </dl>
             <div class="mt-5 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-              <i class="fa-solid fa-flask"></i> Demo mode: there is no admin team reviewing documents yet. Use the button below to simulate an approval.
+              ${LIVE
+                ? '<i class="fa-solid fa-circle-info"></i> We usually review requests within 2 working days. We may call you on WhatsApp to confirm your identity.'
+                : '<i class="fa-solid fa-flask"></i> Demo mode: there is no review team yet. Use the button below to simulate an approval.'}
             </div>
             <div class="mt-4 flex flex-wrap gap-2">
-              <button data-action="approve" class="btn btn-primary"><i class="fa-solid fa-check"></i> Simulate approval</button>
+              ${LIVE ? '' : '<button data-action="approve" class="btn btn-primary"><i class="fa-solid fa-check"></i> Simulate approval</button>'}
               <button data-action="withdraw" class="btn btn-ghost">Withdraw request</button>
             </div>
           </div>`;
         return;
       }
-      body.innerHTML = `
-        <div class="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-          <div class="flex items-start gap-3">
-            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-shield-halved"></i></div>
-            <div>
-              <h2 class="text-lg font-semibold">Get the Verified badge</h2>
-              <p class="text-sm text-slate-600">Tenants trust verified landlords more. Submit your National ID and proof of ownership: a Title Deed, or a management agreement if you're an agent.</p>
-            </div>
-          </div>
-          <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-            <i class="fa-solid fa-triangle-exclamation"></i> Demo version: your files are <strong>not uploaded or stored</strong>. Only the file names are recorded. Please don't use real documents.
-          </div>
-          <form id="verifyForm" class="mt-5 space-y-4">
-            <div>
-              <label class="lbl" for="vfName">Full name (as on ID)</label>
-              <input id="vfName" class="inp" required minlength="3" maxlength="60">
-            </div>
-            <div>
-              <label class="lbl" for="vfId">National ID number</label>
-              <input id="vfId" class="inp" required inputmode="numeric" pattern="[0-9]{7,8}" title="7 or 8 digits" placeholder="e.g. 12345678">
-            </div>
-            <div>
-              <label class="lbl" for="vfIdFile">National ID (photo or PDF)</label>
-              <input id="vfIdFile" type="file" required accept="image/*,application/pdf" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700">
-            </div>
-            <div>
-              <label class="lbl" for="vfDeedFile">Title Deed or management agreement</label>
-              <input id="vfDeedFile" type="file" required accept="image/*,application/pdf" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700">
-            </div>
-            <label class="flex items-start gap-2 text-sm text-slate-700">
-              <input type="checkbox" required class="mt-1 h-4 w-4 accent-emerald-600">
-              I confirm I own or am authorised to let/sell the properties I list.
-            </label>
-            <button type="submit" class="btn btn-primary w-full sm:w-auto"><i class="fa-solid fa-paper-plane"></i> Submit for review</button>
-          </form>
-        </div>`;
+      const rejected = profile.status === 'rejected'
+        ? `<div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+             <p class="font-semibold"><i class="fa-solid fa-circle-xmark"></i> Your last request was not approved</p>
+             ${profile.note ? `<p class="mt-1">${esc(profile.note)}</p>` : ''}
+             <p class="mt-1">You can fix the issue and submit again below.</p>
+           </div>`
+        : '';
+      body.innerHTML = rejected + verifyFormHTML();
     }
 
+    const DOC_RE = /\.(jpe?g|png|webp|heic|heif|pdf)$/i;
     function okDoc(file) {
-      return file && file.size <= 10 * 1024 * 1024 &&
-        (file.type.startsWith('image/') || file.type === 'application/pdf');
+      if (!file || file.size > 10 * 1024 * 1024) return false;
+      return file.type.startsWith('image/') || file.type === 'application/pdf' || DOC_RE.test(file.name);
     }
 
-    /* ---------- Router ---------- */
-    const VIEWS = ['browse', 'list', 'verify', 'mine'];
+    /* =====================================================================
+       Account
+       ===================================================================== */
+    function updateAccountUI() {
+      const btn = $('#accountBtn');
+      btn.hidden = !LIVE;
+      if (!LIVE) return;
+      const email = session && session.user ? session.user.email || '' : '';
+      $('#accountLabel').textContent = email ? email.split('@')[0] : 'Sign in';
+      btn.title = email ? `Signed in as ${email}. Tap to sign out.` : 'Sign in';
+    }
+
+    function setupModeUI() {
+      $('#modeNote').textContent = LIVE
+        ? 'Always view a property and confirm ownership before paying anything.'
+        : 'Demo version: listings and verification requests are saved only in this browser.';
+      $('#resetDemoBtn').hidden = LIVE;
+      updateAccountUI();
+    }
+
+    /* =====================================================================
+       Router
+       ===================================================================== */
+    const VIEWS = ['browse', 'signin', 'list', 'verify', 'mine'];
+    const PRIVATE = ['list', 'verify', 'mine'];
+    const SIGNIN_REASONS = {
+      list: 'Sign in to list a property.',
+      verify: 'Sign in to get verified.',
+      mine: 'Sign in to manage your listings.'
+    };
+
     function route() {
       let v = (location.hash || '#browse').slice(1);
       if (!VIEWS.includes(v)) v = 'browse';
+      const navView = v;
+
+      if (LIVE && !session && PRIVATE.includes(v)) {
+        pendingView = v;
+        $('#signinReason').textContent = SIGNIN_REASONS[v];
+        v = 'signin';
+      } else if (v === 'signin') {
+        if (!LIVE || session) v = 'browse';
+        else $('#signinReason').textContent = 'Sign in to list properties and get verified.';
+      }
+
       VIEWS.forEach((x) => { $('#view-' + x).hidden = x !== v; });
-      $$('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === v && a.classList.contains('navlink')));
+      $$('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === navView && a.classList.contains('navlink')));
       closeDetail();
+
       if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
       if (v === 'list') {
         ensureFormMap();
@@ -868,7 +1250,9 @@
       renderVerify();
     }
 
-    /* ---------- Build selects ---------- */
+    /* =====================================================================
+       Build selects
+       ===================================================================== */
     function buildSelects() {
       const typeOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.label}</option>`).join('');
       $('#fType').insertAdjacentHTML('beforeend', typeOpts);
@@ -880,14 +1264,15 @@
       ).join('');
     }
 
-    /* ---------- Events ---------- */
+    /* =====================================================================
+       Events
+       ===================================================================== */
     function bindEvents() {
       $('#fQ').addEventListener('input', debounce(renderResults, 200));
       $('#fMax').addEventListener('input', debounce(renderResults, 300));
       ['#fPurpose', '#fType', '#fCounty', '#fBeds', '#fSort', '#fVerified'].forEach((s) =>
         $(s).addEventListener('change', renderResults));
 
-      // Hover a card -> highlight its map pin
       $('#results').addEventListener('mouseover', (e) => {
         const c = e.target.closest('[data-open]');
         highlight(c ? c.dataset.open : null);
@@ -898,7 +1283,7 @@
         if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDetail(c.dataset.open); }
       });
 
-      document.addEventListener('click', (e) => {
+      document.addEventListener('click', async (e) => {
         const t = e.target;
         if (t.id === 'detailModal' || t.closest('[data-close]')) { closeDetail(); return; }
         const open = t.closest('[data-open]');
@@ -909,7 +1294,7 @@
         const ed = t.closest('[data-edit]');
         if (ed) { editListing(ed.dataset.edit); return; }
         const del = t.closest('[data-delete]');
-        if (del) { deleteListing(del.dataset.delete); return; }
+        if (del) { deleteListing(del.dataset.delete, del); return; }
 
         const act = t.closest('[data-action]');
         if (!act) return;
@@ -920,23 +1305,51 @@
           case 'clear-filters':
             clearFilters();
             break;
+          case 'retry':
+            reloadData();
+            break;
           case 'remove-photo':
             currentPhoto = null;
             $('#lfPhoto').value = '';
             renderPhotoPreview();
             break;
-          case 'approve':
+          case 'account':
+            if (!session) { location.hash = '#signin'; break; }
+            if (confirm(`Sign out of ${session.user.email || 'your account'}?`)) {
+              await sb.auth.signOut().catch(() => {});
+            }
+            break;
+          case 'signin-again':
+            $('#signinSent').hidden = true;
+            $('#signinForm').hidden = false;
+            $('#siEmail').focus();
+            break;
+          case 'approve': // demo only
+            if (LIVE) break;
             profile = { ...profile, status: 'verified', verifiedAt: Date.now() };
-            saveProfile(); renderAll();
+            saveLocalProfile(); renderAll();
             toast('Verified! Your listings now show the Verified badge.');
             break;
           case 'withdraw':
-            if (confirm('Remove your verification status?')) {
+            if (!confirm(LIVE ? 'Withdraw your verification request? Your documents will be deleted.' : 'Remove your verification status?')) break;
+            if (LIVE) {
+              setBusy(act, true, 'Withdrawing…');
+              try {
+                await remote.withdrawVerification(profile);
+                profile = await remote.loadProfile();
+                renderAll();
+                toast('Request withdrawn.');
+              } catch (err) {
+                setBusy(act, false);
+                toast(friendly(err), 'error');
+              }
+            } else {
               profile = { status: 'none' };
-              saveProfile(); renderAll();
+              saveLocalProfile(); renderAll();
             }
             break;
           case 'reset-demo':
+            if (LIVE) break;
             if (confirm('Delete all your listings and verification data from this browser?')) {
               store.remove(KEYS.listings);
               store.remove(KEYS.profile);
@@ -951,7 +1364,26 @@
         if (e.key === 'Escape' && !$('#detailModal').hidden) closeDetail();
       });
 
-      // Listing form
+      // ---- Sign in ----
+      $('#signinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!LIVE) return;
+        const email = $('#siEmail').value.trim();
+        const btn = e.target.querySelector('button[type=submit]');
+        store.set(KEYS.afterLogin, PRIVATE.includes(pendingView) ? pendingView : 'mine');
+        setBusy(btn, true, 'Sending…');
+        const { error } = await sb.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: location.origin + location.pathname }
+        });
+        setBusy(btn, false);
+        if (error) { toast(friendly(error), 'error'); return; }
+        $('#signinEmailShown').textContent = email;
+        $('#signinForm').hidden = true;
+        $('#signinSent').hidden = false;
+      });
+
+      // ---- Listing form ----
       $('#lfPurpose').addEventListener('change', updatePriceLabel);
       $('#lfLocation').addEventListener('change', () => {
         const loc = locByName($('#lfLocation').value);
@@ -970,7 +1402,7 @@
           currentPhoto = await compressImage(file);
           renderPhotoPreview();
         } catch (err) {
-          toast('Could not read that photo. Try another one.', 'error');
+          toast('Could not read that photo. Try a JPG or PNG.', 'error');
           e.target.value = '';
         }
       });
@@ -979,7 +1411,7 @@
         location.hash = listings.some((l) => l.owner === 'me') ? '#mine' : '#browse';
       });
 
-      $('#listingForm').addEventListener('submit', (e) => {
+      $('#listingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const phone = normPhone($('#lfPhone').value);
         if (!phone) {
@@ -1006,20 +1438,35 @@
           description: $('#lfDesc').value.trim(),
           photo: currentPhoto
         };
-
-        const backup = listings.slice();
         const wasEditing = !!editingId;
-        if (wasEditing) {
-          const i = listings.findIndex((x) => x.id === editingId && x.owner === 'me');
-          if (i === -1) { toast('That listing no longer exists.', 'error'); return; }
-          listings[i] = { ...listings[i], ...data, updatedAt: Date.now() };
+
+        if (LIVE) {
+          if (!session) { route(); return; }
+          const btn = $('#lfSubmit');
+          setBusy(btn, true, currentPhoto && currentPhoto.startsWith('data:') ? 'Uploading photo…' : 'Saving…');
+          try {
+            await remote.saveListing(data, editingId);
+            listings = await remote.loadListings();
+          } catch (err) {
+            setBusy(btn, false);
+            toast(friendly(err), 'error');
+            return;
+          }
+          setBusy(btn, false);
         } else {
-          listings.unshift({
-            id: 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-            owner: 'me', demo: false, verified: false, createdAt: Date.now(), ...data
-          });
+          const backup = listings.slice();
+          if (wasEditing) {
+            const i = listings.findIndex((x) => x.id === editingId && x.owner === 'me');
+            if (i === -1) { toast('That listing no longer exists.', 'error'); return; }
+            listings[i] = { ...listings[i], ...data, updatedAt: Date.now() };
+          } else {
+            listings.unshift({
+              id: 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+              owner: 'me', demo: false, verified: false, createdAt: Date.now(), ...data
+            });
+          }
+          if (!saveLocalListings(backup)) return;
         }
-        if (!saveListings(backup)) return;
 
         editingId = null;
         renderAll();
@@ -1027,39 +1474,117 @@
         location.hash = '#mine';
       });
 
-      // Verification form (rendered dynamically)
-      document.addEventListener('submit', (e) => {
+      // ---- Verification form (rendered dynamically) ----
+      document.addEventListener('submit', async (e) => {
         if (e.target.id !== 'verifyForm') return;
         e.preventDefault();
         const idFile = $('#vfIdFile').files[0];
         const deedFile = $('#vfDeedFile').files[0];
         if (!okDoc(idFile) || !okDoc(deedFile)) {
-          toast('Documents must be images or PDFs under 10 MB.', 'error');
+          toast('Documents must be photos or PDFs under 10 MB.', 'error');
           return;
         }
-        const idNum = $('#vfId').value.trim();
-        profile = {
-          status: 'pending',
-          name: $('#vfName').value.trim(),
-          idLast3: idNum.slice(-3),
-          idFileName: idFile.name,
-          deedFileName: deedFile.name,
-          submittedAt: Date.now()
+        const f = {
+          fullName: $('#vfName').value.trim(),
+          idNumber: $('#vfId').value.trim(),
+          propertyRef: $('#vfProp').value.trim(),
+          agentReg: $('#vfAgent').value.trim(),
+          idFile, deedFile
         };
-        saveProfile();
+
+        if (LIVE) {
+          const btn = e.target.querySelector('button[type=submit]');
+          setBusy(btn, true, 'Uploading documents…');
+          try {
+            await remote.submitVerification(f);
+            profile = await remote.loadProfile();
+          } catch (err) {
+            setBusy(btn, false);
+            toast(friendly(err), 'error');
+            return;
+          }
+        } else {
+          profile = {
+            status: 'pending',
+            name: f.fullName,
+            idLast3: f.idNumber.slice(-3),
+            idFileName: idFile.name,
+            deedFileName: deedFile.name,
+            submittedAt: Date.now()
+          };
+          saveLocalProfile();
+        }
         renderAll();
+        window.scrollTo(0, 0);
         toast('Submitted for review.');
       });
 
       window.addEventListener('hashchange', route);
     }
 
-    /* ---------- Start ---------- */
-    $('#year').textContent = new Date().getFullYear();
-    buildSelects();
-    bindEvents();
-    renderAll();
-    route();
+    /* =====================================================================
+       Start
+       ===================================================================== */
+    async function init() {
+      $('#year').textContent = new Date().getFullYear();
+      buildSelects();
+      bindEvents();
+      setupModeUI();
+
+      if (!LIVE) {
+        await reloadData();
+        route();
+        return;
+      }
+
+      // Show the browse page with a loading state straight away
+      renderAll();
+
+      try {
+        const { data } = await sb.auth.getSession();
+        session = data.session;
+      } catch (err) {
+        session = null;
+      }
+
+      // Tidy up the URL after returning from an email sign-in link
+      const h = location.hash;
+      if (/error_description=/.test(h)) {
+        const p = new URLSearchParams(h.slice(1));
+        toast(p.get('error_description') || 'That sign-in link is invalid or has expired.', 'error');
+        history.replaceState(null, '', location.pathname + location.search);
+      } else if (/access_token=|refresh_token=|type=magiclink/.test(h)) {
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+
+      sb.auth.onAuthStateChange((event, s) => {
+        const before = uid();
+        session = s;
+        updateAccountUI();
+        if (before !== uid()) {
+          // Signed in or out: reload data outside this callback
+          setTimeout(async () => {
+            await reloadData();
+            if (!session && PRIVATE.includes((location.hash || '').slice(1))) location.hash = '#browse';
+            else route();
+            if (event === 'SIGNED_OUT') toast('Signed out.');
+          }, 0);
+        }
+      });
+
+      updateAccountUI();
+
+      const next = store.get(KEYS.afterLogin, null);
+      if (session && next) {
+        store.remove(KEYS.afterLogin);
+        history.replaceState(null, '', location.pathname + location.search + '#' + next);
+        toast('Signed in.');
+      }
+      route();
+      await reloadData();
+    }
+
+    init();
   })();
   </script>
 </body>
