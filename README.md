@@ -14,6 +14,7 @@ A Zillow-inspired real estate web portal built for the Kenyan housing market. Tr
 - **Direct listing by landlords and agents:** owners create, edit and remove their own listings without a middleman.
 - **Verified badge:** listers upload their National ID and Title Deed (or a management agreement). An admin checks them against Ardhisasa and the EARB register before approving. Nobody can give themselves the badge.
 - **Interactive map and search:** filter by rent/sale, type, county, bedrooms, price and verified-only, and explore listings on a map.
+- **Badge you can check:** every verified lister gets a code like `TH-7KQ2MX`, a QR code and a public page (`#v/TH-7KQ2MX`) with a live clock. Tenants scan or type the code under **Check a badge**, so copied badge images don't work.
 - **Direct contact:** one-tap WhatsApp and phone buttons with correctly formatted Kenyan numbers (`wa.me/2547…`).
 - **Safety:** HTML in listings is escaped, phone numbers are validated, and the database enforces that users can only change their own data.
 
@@ -49,7 +50,7 @@ Live mode stores National ID numbers and documents. They are kept in a private s
 - [x] Secure document storage and admin approval of verification
 - [x] Sign-in for landlords and agents
 - [ ] Automatic ID checks against IPRS (e.g. Smile ID)
-- [ ] Public verification page and QR code for each verified lister
+- [x] Public verification page and QR code for each verified lister
 - [ ] "Report this listing" button
 - [ ] M-Pesa payments for featured listings
 - [ ] Saved searches and listing alerts

@@ -94,6 +94,8 @@ select public.revoke_verification('PASTE-USER-ID-HERE');
 
 Website visitors cannot run these functions; only you can, from the dashboard.
 
+When you approve someone, they automatically get a **badge code** (like `TH-7KQ2MX`), a QR code and a public check page. They'll find these under **My listings** and can download a printable badge. Tenants check codes under **Check a badge**. If you revoke someone, their page immediately shows **BADGE WITHDRAWN**.
+
 ---
 
 ## Before a public launch

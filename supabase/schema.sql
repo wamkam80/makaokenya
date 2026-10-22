@@ -302,3 +302,83 @@ create policy "Users read own files"
     bucket_id in ('listing-photos', 'verification-docs')
     and (storage.foldername(name))[1] = (select auth.uid())::text
   );
+
+
+-- ---------------------------------------------------------------------
+-- 6. PUBLIC BADGE CODES
+--    Each approved lister gets a code like TH-7KQ2MX and a short public
+--    name ("Jane K."). Anyone can check the code on the website at
+--    #v/TH-7KQ2MX, so a copied badge image can't fool people.
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists public_code text unique,
+  add column if not exists public_name text;
+
+create or replace function public.new_public_code()
+returns text language plpgsql set search_path = ''
+as $$
+declare
+  alphabet text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  code text;
+begin
+  loop
+    code := 'TH-';
+    for i in 1..6 loop
+      code := code || substr(alphabet, 1 + floor(random() * length(alphabet))::int, 1);
+    end loop;
+    exit when not exists (select 1 from public.profiles where public_code = code);
+  end loop;
+  return code;
+end;
+$$;
+
+create or replace function public.short_public_name(full_name text)
+returns text language sql immutable set search_path = ''
+as $$
+  select case
+    when position(' ' in btrim(full_name)) > 0 then
+      initcap(split_part(btrim(full_name), ' ', 1)) || ' ' ||
+      upper(left(regexp_replace(btrim(full_name), '^.*\s', ''), 1)) || '.'
+    else initcap(btrim(full_name))
+  end;
+$$;
+
+-- Approval now also assigns the badge code and public name
+create or replace function public.approve_verification(request_id uuid)
+returns void language plpgsql security definer set search_path = ''
+as $$
+declare
+  target uuid;
+  fname text;
+begin
+  update public.verification_requests
+     set status = 'approved', reviewed_at = now(), review_note = null
+   where id = request_id and status = 'pending'
+  returning user_id, full_name into target, fname;
+
+  if target is null then
+    raise exception 'No pending request with id %', request_id;
+  end if;
+
+  update public.profiles
+     set verified = true,
+         verified_at = now(),
+         public_code = coalesce(public_code, public.new_public_code()),
+         public_name = public.short_public_name(fname)
+   where id = target;
+end;
+$$;
+
+revoke execute on function public.approve_verification(uuid) from public, anon, authenticated;
+revoke execute on function public.new_public_code() from public, anon, authenticated;
+
+create or replace view public.listings_public
+with (security_invoker = true) as
+select
+  l.*,
+  coalesce(p.verified, false) as owner_verified,
+  case when p.verified then p.public_code end as owner_code
+from public.listings l
+left join public.profiles p on p.id = l.owner_id;
+
+grant select on public.listings_public to anon, authenticated;

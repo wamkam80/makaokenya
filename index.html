@@ -50,6 +50,7 @@
       </a>
       <nav class="hidden gap-1 md:flex">
         <a href="#browse" data-nav="browse" class="navlink"><i class="fa-solid fa-magnifying-glass mr-1"></i> Browse</a>
+        <a href="#check" data-nav="check" class="navlink"><i class="fa-solid fa-qrcode mr-1"></i> Check a badge</a>
         <a href="#verify" data-nav="verify" class="navlink"><i class="fa-solid fa-shield-halved mr-1"></i> Get verified</a>
         <a href="#mine" data-nav="mine" class="navlink"><i class="fa-solid fa-list-check mr-1"></i> My listings</a>
       </nav>
@@ -63,6 +64,7 @@
     <nav class="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-1 md:hidden">
       <a href="#browse" data-nav="browse" class="navlink">Browse</a>
       <a href="#list" data-nav="list" class="navlink">List a property</a>
+      <a href="#check" data-nav="check" class="navlink">Check a badge</a>
       <a href="#verify" data-nav="verify" class="navlink">Get verified</a>
       <a href="#mine" data-nav="mine" class="navlink">My listings</a>
     </nav>
@@ -240,6 +242,11 @@
       <div id="verifyBody" class="mt-4"></div>
     </section>
 
+    <!-- ========== CHECK A BADGE ========== -->
+    <section id="view-check" hidden class="mx-auto max-w-2xl px-4 py-6">
+      <div id="checkBody"></div>
+    </section>
+
     <!-- ========== MY LISTINGS ========== -->
     <section id="view-mine" hidden class="mx-auto max-w-3xl px-4 py-6">
       <div class="flex items-center justify-between gap-2">
@@ -265,6 +272,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <script src="config.js"></script>
   <script>
   (function () {
@@ -423,6 +431,8 @@
         return {
           id: 'seed' + (i + 1), owner: 'seed', demo: true, photo: null,
           phone: '254700000000', createdAt: now - i * 7 * 3600 * 1000,
+          ownerCode: o.verified ? 'TH-DEMO' + String(i + 1).padStart(2, '0') : null,
+          verifiedAt: now - (30 + i) * 24 * 3600 * 1000,
           county: loc.county,
           lat: loc.lat + (o.dLat || 0) + ((i % 3) - 1) * 0.0015,
           lng: loc.lng + (o.dLng || 0) + ((i % 2) ? 0.0015 : -0.0015),
@@ -467,6 +477,7 @@
         description: r.description || '',
         photo: r.photo_url || null,
         verified: !!r.owner_verified,
+        ownerCode: r.owner_code || null,
         createdAt: new Date(r.created_at).getTime()
       };
     }
@@ -532,7 +543,7 @@
       async loadProfile() {
         if (!uid()) return { status: 'none' };
         const [pRes, rRes] = await Promise.all([
-          sb.from('profiles').select('verified, verified_at').eq('id', uid()).maybeSingle(),
+          sb.from('profiles').select('verified, verified_at, public_code, public_name').eq('id', uid()).maybeSingle(),
           sb.from('verification_requests')
             .select('id, status, full_name, id_number, id_doc_path, deed_doc_path, review_note, created_at')
             .eq('user_id', uid()).order('created_at', { ascending: false }).limit(1)
@@ -542,7 +553,10 @@
         const p = pRes.data;
         const r = rRes.data && rRes.data[0];
         if (p && p.verified) {
-          return { status: 'verified', name: r ? r.full_name : '', verifiedAt: p.verified_at };
+          return {
+            status: 'verified', name: r ? r.full_name : '', verifiedAt: p.verified_at,
+            code: p.public_code || null, publicName: p.public_name || ''
+          };
         }
         if (r && r.status === 'pending') {
           return {
@@ -576,6 +590,21 @@
           deed_doc_path: deedPath
         });
         if (error) { await bucket.remove([idPath, deedPath]).catch(() => {}); throw error; }
+      },
+
+      async lookupCode(code) {
+        const { data: p, error } = await sb.from('profiles')
+          .select('id, verified, verified_at, public_code, public_name')
+          .eq('public_code', code).maybeSingle();
+        if (error) throw error;
+        if (!p) return null;
+        const res = await sb.from('listings_public').select('*')
+          .eq('owner_id', p.id).order('created_at', { ascending: false });
+        if (res.error) throw res.error;
+        return {
+          verified: !!p.verified, verifiedAt: p.verified_at, code: p.public_code,
+          name: p.public_name || 'Verified lister', listings: (res.data || []).map(fromRow)
+        };
       },
 
       async withdrawVerification(pr) {
@@ -844,9 +873,13 @@
        Detail modal
        ===================================================================== */
     function openDetail(id) {
-      const l = listings.find((x) => x.id === id);
+      const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
       if (!l) return;
       const v = isVerified(l);
+      const code = ownerCodeOf(l);
+      const badgeLink = code
+        ? `<a href="#v/${encodeURIComponent(code)}" class="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"><i class="fa-solid fa-qrcode"></i> Check badge ${esc(code)}</a>`
+        : '';
       const phone = normPhone(l.phone);
       const msg = `Hi, I'm interested in "${l.title}" (${priceText(l)}) in ${l.location} that I saw on TrueHome Kenya. Is it still available?`;
 
@@ -877,7 +910,7 @@
           <button data-close aria-label="Close" class="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-700 shadow hover:bg-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-4 p-5">
-          <div class="flex flex-wrap gap-2">${purposeBadge(l.purpose)}${verifiedBadge(v)}</div>
+          <div class="flex flex-wrap gap-2">${purposeBadge(l.purpose)}${verifiedBadge(v)}${badgeLink}</div>
           <div>
             <p class="text-2xl font-extrabold">${esc(priceText(l))}</p>
             <h2 class="text-lg font-semibold">${esc(l.title)}</h2>
@@ -1036,7 +1069,7 @@
       const mine = listings.filter((l) => l.owner === 'me').sort((a, b) => b.createdAt - a.createdAt);
       let banner;
       if (profile.status === 'verified') {
-        banner = '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><i class="fa-solid fa-circle-check"></i> You are verified. All your listings show the Verified badge.</div>';
+        banner = '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><i class="fa-solid fa-circle-check"></i> You are verified. All your listings show the Verified badge.</div>' + badgeCardHTML();
       } else if (profile.status === 'pending') {
         banner = '<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><i class="fa-solid fa-clock"></i> Your verification is under review. <a href="#verify" class="font-semibold underline">View status</a></div>';
       } else if (profile.status === 'rejected') {
@@ -1137,7 +1170,8 @@
               <a href="#mine" class="btn btn-primary">My listings</a>
               ${LIVE ? '' : '<button data-action="withdraw" class="btn btn-ghost">Reset verification</button>'}
             </div>
-          </div>`;
+          </div>
+          <div class="mt-4">${badgeCardHTML()}</div>`;
         return;
       }
       if (profile.status === 'pending') {
@@ -1185,6 +1219,256 @@
     }
 
     /* =====================================================================
+       Public badge codes, QR card and "Check a badge" page
+       ===================================================================== */
+    const CODE_RE = /^TH-[A-Z0-9]{6}$/;
+    const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    const siteBase = () => location.origin + location.pathname;
+    const siteHost = () => (location.host + location.pathname).replace(/index\.html$/, '').replace(/\/$/, '');
+    const badgeUrl = (code) => `${siteBase()}#v/${encodeURIComponent(code)}`;
+
+    function normCode(raw) {
+      let c = String(raw || '').toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      if (/^[A-Z0-9]{6}$/.test(c)) c = 'TH-' + c;
+      if (/^TH[A-Z0-9]{6}$/.test(c)) c = 'TH-' + c.slice(2);
+      return c;
+    }
+
+    function randomCode() {
+      let c = 'TH-';
+      for (let i = 0; i < 6; i++) c += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+      return c;
+    }
+
+    function shortName(full) {
+      const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '';
+      const first = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+      return parts.length > 1 ? `${first} ${parts[parts.length - 1].charAt(0).toUpperCase()}.` : first;
+    }
+
+    // Badge code of a listing's owner, only while they are verified
+    function ownerCodeOf(l) {
+      if (!isVerified(l)) return null;
+      if (!LIVE && l.owner === 'me') return profile.code || null;
+      return l.ownerCode || null;
+    }
+
+    function makeQR(text) {
+      if (!window.qrcode) return null;
+      const q = window.qrcode(0, 'M');
+      q.addData(text);
+      q.make();
+      return q;
+    }
+
+    function qrSvg(text) {
+      const q = makeQR(text);
+      return q
+        ? q.createSvgTag({ cellSize: 4, margin: 0, scalable: true })
+        : '<p class="p-4 text-center text-xs text-slate-500">QR code unavailable</p>';
+    }
+
+    function badgeCardHTML() {
+      if (profile.status !== 'verified' || !profile.code) return '';
+      const code = profile.code;
+      const url = badgeUrl(code);
+      const share = `I'm a verified landlord on TrueHome Kenya. Check my badge ${code} here: ${url}`;
+      return `
+        <div class="rounded-xl border border-emerald-200 bg-white p-5 text-left">
+          <h3 class="font-semibold"><i class="fa-solid fa-qrcode text-emerald-600"></i> Your Verified badge</h3>
+          <p class="mt-1 text-sm text-slate-600">Put this link or QR code in your adverts and WhatsApp messages. Tenants scan it to confirm you're verified, so a copied badge image is useless to scammers.</p>
+          <div class="mt-4 flex flex-col items-center gap-4 sm:flex-row">
+            <div class="h-40 w-40 shrink-0 rounded-lg border border-slate-200 bg-white p-2" aria-label="QR code for your badge">${qrSvg(url)}</div>
+            <div class="min-w-0 flex-1 space-y-2 text-center sm:text-left">
+              <p class="font-mono text-2xl font-bold tracking-wider">${esc(code)}</p>
+              <p class="break-all text-xs text-slate-500">${esc(url)}</p>
+              <div class="flex flex-wrap justify-center gap-2 sm:justify-start">
+                <button data-action="download-badge" class="btn btn-primary px-3 py-1 text-xs"><i class="fa-solid fa-download"></i> Download badge</button>
+                <button data-action="copy-badge" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-regular fa-copy"></i> Copy link</button>
+                <a href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-brands fa-whatsapp"></i> Share</a>
+                <a href="#v/${encodeURIComponent(code)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-eye"></i> Public page</a>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Printable PNG badge: header, QR, code, name and the address to check it
+    function downloadBadge() {
+      const code = profile.code;
+      const q = code && makeQR(badgeUrl(code));
+      if (!q) { toast('Could not create the badge. Check your connection and try again.', 'error'); return; }
+      const W = 640, H = 860, n = q.getModuleCount();
+      const cell = Math.floor(440 / n), qrSize = cell * n, qx = (W - qrSize) / 2, qy = 200;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const g = c.getContext('2d');
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#059669'; g.fillRect(0, 0, W, 160);
+      g.fillStyle = '#ffffff'; g.textAlign = 'center';
+      g.font = 'bold 44px system-ui, sans-serif'; g.fillText('✓ VERIFIED', W / 2, 78);
+      g.font = '28px system-ui, sans-serif'; g.fillText('TrueHome Kenya', W / 2, 124);
+      g.fillStyle = '#0f172a';
+      for (let r = 0; r < n; r++) for (let col = 0; col < n; col++) {
+        if (q.isDark(r, col)) g.fillRect(qx + col * cell, qy + r * cell, cell, cell);
+      }
+      g.font = 'bold 52px ui-monospace, monospace'; g.fillText(code, W / 2, qy + qrSize + 80);
+      if (profile.publicName) { g.font = '30px system-ui, sans-serif'; g.fillText(profile.publicName, W / 2, qy + qrSize + 126); }
+      g.fillStyle = '#475569'; g.font = '24px system-ui, sans-serif';
+      g.fillText('Scan or visit to check this badge:', W / 2, H - 70);
+      g.fillStyle = '#047857'; g.font = 'bold 24px system-ui, sans-serif';
+      g.fillText(siteHost(), W / 2, H - 36);
+      c.toBlob((blob) => {
+        if (!blob) { toast('Could not create the badge image.', 'error'); return; }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `truehome-badge-${code}.png`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      }, 'image/png');
+    }
+
+    function copyBadgeLink() {
+      const url = badgeUrl(profile.code);
+      const done = () => toast('Badge link copied.');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done).catch(() => window.prompt('Copy this link:', url));
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    }
+
+    function localLookup(code) {
+      if (profile.status === 'verified' && profile.code === code) {
+        return {
+          verified: true, verifiedAt: profile.verifiedAt, code,
+          name: profile.publicName || shortName(profile.name) || 'You',
+          listings: listings.filter((l) => l.owner === 'me')
+        };
+      }
+      const ls = listings.filter((l) => l.ownerCode === code);
+      if (!ls.length) return null;
+      return { verified: true, verifiedAt: ls[0].verifiedAt, code, name: ls[0].contactName, listings: ls };
+    }
+
+    let checkTimer = null;
+    let checkCode = null;
+
+    function checkFormHTML(prefill) {
+      return `
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-qrcode"></i></div>
+          <h1 class="mt-3 text-center text-2xl font-extrabold">Check a Verified badge</h1>
+          <p class="mt-1 text-center text-sm text-slate-600">Every landlord and agent verified by TrueHome Kenya has a badge code like <span class="font-mono font-semibold">TH-7KQ2MX</span>. Type it below, or scan their QR code with your phone camera.</p>
+          <form id="checkForm" class="mt-5 flex gap-2">
+            <input id="ckCode" class="inp font-mono uppercase" required maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="TH-XXXXXX" value="${esc(prefill || '')}" aria-label="Badge code">
+            <button type="submit" class="btn btn-primary shrink-0"><i class="fa-solid fa-magnifying-glass"></i> Check</button>
+          </form>
+          <ul class="mt-5 space-y-2 text-sm text-slate-600">
+            <li><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> A screenshot or picture of a badge proves nothing. Always check the code yourself, here.</li>
+            <li><i class="fa-solid fa-globe text-emerald-600"></i> Only trust results on <strong>${esc(siteHost())}</strong>.</li>
+            <li><i class="fa-solid fa-hand text-red-500"></i> If a code isn't found, don't send any money.</li>
+          </ul>
+        </div>`;
+    }
+
+    function checkResultHTML(res, code) {
+      const again = '<div class="mt-5 text-center"><a href="#check" class="btn btn-ghost"><i class="fa-solid fa-rotate-left"></i> Check another code</a></div>';
+      if (!res) {
+        return `
+          <div class="overflow-hidden rounded-2xl border-2 border-red-500 bg-white">
+            <div class="bg-red-600 p-5 text-center text-white">
+              <i class="fa-solid fa-circle-xmark text-4xl"></i>
+              <p class="mt-2 text-2xl font-extrabold">NOT FOUND</p>
+            </div>
+            <div class="space-y-2 p-5 text-sm text-slate-700">
+              <p>No verified landlord or agent on TrueHome Kenya has the code <span class="font-mono font-semibold">${esc(code)}</span>.</p>
+              <p class="font-semibold text-red-700">This badge may be fake. Do not pay any deposit or viewing fee.</p>
+              <p>Check you typed the code correctly. Codes look like TH- followed by 6 letters and numbers.</p>
+            </div>
+          </div>${again}`;
+      }
+      if (!res.verified) {
+        return `
+          <div class="overflow-hidden rounded-2xl border-2 border-red-500 bg-white">
+            <div class="bg-red-600 p-5 text-center text-white">
+              <i class="fa-solid fa-ban text-4xl"></i>
+              <p class="mt-2 text-2xl font-extrabold">BADGE WITHDRAWN</p>
+            </div>
+            <div class="space-y-2 p-5 text-sm text-slate-700">
+              <p>The badge <span class="font-mono font-semibold">${esc(code)}</span> is no longer valid. This person is <strong>not</strong> currently verified by TrueHome Kenya.</p>
+              <p class="font-semibold text-red-700">Do not pay any money based on this badge.</p>
+            </div>
+          </div>${again}`;
+      }
+      const since = res.verifiedAt ? new Date(res.verifiedAt).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      return `
+        <div class="overflow-hidden rounded-2xl border-2 border-emerald-500 bg-white">
+          <div class="bg-emerald-600 p-5 text-center text-white">
+            <i class="fa-solid fa-shield-halved text-4xl"></i>
+            <p class="mt-2 text-2xl font-extrabold tracking-wide">VERIFIED</p>
+            <p class="text-sm text-emerald-50">by TrueHome Kenya</p>
+          </div>
+          <div class="space-y-3 p-5">
+            <div class="text-center">
+              <p class="text-xl font-bold">${esc(res.name)}</p>
+              <p class="font-mono text-lg font-semibold text-emerald-700">${esc(res.code)}</p>
+              ${since ? `<p class="text-sm text-slate-500">Verified since ${esc(since)}</p>` : ''}
+            </div>
+            <ul class="grid gap-2 text-sm sm:grid-cols-2">
+              <li class="rounded-lg bg-emerald-50 p-2 text-emerald-900"><i class="fa-solid fa-id-card"></i> National ID checked</li>
+              <li class="rounded-lg bg-emerald-50 p-2 text-emerald-900"><i class="fa-solid fa-file-contract"></i> Ownership or authority checked</li>
+            </ul>
+            <p class="flex items-center justify-center gap-2 rounded-lg bg-slate-50 p-2 text-sm text-slate-700">
+              <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span></span>
+              Checked live: <span id="checkClock" class="font-semibold"></span>
+            </p>
+            <p class="text-center text-xs text-slate-500">This page is only genuine on <strong>${esc(siteHost())}</strong>. A screenshot of it proves nothing: the time above keeps updating on the real page.</p>
+          </div>
+        </div>
+        <h2 class="mt-6 mb-3 font-semibold">Their listings (${res.listings.length})</h2>
+        ${res.listings.length
+          ? `<div class="grid gap-4 sm:grid-cols-2">${res.listings.map(cardHTML).join('')}</div>`
+          : '<p class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">No active listings right now.</p>'}
+        <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Even with a verified landlord, view the property in person before paying anything, and only use the phone numbers shown on these listings.</p>
+        ${again}`;
+    }
+
+    function tickCheckClock() {
+      const el = document.getElementById('checkClock');
+      if (!el) { clearInterval(checkTimer); return; }
+      el.textContent = new Date().toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'medium' });
+    }
+
+    async function renderCheck(code) {
+      clearInterval(checkTimer);
+      checkCode = code;
+      const body = $('#checkBody');
+      if (!code) { body.innerHTML = checkFormHTML(''); return; }
+      if (!CODE_RE.test(code)) { body.innerHTML = checkResultHTML(null, code); return; }
+      body.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-10 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2">Checking badge…</p></div>';
+      let res;
+      try {
+        res = LIVE ? await remote.lookupCode(code) : localLookup(code);
+      } catch (err) {
+        if (checkCode !== code) return;
+        body.innerHTML = `<div class="rounded-xl border border-red-200 bg-white p-8 text-center">
+            <p class="font-medium">Couldn't check this badge right now.</p>
+            <p class="text-sm text-slate-500">${esc(friendly(err))}</p>
+            <a href="#v/${encodeURIComponent(code)}" data-action="recheck" class="btn btn-ghost mt-3"><i class="fa-solid fa-rotate"></i> Try again</a>
+          </div>`;
+        return;
+      }
+      if (checkCode !== code) return; // user moved on
+      lastCheckListings = res ? res.listings : [];
+      body.innerHTML = checkResultHTML(res, code);
+      if (res && res.verified) { tickCheckClock(); checkTimer = setInterval(tickCheckClock, 1000); }
+    }
+    let lastCheckListings = [];
+
+    /* =====================================================================
        Account
        ===================================================================== */
     function updateAccountUI() {
@@ -1207,7 +1491,7 @@
     /* =====================================================================
        Router
        ===================================================================== */
-    const VIEWS = ['browse', 'signin', 'list', 'verify', 'mine'];
+    const VIEWS = ['browse', 'signin', 'check', 'list', 'verify', 'mine'];
     const PRIVATE = ['list', 'verify', 'mine'];
     const SIGNIN_REASONS = {
       list: 'Sign in to list a property.',
@@ -1217,8 +1501,14 @@
 
     function route() {
       let v = (location.hash || '#browse').slice(1);
+      let code = null;
+      if (v.startsWith('v/')) {
+        try { code = normCode(decodeURIComponent(v.slice(2))); } catch (e) { code = normCode(v.slice(2)); }
+        v = 'check';
+      }
       if (!VIEWS.includes(v)) v = 'browse';
       const navView = v;
+      if (v === 'check') renderCheck(code); else { clearInterval(checkTimer); checkCode = null; }
 
       if (LIVE && !session && PRIVATE.includes(v)) {
         pendingView = v;
@@ -1308,6 +1598,16 @@
           case 'retry':
             reloadData();
             break;
+          case 'download-badge':
+            downloadBadge();
+            break;
+          case 'copy-badge':
+            copyBadgeLink();
+            break;
+          case 'recheck':
+            e.preventDefault();
+            route();
+            break;
           case 'remove-photo':
             currentPhoto = null;
             $('#lfPhoto').value = '';
@@ -1326,7 +1626,10 @@
             break;
           case 'approve': // demo only
             if (LIVE) break;
-            profile = { ...profile, status: 'verified', verifiedAt: Date.now() };
+            profile = {
+              ...profile, status: 'verified', verifiedAt: Date.now(),
+              code: profile.code || randomCode(), publicName: shortName(profile.name)
+            };
             saveLocalProfile(); renderAll();
             toast('Verified! Your listings now show the Verified badge.');
             break;
@@ -1472,6 +1775,15 @@
         renderAll();
         toast(wasEditing ? 'Changes saved.' : 'Your listing is live!');
         location.hash = '#mine';
+      });
+
+      // ---- Check a badge form (rendered dynamically) ----
+      document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'checkForm') return;
+        e.preventDefault();
+        const code = normCode($('#ckCode').value);
+        if (!code) return;
+        location.hash = '#v/' + encodeURIComponent(code);
       });
 
       // ---- Verification form (rendered dynamically) ----
