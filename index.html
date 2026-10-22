@@ -9,224 +9,320 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    #map { height: 100%; min-height: 400px; width: 100%; }
-    .price-pin { background: #2563eb; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    #map { height: 100%; min-height: 100vh; width: 100%; }
+    .price-pin { background: #006aff; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); text-align: center; white-space: nowrap; }
+    .price-pin.highlight { background: #d97706; transform: scale(1.15); z-index: 1000 !important; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex flex-col h-screen overflow-hidden font-sans">
+<body class="bg-gray-50 text-gray-900 flex flex-col h-screen overflow-hidden font-sans">
 
   <!-- Header -->
-  <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm z-10">
-    <div class="flex items-center gap-3">
-      <a href="index.html" class="text-2xl font-bold text-blue-600 flex items-center gap-2">
-        <i class="fa-solid font-bold fa-house-circle-check"></i> TrueHome <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">Kenya</span>
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between z-30 shrink-0 shadow-sm">
+    <div class="flex items-center space-x-6">
+      <a href="index.html" class="flex items-center space-x-2 text-blue-600 font-extrabold text-2xl tracking-tight">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>TrueHome<span class="text-gray-800 font-normal text-lg">Kenya</span></span>
       </a>
-      <span class="hidden md:inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 font-medium px-2.5 py-1 rounded-full border border-emerald-200">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Landlord Special: First 2 Listings Free!
-      </span>
+      <nav class="hidden md:flex space-x-4 text-sm font-medium text-gray-700">
+        <a href="index.html" class="text-blue-600 font-bold border-b-2 border-blue-600 pb-1">Rent</a>
+        <a href="list.html" class="hover:text-blue-600 pb-1 transition">List Property</a>
+      </nav>
     </div>
-    <div class="flex items-center gap-3">
-      <a href="list.html" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 shadow-sm">
-        <i class="fa-solid fa-plus"></i> List Property
+    <div class="flex items-center space-x-3">
+      <button onclick="openAlertModal()" class="flex items-center space-x-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-sm px-4 py-2 rounded-lg border border-blue-200 transition">
+        <i class="fa-regular fa-bell"></i>
+        <span>Get Alerts / Save Search</span>
+      </button>
+      <a href="list.html" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-lg transition shadow-sm flex items-center space-x-1">
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>List Property</span>
       </a>
     </div>
   </header>
 
-  <!-- Search & Filter Bar -->
-  <section class="bg-white border-b border-gray-200 p-4 shrink-0 shadow-sm z-10">
-    <div class="max-w-7xl mx-auto flex flex-col gap-3">
-      <div class="flex flex-wrap gap-3 items-center">
-        <!-- Location -->
-        <div class="relative flex-1 min-w-[200px]">
-          <i class="fa-solid fa-location-dot absolute left-3 top-3 text-gray-400"></i>
-          <select id="location-select" class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-            <option value="">All Kenya Locations</option>
-            <option value="Nairobi">Nairobi</option>
-            <option value="Mombasa">Mombasa</option>
-            <option value="Kisumu">Kisumu</option>
-            <option value="Nakuru">Nakuru</option>
-            <option value="Eldoret">Eldoret</option>
-            <option value="Kiambu">Kiambu</option>
+  <!-- Main Split Layout -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Left Feed: Listings -->
+    <div class="w-full lg:w-7/12 flex flex-col h-full bg-white border-r border-gray-200 overflow-hidden">
+      <!-- Search & Filters Toolbar -->
+      <div class="p-4 border-b border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">Rental Listings in Nairobi</h1>
+          <p class="text-xs text-gray-500" id="results-count">Showing verified homes</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <label for="sort-select" class="text-xs font-semibold text-gray-600">Sort by:</label>
+          <select id="sort-select" onchange="handleSort()" class="bg-gray-50 border border-gray-300 text-gray-800 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 font-medium">
+            <option value="newest">Newest</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="verified">Verified First</option>
           </select>
         </div>
-
-        <!-- Rent / Sale -->
-        <select id="type-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-          <option value="rent">For Rent</option>
-          <option value="sale">For Sale</option>
-        </select>
-
-        <!-- KSh Price Range -->
-        <div class="flex items-center gap-2">
-          <input type="number" id="min-price" placeholder="Min KSh" class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <span class="text-gray-400">-</span>
-          <input type="number" id="max-price" placeholder="Max KSh" class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-        </div>
-
-        <!-- Bedrooms -->
-        <select id="bed-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-          <option value="">Bedrooms (Any)</option>
-          <option value="0">Bedsitter / Studio</option>
-          <option value="1">1 Bedroom</option>
-          <option value="2">2 Bedrooms</option>
-          <option value="3">3+ Bedrooms</option>
-        </select>
-
-        <button id="search-btn" class="bg-gray-900 hover:bg-black text-white text-sm font-medium px-5 py-2 rounded-lg transition">
-          Search
-        </button>
       </div>
 
-      <!-- Utilities Checkboxes -->
-      <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-600 pt-1 border-t border-gray-100">
-        <span class="text-gray-400">Utilities & Amenities:</span>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" value="Borehole" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Borehole
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" value="Generator" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Generator
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" value="DSQ" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> DSQ
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" value="Fence" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Electric Fence
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" value="Cabro" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Cabro Paving
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" value="Fiber" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> High-Speed Fiber
-        </label>
+      <!-- Listings Scrollable Feed -->
+      <div id="listings-feed" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Cards rendered dynamically JS -->
       </div>
     </div>
-  </section>
 
-  <!-- Main Zillow Split Layout -->
-  <main class="flex-1 flex overflow-hidden">
-    <!-- Left Map View -->
-    <div class="w-1/2 h-full hidden lg:block border-r border-gray-200 relative">
+    <!-- Right Map View -->
+    <div class="hidden lg:block lg:w-5/12 h-full relative">
       <div id="map"></div>
     </div>
 
-    <!-- Right Listing Cards List -->
-    <div class="w-full lg:w-1/2 h-full overflow-y-auto p-4 bg-gray-50">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-lg font-bold text-gray-800">Verified Homes & Apartments in Kenya</h1>
-        <span id="results-count" class="text-xs font-semibold text-gray-500 bg-gray-200 px-2.5 py-1 rounded-full">3 Listings Found</span>
+  </div>
+
+  <!-- Get Alerts Modal -->
+  <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeAlertModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+          <i class="fa-solid fa-bell"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900">Get Instant Rental Alerts</h3>
+        <p class="text-xs text-gray-500 mt-1">Be the first to know when new homes matching your search criteria are listed.</p>
       </div>
-
-      <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Card 1 -->
-        <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div class="relative h-44 bg-gray-200">
-            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" alt="Kilimani Studio" class="w-full h-full object-cover">
-            <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 shadow">
-              <i class="fa-solid fa-circle-check"></i> Verified Landlord
-            </span>
-            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
-              2 days on TrueHome
-            </span>
-          </div>
-          <div class="p-3.5">
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-xl font-extrabold text-blue-700">KSh 35,000<span class="text-xs font-normal text-gray-500">/mo</span></span>
-              <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Kilimani, Nairobi</span>
-            </div>
-            <h2 class="font-bold text-gray-800 text-sm mb-1">Modern Executive 1 Bed Apartment</h2>
-            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bed text-gray-400 mr-1"></i>1 Bed &bull; <i class="fa-solid fa-shower text-gray-400 mr-1"></i>1 Bath &bull; Borehole, Fiber, Generator</p>
-            <div class="flex gap-2 pt-2 border-t border-gray-100">
-              <a href="tel:+254712345678" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
-                <i class="fa-solid fa-phone mr-1"></i> Call Caretaker
-              </a>
-              <a href="https://wa.me/254712345678" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg transition">
-                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
-              </a>
-            </div>
-          </div>
+      <form onsubmit="submitAlert(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+          <input type="email" required placeholder="your.email@example.com" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
-
-        <!-- Card 2 -->
-        <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div class="relative h-44 bg-gray-200">
-            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80" alt="Lavington Villa" class="w-full h-full object-cover">
-            <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 shadow">
-              <i class="fa-solid fa-circle-check"></i> Verified Landlord
-            </span>
-            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
-              5 days on TrueHome
-            </span>
-          </div>
-          <div class="p-3.5">
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-xl font-extrabold text-blue-700">KSh 120,000<span class="text-xs font-normal text-gray-500">/mo</span></span>
-              <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Lavington, Nairobi</span>
-            </div>
-            <h2 class="font-bold text-gray-800 text-sm mb-1">Spacious 3 Bed Townhouse + DSQ</h2>
-            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bed text-gray-400 mr-1"></i>3 Beds &bull; <i class="fa-solid fa-shower text-gray-400 mr-1"></i>3 Baths &bull; DSQ, Fence, Cabro</p>
-            <div class="flex gap-2 pt-2 border-t border-gray-100">
-              <a href="tel:+254722987654" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
-                <i class="fa-solid fa-phone mr-1"></i> Call Caretaker
-              </a>
-              <a href="https://wa.me/254722987654" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg transition">
-                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
-              </a>
-            </div>
-          </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Location Preference</label>
+          <input type="text" value="Nairobi & Surrounding Areas" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-gray-50 text-gray-600 outline-none" readonly>
         </div>
-
-        <!-- Card 3 -->
-        <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div class="relative h-44 bg-gray-200">
-            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80" alt="Nyali Apartment" class="w-full h-full object-cover">
-            <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 shadow">
-              <i class="fa-solid fa-circle-check"></i> Verified Landlord
-            </span>
-            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
-              1 day on TrueHome
-            </span>
-          </div>
-          <div class="p-3.5">
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-xl font-extrabold text-blue-700">KSh 65,000<span class="text-xs font-normal text-gray-500">/mo</span></span>
-              <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Nyali, Mombasa</span>
-            </div>
-            <h2 class="font-bold text-gray-800 text-sm mb-1">Luxury 2 Bed Ocean View Flat</h2>
-            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bed text-gray-400 mr-1"></i>2 Beds &bull; <i class="fa-solid fa-shower text-gray-400 mr-1"></i>2 Baths &bull; Borehole, Generator, Fiber</p>
-            <div class="flex gap-2 pt-2 border-t border-gray-100">
-              <a href="tel:+254733112233" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
-                <i class="fa-solid fa-phone mr-1"></i> Call Caretaker
-              </a>
-              <a href="https://wa.me/254733112233" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg transition">
-                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
-              </a>
-            </div>
-          </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Max Monthly Budget (KSh)</label>
+          <select class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none">
+            <option>Any Budget</option>
+            <option>Under KSh 30,000</option>
+            <option>Under KSh 60,000</option>
+            <option>Under KSh 120,000</option>
+          </select>
         </div>
-      </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">Save Search & Create Alert</button>
+      </form>
     </div>
-  </main>
+  </div>
 
   <script>
-    const map = L.map('map').setView([-1.286389, 36.817223], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const locations = [
-      { lat: -1.2921, lng: 36.7847, price: "KSh 35k" },
-      { lat: -1.2721, lng: 36.7722, price: "KSh 120k" },
-      { lat: -4.0435, lng: 39.6682, price: "KSh 65k" }
+    const listings = [
+      {
+        id: 1,
+        title: "Modern 2 Bedroom Apartment in Westlands",
+        location: "Westlands, Nairobi",
+        price: 65000,
+        priceText: "KSh 65,000 / mo",
+        beds: 2,
+        baths: 2,
+        sqft: 1200,
+        saves: 42,
+        verified: true,
+        dateAdded: "2026-10-20",
+        img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+        lat: -1.2676,
+        lng: 36.8121,
+        phone: "+254712345678",
+        whatsapp: "254712345678"
+      },
+      {
+        id: 2,
+        title: "Luxury 3 Bed Penthouse with City View",
+        location: "Kilimani, Nairobi",
+        price: 110000,
+        priceText: "KSh 110,000 / mo",
+        beds: 3,
+        baths: 3,
+        sqft: 2100,
+        saves: 89,
+        verified: true,
+        dateAdded: "2026-10-21",
+        img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80",
+        lat: -1.2901,
+        lng: 36.7865,
+        phone: "+254722987654",
+        whatsapp: "254722987654"
+      },
+      {
+        id: 3,
+        title: "Cozy Studio Apartment near Yaya Centre",
+        location: "Kilimani, Nairobi",
+        price: 35000,
+        priceText: "KSh 35,000 / mo",
+        beds: 1,
+        baths: 1,
+        sqft: 550,
+        saves: 18,
+        verified: false,
+        dateAdded: "2026-10-18",
+        img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80",
+        lat: -1.2950,
+        lng: 36.7890,
+        phone: "+254733112233",
+        whatsapp: "254733112233"
+      },
+      {
+        id: 4,
+        title: "Spacious 4 Bed Villa in Lavington",
+        location: "Lavington, Nairobi",
+        price: 180000,
+        priceText: "KSh 180,000 / mo",
+        beds: 4,
+        baths: 4,
+        sqft: 3400,
+        saves: 124,
+        verified: true,
+        dateAdded: "2026-10-15",
+        img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80",
+        lat: -1.2810,
+        lng: 36.7680,
+        phone: "+254700554433",
+        whatsapp: "254700554433"
+      }
     ];
 
-    locations.forEach(loc => {
-      const pin = L.divIcon({
-        className: 'custom-pin',
-        html: `<div class="price-pin">${loc.price}</div>`
+    let currentListings = [...listings];
+    let map, markers = {};
+
+    function initMap() {
+      map = L.map('map').setView([-1.286389, 36.817223], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      renderMarkers();
+    }
+
+    function renderMarkers() {
+      Object.values(markers).forEach(m => map.removeLayer(m));
+      markers = {};
+
+      currentListings.forEach(item => {
+        const icon = L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div id="marker-${item.id}" class="price-pin">KSh ${(item.price/1000).toFixed(0)}k</div>`,
+          iconSize: [60, 24],
+          iconAnchor: [30, 12]
+        });
+
+        const marker = L.marker([item.lat, item.lng], { icon: icon }).addTo(map);
+        marker.on('click', () => {
+          scrollToCard(item.id);
+        });
+
+        markers[item.id] = marker;
       });
-      L.marker([loc.lat, loc.lng], { icon: pin }).addTo(map);
-    });
+    }
+
+    function renderFeed() {
+      const feed = document.getElementById('listings-feed');
+      document.getElementById('results-count').innerText = `${currentListings.length} verified homes available`;
+      feed.innerHTML = '';
+
+      currentListings.forEach(item => {
+        const card = document.createElement('div');
+        card.id = `card-${item.id}`;
+        card.className = "bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition duration-200 flex flex-col group cursor-pointer";
+        card.onmouseenter = () => highlightMarker(item.id, true);
+        card.onmouseleave = () => highlightMarker(item.id, false);
+
+        card.innerHTML = `
+          <div class="relative h-48 overflow-hidden bg-gray-100">
+            <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            <div class="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
+              ${item.priceText}
+            </div>
+            ${item.verified ? `<div class="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center space-x-1 shadow"><i class="fa-solid fa-circle-check"></i><span>Verified</span></div>` : ''}
+            <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-medium px-2 py-1 rounded-md flex items-center space-x-1">
+              <span>❤️ ${item.saves} Saves</span>
+            </div>
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-gray-500 font-medium mb-1"><i class="fa-solid fa-location-dot text-gray-400 mr-1"></i>${item.location}</div>
+              <h2 class="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-blue-600 transition">${item.title}</h2>
+              <div class="flex items-center space-x-4 text-xs font-semibold text-gray-600 mt-2">
+                <span><i class="fa-solid fa-bed text-blue-500 mr-1"></i>${item.beds} Beds</span>
+                <span><i class="fa-solid fa-bath text-blue-500 mr-1"></i>${item.baths} Baths</span>
+                <span><i class="fa-solid fa-ruler-combined text-blue-500 mr-1"></i>${item.sqft.toLocaleString()} sqft</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+              <span class="text-xs text-gray-400">Agent/Landlord</span>
+              <div class="flex space-x-2">
+                <a href="https://wa.me/${item.whatsapp}" target="_blank" onclick="event.stopPropagation()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 p-2 rounded-lg text-xs font-semibold flex items-center space-x-1 border border-emerald-200 transition">
+                  <i class="fa-brands fa-whatsapp text-sm"></i>
+                  <span>WhatsApp</span>
+                </a>
+                <a href="tel:${item.phone}" onclick="event.stopPropagation()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg text-xs font-semibold flex items-center space-x-1 border border-blue-200 transition">
+                  <i class="fa-solid fa-phone text-xs"></i>
+                  <span>Call</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+
+        feed.appendChild(card);
+      });
+    }
+
+    function highlightMarker(id, highlight) {
+      const el = document.getElementById(`marker-${id}`);
+      if (el) {
+        if (highlight) el.classList.add('highlight');
+        else el.classList.remove('highlight');
+      }
+    }
+
+    function scrollToCard(id) {
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlightMarker(id, true);
+        setTimeout(() => highlightMarker(id, false), 2000);
+      }
+    }
+
+    function handleSort() {
+      const val = document.getElementById('sort-select').value;
+      if (val === 'price-low') {
+        currentListings.sort((a, b) => a.price - b.price);
+      } else if (val === 'price-high') {
+        currentListings.sort((a, b) => b.price - a.price);
+      } else if (val === 'verified') {
+        currentListings.sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0));
+      } else {
+        currentListings.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+      }
+      renderFeed();
+      renderMarkers();
+    }
+
+    function openAlertModal() {
+      document.getElementById('alert-modal').classList.remove('hidden');
+    }
+
+    function closeAlertModal() {
+      document.getElementById('alert-modal').classList.add('hidden');
+    }
+
+    function submitAlert(e) {
+      e.preventDefault();
+      alert('Your search alert has been saved successfully!');
+      closeAlertModal();
+    }
+
+    window.onload = () => {
+      initMap();
+      renderFeed();
+    };
   </script>
 </body>
 </html>
