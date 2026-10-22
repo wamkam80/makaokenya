@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TrueHome Kenya – Find Verified Homes</title>
   <meta name="description" content="Find homes for rent and sale in Kenya. List directly as a landlord or agent, get verified, and connect instantly on WhatsApp.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TrueHome Kenya">
+  <meta property="og:title" content="TrueHome Kenya – Find Verified Homes">
+  <meta property="og:description" content="Rent or buy directly from verified landlords and agents in Kenya. Check any landlord's badge before you pay.">
+  <meta property="og:url" content="https://truehomekenya.com/">
+  <meta name="twitter:card" content="summary">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -53,6 +59,7 @@
         <a href="#check" data-nav="check" class="navlink"><i class="fa-solid fa-qrcode mr-1"></i> Check a badge</a>
         <a href="#verify" data-nav="verify" class="navlink"><i class="fa-solid fa-shield-halved mr-1"></i> Get verified</a>
         <a href="#mine" data-nav="mine" class="navlink"><i class="fa-solid fa-list-check mr-1"></i> My listings</a>
+        <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink"><i class="fa-solid fa-user-shield mr-1"></i> Admin</a>
       </nav>
       <div class="flex items-center gap-2">
         <button id="accountBtn" hidden data-action="account" class="btn btn-ghost px-3">
@@ -67,6 +74,7 @@
       <a href="#check" data-nav="check" class="navlink">Check a badge</a>
       <a href="#verify" data-nav="verify" class="navlink">Get verified</a>
       <a href="#mine" data-nav="mine" class="navlink">My listings</a>
+      <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink">Admin</a>
     </nav>
   </header>
 
@@ -256,6 +264,16 @@
       <div id="mineBody" class="mt-4 space-y-3"></div>
     </section>
 
+    <!-- ========== ADMIN ========== -->
+    <section id="view-admin" hidden class="mx-auto max-w-4xl px-4 py-6">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-2xl font-extrabold"><i class="fa-solid fa-user-shield text-emerald-600"></i> Admin</h1>
+        <button data-admin-action="refresh" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      </div>
+      <div id="adminTabs" class="mt-4 flex gap-1 overflow-x-auto border-b border-slate-200"></div>
+      <div id="adminBody" class="mt-4 space-y-3"></div>
+    </section>
+
     <!-- ========== PRIVACY POLICY ========== -->
     <section id="view-privacy" hidden class="mx-auto max-w-3xl px-4 py-6">
       <article class="space-y-5 rounded-xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-700 sm:p-8">
@@ -429,6 +447,7 @@
       if (/failed to fetch|networkerror|load failed/i.test(m)) return 'Network problem. Check your connection and try again.';
       if (/row-level security|permission denied|not authorized|jwt/i.test(m)) return 'You are not allowed to do that. Please sign in again.';
       if (/one_pending_request_per_user|duplicate key/i.test(m)) return 'You already have a verification request under review.';
+      if (/not allowed/i.test(m)) return 'Only admins can do that.';
       if (/rate limit|too many/i.test(m)) return 'Too many attempts. Please wait a few minutes and try again.';
       if (/mime type|invalid.*type/i.test(m)) return 'That file type is not allowed. Use a photo (JPG/PNG) or a PDF.';
       if (/exceeded the maximum allowed size|payload too large/i.test(m)) return 'That file is too large.';
@@ -752,8 +771,13 @@
       loading = true; loadError = null;
       renderResults();
       try {
-        const [ls, pr] = await Promise.all([remote.loadListings(), remote.loadProfile()]);
-        listings = ls; profile = pr;
+        const [ls, pr, adm] = await Promise.all([
+          remote.loadListings(),
+          remote.loadProfile(),
+          session ? sb.rpc('is_admin').then((r) => !r.error && r.data === true) : Promise.resolve(false)
+        ]);
+        listings = ls; profile = pr; isAdmin = adm;
+        updateAdminLinks();
       } catch (err) {
         loadError = friendly(err);
       }
@@ -1028,7 +1052,10 @@
             </div>
             <div class="flex gap-2">${contactButtons}</div>
           </div>
-          <button data-map-id="${esc(l.id)}" class="btn btn-ghost w-full"><i class="fa-solid fa-map-location-dot"></i> View on map</button>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-share="${esc(l.id)}" class="btn btn-ghost"><i class="fa-solid fa-share-nodes"></i> Share</button>
+            <button data-map-id="${esc(l.id)}" class="btn btn-ghost"><i class="fa-solid fa-map-location-dot"></i> View on map</button>
+          </div>
           <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Safety tip: never pay a deposit or viewing fee before visiting the property and confirming who owns it.${v ? '' : ' This lister has not been verified yet.'}</p>
           ${reportButtonHTML(l)}
           ${l.demo ? '<p class="text-center text-xs text-slate-400">Sample listing for demonstration only.</p>' : ''}
@@ -1274,6 +1301,7 @@
               <p class="truncate text-xs text-slate-500">${esc(l.location)} · ${esc(metaText(l))}</p>
               <div class="mt-2 flex flex-wrap gap-2">
                 <button data-open="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-eye"></i> View</button>
+                <button data-share="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-share-nodes"></i> Share</button>
                 <button data-edit="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
                 <button data-delete="${esc(l.id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-trash"></i> Delete</button>
               </div>
@@ -1411,7 +1439,7 @@
     const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     const siteBase = () => location.origin + location.pathname;
     const siteHost = () => (location.host + location.pathname).replace(/index\.html$/, '').replace(/\/$/, '');
-    const badgeUrl = (code) => `${siteBase()}#v/${encodeURIComponent(code)}`;
+    const badgeUrl = (code) => `${siteBase()}?v=${encodeURIComponent(code)}`;
 
     function normCode(raw) {
       let c = String(raw || '').toUpperCase().replace(/[^A-Z0-9-]/g, '');
@@ -1472,7 +1500,8 @@
               <div class="flex flex-wrap justify-center gap-2 sm:justify-start">
                 <button data-action="download-badge" class="btn btn-primary px-3 py-1 text-xs"><i class="fa-solid fa-download"></i> Download badge</button>
                 <button data-action="copy-badge" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-regular fa-copy"></i> Copy link</button>
-                <a href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-brands fa-whatsapp"></i> Share</a>
+                <a href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-brands fa-facebook"></i> Facebook</a>
                 <a href="#v/${encodeURIComponent(code)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-eye"></i> Public page</a>
               </div>
             </div>
@@ -1675,14 +1704,272 @@
     }
 
     /* =====================================================================
+       Sharing
+       ===================================================================== */
+    const listingUrl = (l) => `${siteBase()}?l=${encodeURIComponent(l.id)}`;
+
+    function shareText(l) {
+      const code = ownerCodeOf(l);
+      return `${l.title}: ${priceText(l)} in ${l.location}.` +
+        (code ? ` Verified lister (badge ${code}).` : '') +
+        ` See it on TrueHome Kenya:`;
+    }
+
+    function copyText(text, done) {
+      const ok = () => toast(done || 'Link copied.');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok).catch(() => window.prompt('Copy this link:', text));
+      } else {
+        window.prompt('Copy this link:', text);
+      }
+    }
+
+    function openShare(id) {
+      const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
+      if (!l) return;
+      const url = listingUrl(l);
+      const text = shareText(l);
+      $('#detailBody').innerHTML = `
+        <div class="space-y-4 p-5">
+          <div class="flex items-center justify-between gap-2">
+            <button data-share-back="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <button data-close aria-label="Close" class="grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <h2 class="text-lg font-semibold"><i class="fa-solid fa-share-nodes text-emerald-600"></i> Share this listing</h2>
+          <div class="flex gap-3 rounded-xl border border-slate-200 p-3">
+            <div class="h-16 w-20 shrink-0 overflow-hidden rounded-lg">${photoHTML(l, 'h-16')}</div>
+            <div class="min-w-0">
+              <p class="truncate font-semibold">${esc(l.title)}</p>
+              <p class="text-sm font-bold">${esc(priceText(l))}</p>
+              <p class="truncate text-xs text-slate-500">${esc(l.location)}, ${esc(l.county)}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <a href="https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}" target="_blank" rel="noopener noreferrer" class="btn bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}" target="_blank" rel="noopener noreferrer" class="btn bg-[#1877F2] text-white hover:brightness-95"><i class="fa-brands fa-facebook"></i> Facebook</a>
+            <button data-copy="${esc(url)}" class="btn btn-ghost"><i class="fa-regular fa-copy"></i> Copy link</button>
+            ${navigator.share ? `<button data-native-share="${esc(l.id)}" class="btn btn-ghost"><i class="fa-solid fa-ellipsis"></i> More apps</button>` : ''}
+          </div>
+          <p class="break-all rounded-lg bg-slate-50 p-2 text-xs text-slate-500">${esc(url)}</p>
+        </div>`;
+      $('#detailModal').hidden = false;
+      document.body.style.overflow = 'hidden';
+      $('#detailBody').scrollTop = 0;
+    }
+
+    async function nativeShare(id) {
+      const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
+      if (!l || !navigator.share) return;
+      try { await navigator.share({ title: l.title, text: shareText(l), url: listingUrl(l) }); }
+      catch (e) { /* cancelled */ }
+    }
+
+    /* =====================================================================
+       Admin page
+       ===================================================================== */
+    let isAdmin = false;
+    let adminTab = 'requests';
+    let adminData = { requests: [], reports: [], verified: [], loaded: false, error: null };
+
+    const adminApi = {
+      async load() {
+        const [req, rep, ver] = await Promise.all([
+          sb.from('verification_requests')
+            .select('id, user_id, full_name, id_number, agent_reg_no, property_ref, id_doc_path, deed_doc_path, created_at')
+            .eq('status', 'pending').order('created_at', { ascending: true }),
+          sb.from('open_reports').select('*'),
+          sb.rpc('admin_verified_listers')
+        ]);
+        for (const r of [req, rep, ver]) if (r.error) throw r.error;
+        return { requests: req.data || [], reports: rep.data || [], verified: ver.data || [] };
+      },
+      async rpc(name, args) {
+        const { data, error } = await sb.rpc(name, args);
+        if (error) throw error;
+        return data;
+      }
+    };
+
+    function updateAdminLinks() {
+      $$('[data-admin-link]').forEach((a) => { a.hidden = !isAdmin; });
+    }
+
+    async function loadAdmin() {
+      if (!LIVE || !isAdmin) return;
+      adminData = { ...adminData, loaded: false, error: null };
+      renderAdmin();
+      try {
+        adminData = { ...(await adminApi.load()), loaded: true, error: null };
+      } catch (err) {
+        adminData = { requests: [], reports: [], verified: [], loaded: true, error: friendly(err) };
+      }
+      renderAdmin();
+    }
+
+    const fmtDate = (d) => (d ? new Date(d).toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' }) : '');
+
+    function adminRequestHTML(r) {
+      const theirListings = listings.filter((l) => l.ownerId === r.user_id).length;
+      return `
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p class="text-lg font-semibold">${esc(r.full_name)}</p>
+              <p class="text-xs text-slate-500">Submitted ${esc(fmtDate(r.created_at))} · ${theirListings} listing${theirListings === 1 ? '' : 's'}</p>
+            </div>
+            <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">Pending</span>
+          </div>
+          <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+            <div><dt class="text-xs text-slate-500">National ID</dt><dd class="font-mono font-medium">${esc(r.id_number)}</dd></div>
+            <div><dt class="text-xs text-slate-500">Title / LR number</dt><dd class="font-medium">${esc(r.property_ref || '—')}</dd></div>
+            <div><dt class="text-xs text-slate-500">EARB number</dt><dd class="font-medium">${esc(r.agent_reg_no || '—')}</dd></div>
+          </dl>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button data-admin-action="doc" data-path="${esc(r.id_doc_path)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-id-card"></i> View ID</button>
+            <button data-admin-action="doc" data-path="${esc(r.deed_doc_path)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-file-contract"></i> View ownership doc</button>
+            <a href="https://ardhisasa.lands.go.ke" target="_blank" rel="noopener noreferrer" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-map"></i> Ardhisasa</a>
+            <a href="https://estateagentsboard.or.ke" target="_blank" rel="noopener noreferrer" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-building"></i> EARB register</a>
+          </div>
+          <p class="mt-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">Check: the ID photo matches the name and number · the land search shows this person as owner (or the agent is on the EARB register) · a quick WhatsApp video call.</p>
+          <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input id="rej-${esc(r.id)}" maxlength="200" class="inp" placeholder="Reason, if rejecting (shown to the person)">
+            <div class="flex shrink-0 gap-2">
+              <button data-admin-action="reject" data-id="${esc(r.id)}" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Reject</button>
+              <button data-admin-action="approve" data-id="${esc(r.id)}" class="btn btn-primary"><i class="fa-solid fa-check"></i> Approve</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function adminReportHTML(r) {
+      const phone = normPhone(r.listing_phone);
+      return `
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-semibold"><i class="fa-solid fa-flag text-red-600"></i> ${esc(REPORT_REASONS[r.reason] || r.reason)}</p>
+              <p class="text-xs text-slate-500">${esc(fmtDate(r.created_at))} · ${Number(r.total_reports_on_listing)} report${Number(r.total_reports_on_listing) === 1 ? '' : 's'} on this listing</p>
+            </div>
+            ${verifiedBadge(!!r.owner_verified)}
+          </div>
+          ${r.details ? `<p class="mt-2 rounded-lg bg-slate-50 p-2 text-sm">${esc(r.details)}</p>` : ''}
+          <p class="mt-2 text-sm"><span class="text-slate-500">Listing:</span> <button data-open="${esc(r.listing_id)}" class="font-medium text-emerald-700 underline">${esc(r.title)}</button> · ${esc(r.location)}${phone ? ' · ' + esc(fmtPhone(phone)) : ''}</p>
+          ${r.reporter_contact ? `<p class="text-sm"><span class="text-slate-500">Reporter contact:</span> ${esc(r.reporter_contact)}</p>` : ''}
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button data-admin-action="report-reviewed" data-id="${esc(r.report_id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-check"></i> Nothing wrong</button>
+            <button data-admin-action="remove-listing" data-listing="${esc(r.listing_id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-trash"></i> Remove listing</button>
+            ${r.owner_verified ? `<button data-admin-action="revoke" data-user="${esc(r.owner_id)}" data-report="${esc(r.report_id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-ban"></i> Withdraw owner's badge</button>` : ''}
+          </div>
+        </div>`;
+    }
+
+    function adminVerifiedHTML(v) {
+      return `
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+          <div>
+            <p class="font-semibold">${esc(v.public_name || 'Verified lister')} <a href="#v/${encodeURIComponent(v.public_code || '')}" class="ml-1 font-mono text-sm text-emerald-700 underline">${esc(v.public_code || '')}</a></p>
+            <p class="text-xs text-slate-500">Verified ${esc(fmtDate(v.verified_at))} · ${Number(v.listings)} listing${Number(v.listings) === 1 ? '' : 's'}</p>
+          </div>
+          <button data-admin-action="revoke" data-user="${esc(v.user_id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-ban"></i> Withdraw badge</button>
+        </div>`;
+    }
+
+    function renderAdmin() {
+      const body = $('#adminBody');
+      const tabs = $('#adminTabs');
+      if (!body) return;
+      if (!LIVE || !isAdmin) {
+        tabs.innerHTML = '';
+        body.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600"><i class="fa-solid fa-lock text-2xl"></i><p class="mt-2">This page is only for TrueHome Kenya admins.</p></div>';
+        return;
+      }
+      const counts = { requests: adminData.requests.length, reports: adminData.reports.length, verified: adminData.verified.length };
+      const tab = (k, label, icon) => `
+        <button data-admin-tab="${k}" class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold ${adminTab === k ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+          <i class="fa-solid ${icon}"></i> ${label}${adminData.loaded ? ` <span class="ml-1 rounded-full bg-slate-100 px-1.5 text-xs">${counts[k]}</span>` : ''}
+        </button>`;
+      tabs.innerHTML = tab('requests', 'Verification requests', 'fa-id-card') + tab('reports', 'Reports', 'fa-flag') + tab('verified', 'Verified listers', 'fa-shield-halved');
+
+      if (!adminData.loaded) {
+        body.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>';
+        return;
+      }
+      if (adminData.error) {
+        body.innerHTML = `<div class="rounded-xl border border-red-200 bg-white p-6 text-center"><p class="font-medium">Couldn't load admin data.</p><p class="text-sm text-slate-500">${esc(adminData.error)}</p></div>`;
+        return;
+      }
+      const empty = (msg) => `<div class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500"><i class="fa-regular fa-circle-check text-2xl"></i><p class="mt-2">${msg}</p></div>`;
+      if (adminTab === 'requests') {
+        body.innerHTML = adminData.requests.length ? adminData.requests.map(adminRequestHTML).join('') : empty('No verification requests waiting.');
+      } else if (adminTab === 'reports') {
+        body.innerHTML = adminData.reports.length ? adminData.reports.map(adminReportHTML).join('') : empty('No open reports.');
+      } else {
+        body.innerHTML = adminData.verified.length ? adminData.verified.map(adminVerifiedHTML).join('') : empty('No verified listers yet.');
+      }
+    }
+
+    async function adminAction(btn) {
+      const a = btn.dataset.adminAction;
+      if (a === 'refresh') { await loadAdmin(); return; }
+      if (a === 'doc') {
+        const win = window.open('', '_blank');
+        const { data, error } = await sb.storage.from('verification-docs').createSignedUrl(btn.dataset.path, 300);
+        if (error || !data) { if (win) win.close(); toast(friendly(error || 'Could not open document'), 'error'); return; }
+        if (win) win.location.href = data.signedUrl; else window.location.href = data.signedUrl;
+        return;
+      }
+      try {
+        if (a === 'approve') {
+          if (!confirm('Approve this person? Their listings will show the Verified badge.')) return;
+          setBusy(btn, true, 'Approving…');
+          const code = await adminApi.rpc('admin_approve', { request_id: btn.dataset.id });
+          toast(`Approved. Badge code ${code || ''}`.trim());
+        } else if (a === 'reject') {
+          const reason = ($('#rej-' + btn.dataset.id) || {}).value || '';
+          if (reason.trim().length < 5) { toast('Write a short reason first, so they know what to fix.', 'error'); $('#rej-' + btn.dataset.id).focus(); return; }
+          if (!confirm('Reject this request?')) return;
+          setBusy(btn, true, 'Rejecting…');
+          await adminApi.rpc('admin_reject', { request_id: btn.dataset.id, reason: reason.trim() });
+          toast('Request rejected.');
+        } else if (a === 'revoke') {
+          if (!confirm("Withdraw this person's Verified badge? Their badge page will show BADGE WITHDRAWN.")) return;
+          setBusy(btn, true, 'Withdrawing…');
+          await adminApi.rpc('admin_revoke', { target_user: btn.dataset.user });
+          if (btn.dataset.report) await adminApi.rpc('admin_set_report_status', { report_id: btn.dataset.report, new_status: 'actioned' });
+          toast('Badge withdrawn.');
+        } else if (a === 'report-reviewed') {
+          setBusy(btn, true, 'Saving…');
+          await adminApi.rpc('admin_set_report_status', { report_id: btn.dataset.id, new_status: 'reviewed' });
+          toast('Report closed.');
+        } else if (a === 'remove-listing') {
+          if (!confirm('Remove this listing from the site? This cannot be undone.')) return;
+          setBusy(btn, true, 'Removing…');
+          const l = listings.find((x) => x.id === btn.dataset.listing);
+          const { error } = await sb.from('listings').delete().eq('id', btn.dataset.listing);
+          if (error) throw error;
+          const path = l && photoPathFromUrl(l.photo);
+          if (path) await sb.storage.from('listing-photos').remove([path]).catch(() => {});
+          toast('Listing removed.');
+        }
+      } catch (err) {
+        setBusy(btn, false);
+        toast(friendly(err), 'error');
+        return;
+      }
+      await reloadData();
+      await loadAdmin();
+    }
+
+    /* =====================================================================
        Router
        ===================================================================== */
-    const VIEWS = ['browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy'];
-    const PRIVATE = ['list', 'verify', 'mine'];
+    const VIEWS = ['browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'admin'];
+    const PRIVATE = ['list', 'verify', 'mine', 'admin'];
     const SIGNIN_REASONS = {
       list: 'Sign in to list a property.',
       verify: 'Sign in to get verified.',
-      mine: 'Sign in to manage your listings.'
+      mine: 'Sign in to manage your listings.',
+      admin: 'Sign in to use the admin page.'
     };
 
     function route() {
@@ -1710,6 +1997,7 @@
       closeDetail();
 
       if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
+      if (v === 'admin') loadAdmin().then(() => { if (!isAdmin) renderAdmin(); });
       if (v === 'list') {
         ensureFormMap();
         const l = editingId && listings.find((x) => x.id === editingId && x.owner === 'me');
@@ -1765,6 +2053,18 @@
         const open = t.closest('[data-open]');
         if (open) { openDetail(open.dataset.open); return; }
         if (t.closest('[data-demo-contact]')) { toast('This is a sample listing, so contact is disabled.'); return; }
+        const adm = t.closest('[data-admin-action]');
+        if (adm) { e.preventDefault(); adminAction(adm); return; }
+        const admTab = t.closest('[data-admin-tab]');
+        if (admTab) { adminTab = admTab.dataset.adminTab; renderAdmin(); return; }
+        const shr = t.closest('[data-share]');
+        if (shr) { openShare(shr.dataset.share); return; }
+        const shrBack = t.closest('[data-share-back]');
+        if (shrBack) { openDetail(shrBack.dataset.shareBack); return; }
+        const cpy = t.closest('[data-copy]');
+        if (cpy) { copyText(cpy.dataset.copy); return; }
+        const nat = t.closest('[data-native-share]');
+        if (nat) { nativeShare(nat.dataset.nativeShare); return; }
         const rep = t.closest('[data-report]');
         if (rep) { openReportForm(rep.dataset.report); return; }
         const repBack = t.closest('[data-report-back]');
@@ -2034,15 +2334,36 @@
     /* =====================================================================
        Start
        ===================================================================== */
+    // Shared links: ?l=<listing id> opens a listing, ?v=<badge code> opens a badge check
+    let pendingOpenId = null;
+    function readShareParams() {
+      const q = new URLSearchParams(location.search);
+      const l = q.get('l');
+      const v = q.get('v');
+      if (!l && !v) return;
+      pendingOpenId = l || null;
+      const hash = v ? '#v/' + encodeURIComponent(normCode(v)) : (location.hash && !/access_token|error_description/.test(location.hash) ? location.hash : '#browse');
+      history.replaceState(null, '', location.pathname + hash);
+    }
+    function openPendingListing() {
+      if (!pendingOpenId) return;
+      const id = pendingOpenId;
+      pendingOpenId = null;
+      if (listings.some((x) => x.id === id)) openDetail(id);
+      else toast('That listing is no longer available.', 'error');
+    }
+
     async function init() {
       $('#year').textContent = new Date().getFullYear();
       buildSelects();
       bindEvents();
       setupModeUI();
+      readShareParams();
 
       if (!LIVE) {
         await reloadData();
         route();
+        openPendingListing();
         return;
       }
 
@@ -2091,6 +2412,8 @@
       }
       route();
       await reloadData();
+      if ((location.hash || '').slice(1) === 'admin') route();
+      openPendingListing();
     }
 
     init();

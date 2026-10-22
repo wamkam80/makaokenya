@@ -438,3 +438,126 @@ where r.status = 'open'
 order by r.created_at desc;
 
 revoke all on public.open_reports from anon, authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- 8. ADMIN PAGE
+--    People listed in public.admins can use the website's #admin page.
+--    Add an admin:  insert into public.admins (user_id)
+--                   select id from auth.users where email = 'you@example.com';
+--    Every admin_* function checks is_admin() itself.
+-- ---------------------------------------------------------------------
+create table if not exists public.admins (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+alter table public.admins enable row level security;
+drop policy if exists "Admins can see their own admin row" on public.admins;
+create policy "Admins can see their own admin row"
+  on public.admins for select to authenticated
+  using (user_id = (select auth.uid()));
+grant select on public.admins to authenticated;
+revoke insert, update, delete, truncate on public.admins from anon, authenticated;
+
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = ''
+as $$
+  select exists (select 1 from public.admins where user_id = auth.uid());
+$$;
+revoke execute on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
+drop policy if exists "Admins read all requests" on public.verification_requests;
+create policy "Admins read all requests"
+  on public.verification_requests for select to authenticated
+  using ((select public.is_admin()));
+
+drop policy if exists "Admins read verification docs" on storage.objects;
+create policy "Admins read verification docs"
+  on storage.objects for select to authenticated
+  using (bucket_id = 'verification-docs' and (select public.is_admin()));
+
+drop policy if exists "Admins read reports" on public.listing_reports;
+create policy "Admins read reports"
+  on public.listing_reports for select to authenticated
+  using ((select public.is_admin()));
+grant select on public.listing_reports to authenticated;
+grant select on public.open_reports to authenticated;
+
+drop policy if exists "Admins delete any listing" on public.listings;
+create policy "Admins delete any listing"
+  on public.listings for delete to authenticated
+  using ((select public.is_admin()));
+drop policy if exists "Admins delete any listing photo" on storage.objects;
+create policy "Admins delete any listing photo"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'listing-photos' and (select public.is_admin()));
+
+create or replace function public.admin_approve(request_id uuid)
+returns text language plpgsql security definer set search_path = ''
+as $$
+declare code text;
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  perform public.approve_verification(request_id);
+  select p.public_code into code
+    from public.profiles p
+    join public.verification_requests r on r.user_id = p.id
+   where r.id = request_id;
+  return code;
+end;
+$$;
+
+create or replace function public.admin_reject(request_id uuid, reason text)
+returns void language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  perform public.reject_verification(request_id, reason);
+end;
+$$;
+
+create or replace function public.admin_revoke(target_user uuid)
+returns void language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  perform public.revoke_verification(target_user);
+end;
+$$;
+
+create or replace function public.admin_set_report_status(report_id uuid, new_status text)
+returns void language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  if new_status not in ('open', 'reviewed', 'actioned') then raise exception 'Bad status'; end if;
+  update public.listing_reports set status = new_status where id = report_id;
+end;
+$$;
+
+create or replace function public.admin_verified_listers()
+returns table (user_id uuid, public_name text, public_code text, verified_at timestamptz, listings bigint)
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  return query
+    select p.id, p.public_name, p.public_code, p.verified_at,
+           (select count(*) from public.listings l where l.owner_id = p.id)
+      from public.profiles p
+     where p.verified
+     order by p.verified_at desc;
+end;
+$$;
+
+revoke execute on function public.admin_approve(uuid)                 from public, anon;
+revoke execute on function public.admin_reject(uuid, text)            from public, anon;
+revoke execute on function public.admin_revoke(uuid)                  from public, anon;
+revoke execute on function public.admin_set_report_status(uuid, text) from public, anon;
+revoke execute on function public.admin_verified_listers()            from public, anon;
+grant execute on function public.admin_approve(uuid)                 to authenticated;
+grant execute on function public.admin_reject(uuid, text)            to authenticated;
+grant execute on function public.admin_revoke(uuid)                  to authenticated;
+grant execute on function public.admin_set_report_status(uuid, text) to authenticated;
+grant execute on function public.admin_verified_listers()            to authenticated;

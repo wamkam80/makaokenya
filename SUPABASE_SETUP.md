@@ -63,51 +63,38 @@ Click **Save**.
 
 ---
 
-## Reviewing verification requests (your job as admin)
+## Your Admin page
 
-### See who is waiting
-**Table Editor → `verification_requests`**. Rows with `status = pending` are waiting. Copy the request's `id` and `user_id`.
+Sign in on the site with your admin email. An **Admin** link appears in the menu (or go straight to https://truehomekenya.com/#admin). Nobody else sees it, and the database refuses admin actions from anyone who isn't on the `admins` list.
 
-### Check their documents
-**Storage → `verification-docs`** → open the folder named after their `user_id`. You'll find their ID and ownership document there.
+### Verification requests tab
+Each waiting request shows the person's name, role, ID number and title/LR or agent number.
+1. Tap **View ID** and **View ownership doc**. The documents open through a private link that expires after 5 minutes.
+2. Check them:
+   - **Everyone:** the ID photo is clear, and the name and ID number match.
+   - **Landlords:** tap **Search on Ardhisasa** and confirm the registered owner matches their ID.
+   - **Agents:** tap **EARB register** and confirm their registration number is listed.
+   - **Caretakers / agents acting for an owner:** the management letter must be signed by the owner.
+   - **Recommended:** a quick WhatsApp video call to confirm they're the person on the ID.
+3. Tap **Approve** to give them the badge (they get a code like `TH-7KQ2MX`, a QR code and a check page), or type a reason and tap **Reject**. They'll see your reason and can try again.
 
-### What to check before approving
-- **Everyone:** the ID photo is clear, the name matches `full_name`, and the ID number matches.
-- **Landlords:** run an official search on **Ardhisasa** (or at the land registry) using the title/LR number. The registered owner must match their ID.
-- **Agents:** confirm their `agent_reg_no` appears on the **Estate Agents Registration Board** register.
-- **Caretakers / agents acting for an owner:** the management letter must be signed by the verified owner.
-- **Recommended:** a quick WhatsApp video call to confirm they're the person on the ID.
+### Reports tab
+Every open report, with the reason, the listing, its phone number and how many reports it has. One tap each:
+- **Nothing wrong**: closes the report.
+- **Remove listing**: deletes the listing and its photos.
+- **Withdraw owner's badge**: their badge page immediately shows **BADGE WITHDRAWN**.
 
-### Approve or reject
-Go to **SQL Editor → New query**, paste one of these with the real id, and click **Run**:
+### Verified tab
+Everyone with a badge. **Withdraw badge** removes it at any time.
 
-```sql
--- Approve: gives the Verified badge to all their listings
-select public.approve_verification('PASTE-REQUEST-ID-HERE');
-
--- Reject: the user sees your reason and can submit again
-select public.reject_verification('PASTE-REQUEST-ID-HERE', 'The ID photo is blurry. Please upload a clearer photo.');
-
--- Remove a badge later (e.g. after scam reports)
-select public.revoke_verification('PASTE-USER-ID-HERE');
-```
-
-Website visitors cannot run these functions; only you can, from the dashboard.
-
-When you approve someone, they automatically get a **badge code** (like `TH-7KQ2MX`), a QR code and a public check page. They'll find these under **My listings** and can download a printable badge. Tenants check codes under **Check a badge**. If you revoke someone, their page immediately shows **BADGE WITHDRAWN**.
+### Adding another admin
+In **SQL Editor**, run: `insert into public.admins (user_id) select id from auth.users where email = 'their@email.com';` (they must have signed in once first).
 
 ---
 
-## Reviewing reported listings
+## Sharing
 
-Tenants can tap **Report this listing** on any listing. Reports are private, and only you can see them.
-
-1. Open **Table Editor → `open_reports`** to see every open report, with the listing title, phone number, whether the owner is verified, and how many reports that listing has in total.
-2. To remove a listing: **Table Editor → `listings`**, find the row by `listing_id`, and delete it.
-3. If the owner is verified and the report is serious, also withdraw their badge (see above): `select public.revoke_verification('OWNER-ID');`
-4. Mark the report as handled: **Table Editor → `listing_reports`**, set `status` to `reviewed` (nothing needed) or `actioned` (you removed something).
-
-Or just ask Claude: "show me open reports" or "remove listing X and revoke the owner".
+Every listing has a **Share** button (on the listing and under **My listings**), with WhatsApp, Facebook and Copy link. The badge card has the same buttons. Shared links look like `truehomekenya.com/?l=…` for a listing and `truehomekenya.com/?v=TH-XXXXXX` for a badge, and open straight to that listing or badge check.
 
 ---
 
