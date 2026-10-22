@@ -11,6 +11,6 @@
 // NEVER paste the "service_role" or "secret" key here.
 
 window.TRUEHOME_CONFIG = {
-  supabaseUrl: '',      // e.g. 'https://abcdefghijklm.supabase.co'
-  supabaseAnonKey: ''   // e.g. 'eyJhbGciOi...' or 'sb_publishable_...'
+  supabaseUrl: 'https://oweftgefkijetuqzcvgl.supabase.co',
+  supabaseAnonKey: 'sb_publishable_StwrxAfgUsOdCm6yQ8QobQ_PYkJDZb0'
 };

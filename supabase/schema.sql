@@ -115,6 +115,12 @@ left join public.profiles p on p.id = l.owner_id;
 
 grant select on public.listings_public to anon, authenticated;
 
+-- Table access for the website (row-level security above still decides
+-- WHICH rows each person can see or change)
+grant select on public.profiles to anon, authenticated;
+grant select on public.listings to anon, authenticated;
+grant insert, update, delete on public.listings to authenticated;
+
 
 -- ---------------------------------------------------------------------
 -- 3. VERIFICATION REQUESTS
@@ -164,6 +170,8 @@ drop policy if exists "Users withdraw pending requests" on public.verification_r
 create policy "Users withdraw pending requests"
   on public.verification_requests for delete to authenticated
   using (user_id = (select auth.uid()) and status = 'pending');
+
+grant select, insert, delete on public.verification_requests to authenticated;
 
 
 -- ---------------------------------------------------------------------
@@ -231,6 +239,13 @@ $$;
 revoke execute on function public.approve_verification(uuid)      from public, anon, authenticated;
 revoke execute on function public.reject_verification(uuid, text) from public, anon, authenticated;
 revoke execute on function public.revoke_verification(uuid)       from public, anon, authenticated;
+revoke execute on function public.handle_new_user()               from public, anon, authenticated;
+
+-- Nobody can change profiles (the Verified flag) through the website
+revoke insert, update, delete, truncate on public.profiles from anon, authenticated;
+revoke insert, update, delete, truncate on public.listings from anon;
+revoke insert, update, delete, truncate on public.verification_requests from anon;
+revoke update, truncate on public.verification_requests from authenticated;
 
 
 -- ---------------------------------------------------------------------
