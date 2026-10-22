@@ -3,226 +3,1064 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Makao Kenya - Find & List Properties in Kenya</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+  <title>TrueHome Kenya – Find Verified Homes</title>
+  <meta name="description" content="Find homes for rent and sale in Kenya. List directly as a landlord or agent, get verified, and connect instantly on WhatsApp.">
 
-  <!-- Header -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="bg-blue-600 text-white p-2 rounded-lg">
-          <i class="fa-solid fa-house-circle-check text-xl"></i>
-        </div>
-        <span class="text-xl font-bold text-gray-900 tracking-tight">Makao<span class="text-blue-600">Kenya</span></span>
-      </div>
-      <div class="flex items-center space-x-4">
-        <button id="list-property-btn" onclick="openListingModal()" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">List Property</button>
-      </div>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style type="text/tailwindcss">
+    .inp { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500; }
+    .lbl { @apply mb-1 block text-sm font-medium text-slate-700; }
+    .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition; }
+    .btn-primary { @apply bg-emerald-600 text-white hover:bg-emerald-700; }
+    .btn-ghost { @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+    .btn-danger { @apply border border-red-200 bg-white text-red-600 hover:bg-red-50; }
+    .navlink { @apply whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
+    .navlink.active { @apply bg-emerald-50 text-emerald-700; }
+  </style>
+  <style>
+    [hidden] { display: none !important; }
+    .leaflet-container { font: inherit; }
+    .pin-wrap { background: none; border: none; }
+    .price-pin {
+      display: inline-block; transform: translate(-50%, -120%);
+      background: #fff; color: #065f46; border: 2px solid #059669;
+      font-weight: 700; font-size: 12px; line-height: 1; padding: 5px 8px;
+      border-radius: 999px; white-space: nowrap; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    }
+    .price-pin.unv { border-color: #64748b; color: #334155; }
+    .price-pin.active { background: #059669; color: #fff; border-color: #047857; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+
+  <!-- ========== HEADER ========== -->
+  <header class="sticky top-0 z-[1100] border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
+      <a href="#browse" class="flex items-center gap-2 text-xl font-extrabold">
+        <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-600 text-white">
+          <i class="fa-solid fa-house-circle-check"></i>
+        </span>
+        <span>TrueHome<span class="text-emerald-600"> Kenya</span></span>
+      </a>
+      <nav class="hidden gap-1 md:flex">
+        <a href="#browse" data-nav="browse" class="navlink"><i class="fa-solid fa-magnifying-glass mr-1"></i> Browse</a>
+        <a href="#verify" data-nav="verify" class="navlink"><i class="fa-solid fa-shield-halved mr-1"></i> Get verified</a>
+        <a href="#mine" data-nav="mine" class="navlink"><i class="fa-solid fa-list-check mr-1"></i> My listings</a>
+      </nav>
+      <a href="#list" data-nav="list" class="btn btn-primary hidden sm:inline-flex"><i class="fa-solid fa-plus"></i> List a property</a>
     </div>
+    <nav class="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-1 md:hidden">
+      <a href="#browse" data-nav="browse" class="navlink">Browse</a>
+      <a href="#list" data-nav="list" class="navlink">List a property</a>
+      <a href="#verify" data-nav="verify" class="navlink">Get verified</a>
+      <a href="#mine" data-nav="mine" class="navlink">My listings</a>
+    </nav>
   </header>
 
-  <!-- Filter Bar -->
-  <section class="bg-white border-b border-gray-200 px-4 py-3 z-20">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
-      <div class="flex-1 min-w-[200px]">
-        <input type="text" placeholder="Search location (Kilimani, Westlands, Karen...)" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
-      <select class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option>All Purpose (Rent / Sale)</option>
-        <option>For Rent</option>
-        <option>For Sale</option>
-      </select>
-      <select class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option>Bedrooms (Any)</option>
-        <option>Bedsitter / Studio</option>
-        <option>1 Bedroom</option>
-        <option>2 Bedrooms</option>
-        <option>3 Bedrooms</option>
-        <option>4+ Bedrooms</option>
-      </select>
-      <select class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option>Max Price (KSh)</option>
-        <option>KSh 30,000</option>
-        <option>KSh 50,000</option>
-        <option>KSh 100,000</option>
-        <option>KSh 200,000+</option>
-      </select>
-      <button class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition">Filter</button>
-    </div>
-  </section>
+  <main>
+    <!-- ========== BROWSE ========== -->
+    <section id="view-browse" class="mx-auto max-w-7xl px-4 py-5">
+      <h1 class="text-2xl font-extrabold sm:text-3xl">Find a verified home in Kenya</h1>
+      <p class="mt-1 text-sm text-slate-600">Rent or buy directly from landlords and agents. Look for the <span class="font-semibold text-emerald-700">Verified</span> badge.</p>
 
-  <!-- Main Split Layout: Map on left, Listings on right -->
-  <main class="flex flex-col md:flex-row h-[calc(100vh-120px)]">
-    <!-- Map Column (Left) -->
-    <div class="w-full md:w-1/2 h-64 md:h-auto relative z-0">
-      <div id="map" class="h-full w-full"></div>
-    </div>
-    <!-- Listings Column (Right) -->
-    <div class="w-full md:w-1/2 h-full overflow-y-auto p-4 space-y-4 bg-gray-50">
-      <div class="flex justify-between items-center mb-2">
-        <h1 class="text-lg font-bold text-gray-800">Featured Kenya Listings</h1>
-        <span class="text-xs text-gray-500">Showing 3 verified properties</span>
+      <div class="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-3 md:grid-cols-4 lg:grid-cols-7">
+        <div class="col-span-2 md:col-span-4 lg:col-span-2">
+          <input id="fQ" type="search" class="inp" placeholder="Search area, title or keyword…" aria-label="Search">
+        </div>
+        <select id="fPurpose" class="inp" aria-label="Rent or buy">
+          <option value="">Rent or buy</option>
+          <option value="rent">For rent</option>
+          <option value="sale">For sale</option>
+        </select>
+        <select id="fType" class="inp" aria-label="Property type"><option value="">Any type</option></select>
+        <select id="fCounty" class="inp" aria-label="County"><option value="">All counties</option></select>
+        <select id="fBeds" class="inp" aria-label="Bedrooms">
+          <option value="0">Any beds</option>
+          <option value="1">1+ beds</option>
+          <option value="2">2+ beds</option>
+          <option value="3">3+ beds</option>
+          <option value="4">4+ beds</option>
+        </select>
+        <input id="fMax" type="number" min="0" step="1000" class="inp" placeholder="Max price (KES)" aria-label="Maximum price">
       </div>
 
-      <!-- Card 1 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
-        <div class="md:flex">
-          <div class="md:w-1/3">
-            <img class="h-48 w-full object-cover md:h-full" src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=500&q=80" alt="Apartment">
-          </div>
-          <div class="p-4 md:w-2/3 flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start">
-                <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded">For Rent</span>
-                <span class="text-lg font-bold text-gray-900">KSh 85,000<span class="text-xs text-gray-500 font-normal">/mo</span></span>
-              </div>
-              <h2 class="text-md font-bold text-gray-800 mt-1">Modern 2 Bedroom Apartment</h2>
-              <p class="text-sm text-gray-500">Kilimani, Nairobi</p>
-              <div class="mt-2 flex items-center space-x-4 text-xs text-gray-600">
-                <span><i class="fa-solid fa-bed text-blue-500"></i> 2 Beds</span>
-                <span><i class="fa-solid fa-bath text-blue-500"></i> 2 Baths</span>
-                <span><i class="fa-solid fa-droplet text-blue-500"></i> Borehole</span>
-                <span><i class="fa-solid fa-shield-halved text-blue-500"></i> 24/7 Security</span>
-              </div>
-            </div>
-            <div class="mt-3 flex space-x-2">
-              <a href="tel:+254712345678" class="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition font-medium text-center flex items-center justify-center gap-1">
-                <i class="fa-solid fa-phone"></i> Contact Caretaker
-              </a>
-              <a href="https://wa.me/254712345678" target="_blank" class="px-3 py-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition flex items-center justify-center">
-                <i class="fa-brands fa-whatsapp text-sm"></i>
-              </a>
-            </div>
-          </div>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <p id="resultCount" class="text-sm font-semibold"></p>
+          <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+            <input id="fVerified" type="checkbox" class="h-4 w-4 accent-emerald-600"> Verified only
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="fSort" class="inp w-auto" aria-label="Sort">
+            <option value="newest">Newest</option>
+            <option value="low">Price: low to high</option>
+            <option value="high">Price: high to low</option>
+          </select>
+          <button id="toggleView" data-action="toggle-view" class="btn btn-ghost lg:hidden"><i class="fa-solid fa-map"></i> Map</button>
         </div>
       </div>
 
-      <!-- Card 2 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
-        <div class="md:flex">
-          <div class="md:w-1/3">
-            <img class="h-48 w-full object-cover md:h-full" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=500&q=80" alt="Villa">
-          </div>
-          <div class="p-4 md:w-2/3 flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start">
-                <span class="text-xs font-semibold uppercase tracking-wider text-green-600 bg-green-50 px-2 py-1 rounded">For Sale</span>
-                <span class="text-lg font-bold text-gray-900">KSh 65,000,000</span>
-              </div>
-              <h2 class="text-md font-bold text-gray-800 mt-1">Luxury 4 Bedroom Villa</h2>
-              <p class="text-sm text-gray-500">Karen, Nairobi</p>
-              <div class="mt-2 flex items-center space-x-4 text-xs text-gray-600">
-                <span><i class="fa-solid fa-bed text-blue-500"></i> 4 Beds</span>
-                <span><i class="fa-solid fa-bath text-blue-500"></i> 5 Baths</span>
-                <span><i class="fa-solid fa-bolt text-blue-500"></i> Generator</span>
-                <span><i class="fa-solid fa-shield-halved text-blue-500"></i> Electric Fence</span>
-              </div>
-            </div>
-            <div class="mt-3 flex space-x-2">
-              <a href="tel:+254711000000" class="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition font-medium text-center flex items-center justify-center gap-1">
-                <i class="fa-solid fa-phone"></i> Contact Agent
-              </a>
-              <a href="https://wa.me/254711000000" target="_blank" class="px-3 py-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition flex items-center justify-center">
-                <i class="fa-brands fa-whatsapp text-sm"></i>
-              </a>
-            </div>
+      <div class="mt-3 grid gap-4 lg:grid-cols-2">
+        <div id="resultsWrap" class="lg:block">
+          <div id="results" class="grid gap-4 sm:grid-cols-2"></div>
+        </div>
+        <div id="mapWrap" class="hidden lg:block">
+          <div class="lg:sticky lg:top-24">
+            <div id="map" class="relative z-0 h-[70vh] rounded-xl border border-slate-200 lg:h-[calc(100vh-8rem)]"></div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Card 3 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
-        <div class="md:flex">
-          <div class="md:w-1/3">
-            <img class="h-48 w-full object-cover md:h-full" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=500&q=80" alt="Studio">
+    <!-- ========== LIST A PROPERTY ========== -->
+    <section id="view-list" hidden class="mx-auto max-w-3xl px-4 py-6">
+      <h1 id="formHeading" class="text-2xl font-extrabold">List a property</h1>
+      <p class="mt-1 text-sm text-slate-600">Your listing goes live right away. <a href="#verify" class="font-medium text-emerald-700 underline">Get verified</a> to show a Verified badge on all your listings.</p>
+
+      <form id="listingForm" class="mt-5 space-y-6 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+        <fieldset class="space-y-4">
+          <legend class="mb-2 font-semibold">Property details</legend>
+          <div>
+            <label class="lbl" for="lfTitle">Title</label>
+            <input id="lfTitle" class="inp" required minlength="5" maxlength="80" placeholder="e.g. Spacious 2 bedroom apartment with parking">
           </div>
-          <div class="p-4 md:w-2/3 flex flex-col justify-between">
+          <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <div class="flex justify-between items-start">
-                <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded">For Rent</span>
-                <span class="text-lg font-bold text-gray-900">KSh 25,000<span class="text-xs text-gray-500 font-normal">/mo</span></span>
-              </div>
-              <h2 class="text-md font-bold text-gray-800 mt-1">Cozy Bedsitter / Studio</h2>
-              <p class="text-sm text-gray-500">Ruaka, Kiambu</p>
-              <div class="mt-2 flex items-center space-x-4 text-xs text-gray-600">
-                <span><i class="fa-solid fa-bed text-blue-500"></i> Bedsitter</span>
-                <span><i class="fa-solid fa-bath text-blue-500"></i> 1 Bath</span>
-                <span><i class="fa-solid fa-wifi text-blue-500"></i> Fiber Internet</span>
-              </div>
+              <label class="lbl" for="lfPurpose">Listing for</label>
+              <select id="lfPurpose" class="inp" required>
+                <option value="rent">Rent</option>
+                <option value="sale">Sale</option>
+              </select>
             </div>
-            <div class="mt-3 flex space-x-2">
-              <a href="tel:+254722000000" class="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition font-medium text-center flex items-center justify-center gap-1">
-                <i class="fa-solid fa-phone"></i> Contact Landlord
-              </a>
-              <a href="https://wa.me/254722000000" target="_blank" class="px-3 py-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition flex items-center justify-center">
-                <i class="fa-brands fa-whatsapp text-sm"></i>
-              </a>
+            <div>
+              <label class="lbl" for="lfType">Property type</label>
+              <select id="lfType" class="inp" required></select>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </main>
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label class="lbl" for="lfPrice" id="lfPriceLabel">Rent per month (KES)</label>
+              <input id="lfPrice" type="number" class="inp" required min="500" step="1" placeholder="e.g. 45000">
+            </div>
+            <div>
+              <label class="lbl" for="lfBeds">Bedrooms</label>
+              <input id="lfBeds" type="number" class="inp" required min="0" max="20" value="1">
+            </div>
+            <div>
+              <label class="lbl" for="lfBaths">Bathrooms</label>
+              <input id="lfBaths" type="number" class="inp" required min="0" max="20" value="1">
+            </div>
+          </div>
+        </fieldset>
 
-  <!-- List Property Modal -->
-  <div id="listingModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-lg font-bold text-gray-900">List Your Property on Makao Kenya</h2>
-        <button onclick="closeListingModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-      <div id="feedbackBanner" class="hidden p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-xs flex items-center space-x-2">
-        <i class="fa-solid fa-circle-check text-green-600 text-base"></i>
-        <span>Listing submitted for verification! Published within 24 hours.</span>
-      </div>
-      <form onsubmit="submitListing(event)" class="space-y-3 text-sm">
+        <fieldset class="space-y-3">
+          <legend class="mb-2 font-semibold">Location</legend>
+          <select id="lfLocation" class="inp" required aria-label="Area"></select>
+          <div id="formMap" class="relative z-0 h-64 rounded-lg border border-slate-200"></div>
+          <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot"></i> Tap the map or drag the pin to mark the exact spot.</p>
+        </fieldset>
+
+        <fieldset class="space-y-3">
+          <legend class="mb-2 font-semibold">Photo</legend>
+          <input id="lfPhoto" type="file" accept="image/*" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700">
+          <div id="photoPreview"></div>
+        </fieldset>
+
+        <fieldset class="space-y-4">
+          <legend class="mb-2 font-semibold">Contact</legend>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="lbl" for="lfContact">Contact name</label>
+              <input id="lfContact" class="inp" required maxlength="50" placeholder="e.g. Jane Wanjiku">
+            </div>
+            <div>
+              <label class="lbl" for="lfRole">You are the</label>
+              <select id="lfRole" class="inp" required>
+                <option value="landlord">Landlord / Owner</option>
+                <option value="agent">Agent</option>
+                <option value="caretaker">Caretaker</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="lfPhone">Phone / WhatsApp number</label>
+            <input id="lfPhone" type="tel" inputmode="tel" class="inp" required placeholder="e.g. 0712 345 678">
+          </div>
+        </fieldset>
+
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Property Title *</label>
-          <input type="text" required placeholder="e.g. Modern 2 Bedroom Apartment" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="lbl" for="lfDesc">Description</label>
+          <textarea id="lfDesc" rows="4" maxlength="1000" class="inp" placeholder="Water, parking, security, distance to the main road…"></textarea>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Neighborhood *</label>
-            <input type="text" required placeholder="e.g. Kilimani" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Price (KSh) *</label>
-            <input type="number" required placeholder="e.g. 65000" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Contact Name *</label>
-            <input type="text" required placeholder="e.g. Jane Doe" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">WhatsApp / Phone *</label>
-            <input type="tel" required placeholder="e.g. +254712345678" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-        <div class="pt-3 border-t flex justify-end space-x-2">
-          <button type="button" onclick="closeListingModal()" class="px-4 py-2 border rounded-lg text-xs font-medium text-gray-600">Cancel</button>
-          <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700">Submit Listing</button>
+
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" id="lfCancel" class="btn btn-ghost">Cancel</button>
+          <button type="submit" id="lfSubmit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish listing</button>
         </div>
       </form>
-    </div>
+    </section>
+
+    <!-- ========== VERIFY ========== -->
+    <section id="view-verify" hidden class="mx-auto max-w-2xl px-4 py-6">
+      <h1 class="text-2xl font-extrabold">Landlord verification</h1>
+      <div id="verifyBody" class="mt-4"></div>
+    </section>
+
+    <!-- ========== MY LISTINGS ========== -->
+    <section id="view-mine" hidden class="mx-auto max-w-3xl px-4 py-6">
+      <div class="flex items-center justify-between gap-2">
+        <h1 class="text-2xl font-extrabold">My listings</h1>
+        <a href="#list" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New</a>
+      </div>
+      <div id="mineBody" class="mt-4 space-y-3"></div>
+    </section>
+  </main>
+
+  <footer class="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500">
+    © <span id="year"></span> TrueHome Kenya · Demo version: listings and verification requests are saved only in this browser.
+    <button data-action="reset-demo" class="underline hover:text-slate-700">Reset demo data</button>
+  </footer>
+
+  <!-- ========== DETAIL MODAL ========== -->
+  <div id="detailModal" hidden class="fixed inset-0 z-[2000] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+    <div id="detailBody" class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-white sm:rounded-2xl"></div>
   </div>
 
-  <script>
-    const map = L.map('map').setView([-1.286389, 36.817223], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
-    L.marker([-1.2921, 36.7821]).addTo(map).bindPopup('<b>Kilimani Apartment</b><br>KSh 85,000 / mo');
-    L.marker([-1.3197, 36.7062]).addTo(map).bindPopup('<b>Karen Villa</b><br>KSh 65,000,000');
-    L.marker([-1.2052, 36.7787]).addTo(map).bindPopup('<b>Ruaka Studio</b><br>KSh 25,000 / mo');
+  <!-- ========== TOAST ========== -->
+  <div id="toast" hidden class="fixed bottom-4 left-1/2 z-[3000] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg"></div>
 
-    function openListingModal() { document.getElementById('listingModal').classList.remove('hidden'); }
-    function closeListingModal() { document.getElementById('listingModal').classList.add('hidden'); document.getElementById('feedbackBanner').classList.add('hidden'); }
-    function submitListing(e) { e.preventDefault(); document.getElementById('feedbackBanner').classList.remove('hidden'); setTimeout(() => { closeListingModal(); }, 2000); }
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    /* ---------- Helpers ---------- */
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => document.querySelectorAll(s);
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+
+    const store = {
+      get(key, fallback) {
+        try {
+          const v = localStorage.getItem(key);
+          return v === null ? fallback : JSON.parse(v);
+        } catch (e) { return fallback; }
+      },
+      set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+        catch (e) { return false; }
+      },
+      remove(key) {
+        try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
+      }
+    };
+
+    const debounce = (fn, ms) => {
+      let t;
+      return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    };
+
+    let toastTimer;
+    function toast(msg, type) {
+      const el = $('#toast');
+      el.textContent = msg;
+      el.className = el.className.replace(/bg-\S+/g, '') + (type === 'error' ? ' bg-red-600' : ' bg-slate-900');
+      el.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.hidden = true; }, 3500);
+    }
+
+    /* Kenyan phone -> "2547XXXXXXXX" / "2541XXXXXXXX", or null if invalid */
+    function normPhone(p) {
+      let d = String(p || '').replace(/\D/g, '');
+      if (d.startsWith('254')) { /* already international */ }
+      else if (d.startsWith('0')) d = '254' + d.slice(1);
+      else if (d.length === 9) d = '254' + d;
+      return /^254[17]\d{8}$/.test(d) ? d : null;
+    }
+    const fmtPhone = (d) => `+254 ${d.slice(3, 6)} ${d.slice(6, 9)} ${d.slice(9)}`;
+
+    const fmtKES = (n) => 'KES ' + Number(n).toLocaleString('en-KE');
+    const priceText = (l) => fmtKES(l.price) + (l.purpose === 'rent' ? ' /mo' : '');
+    function shortPrice(n) {
+      if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (n >= 1e3) return Math.round(n / 1e3) + 'K';
+      return String(n);
+    }
+
+    /* ---------- Reference data ---------- */
+    const KEYS = { listings: 'thk_listings_v1', profile: 'thk_profile_v1' };
+
+    const TYPES = {
+      apartment:  { label: 'Apartment',  icon: 'fa-building',      color: 'from-sky-500 to-indigo-600' },
+      house:      { label: 'House',      icon: 'fa-house',         color: 'from-emerald-500 to-teal-600' },
+      bedsitter:  { label: 'Bedsitter',  icon: 'fa-bed',           color: 'from-amber-500 to-orange-600' },
+      land:       { label: 'Land',       icon: 'fa-mountain-sun',  color: 'from-lime-500 to-green-700' },
+      commercial: { label: 'Commercial', icon: 'fa-store',         color: 'from-fuchsia-500 to-purple-600' }
+    };
+    const ROLES = { landlord: 'Landlord', agent: 'Agent', caretaker: 'Caretaker' };
+
+    const LOCATIONS = [
+      { name: 'Westlands',        county: 'Nairobi',     lat: -1.2676, lng: 36.8108 },
+      { name: 'Kilimani',         county: 'Nairobi',     lat: -1.2921, lng: 36.7856 },
+      { name: 'Kileleshwa',       county: 'Nairobi',     lat: -1.2785, lng: 36.7820 },
+      { name: 'Lavington',        county: 'Nairobi',     lat: -1.2800, lng: 36.7700 },
+      { name: 'Karen',            county: 'Nairobi',     lat: -1.3197, lng: 36.7076 },
+      { name: 'South B',          county: 'Nairobi',     lat: -1.3080, lng: 36.8370 },
+      { name: 'Embakasi',         county: 'Nairobi',     lat: -1.3200, lng: 36.9000 },
+      { name: 'Kasarani',         county: 'Nairobi',     lat: -1.2190, lng: 36.8970 },
+      { name: 'Roysambu',         county: 'Nairobi',     lat: -1.2177, lng: 36.8870 },
+      { name: 'Ruaka',            county: 'Kiambu',      lat: -1.2050, lng: 36.7780 },
+      { name: 'Thika',            county: 'Kiambu',      lat: -1.0333, lng: 37.0693 },
+      { name: 'Syokimau',         county: 'Machakos',    lat: -1.3600, lng: 36.9330 },
+      { name: 'Kitengela',        county: 'Kajiado',     lat: -1.4760, lng: 36.9600 },
+      { name: 'Nyali',            county: 'Mombasa',     lat: -4.0220, lng: 39.7100 },
+      { name: 'Milimani, Kisumu', county: 'Kisumu',      lat: -0.1030, lng: 34.7540 },
+      { name: 'Milimani, Nakuru', county: 'Nakuru',      lat: -0.2830, lng: 36.0660 },
+      { name: 'Elgon View',       county: 'Uasin Gishu', lat:  0.5100, lng: 35.2800 }
+    ];
+    const COUNTIES = [...new Set(LOCATIONS.map((l) => l.county))];
+    const locByName = (n) => LOCATIONS.find((l) => l.name === n) || LOCATIONS[0];
+
+    /* ---------- Sample data (contact disabled) ---------- */
+    function seedListings() {
+      const now = Date.now();
+      const rows = [
+        { title: 'Modern 2 bedroom apartment with gym', purpose: 'rent', type: 'apartment', price: 75000, beds: 2, baths: 2, location: 'Kilimani', contactName: 'Grace', role: 'landlord', verified: true, description: 'Borehole water, backup generator, lift and secure parking. 5 minutes to Yaya Centre.' },
+        { title: 'Affordable bedsitter near Thika Road', purpose: 'rent', type: 'bedsitter', price: 12000, beds: 0, baths: 1, location: 'Roysambu', contactName: 'Peter', role: 'caretaker', verified: false, description: 'Tiled floors, prepaid token meter, close to TRM and matatu stage.' },
+        { title: '4 bedroom family home on half an acre', purpose: 'sale', type: 'house', price: 65000000, beds: 4, baths: 5, location: 'Karen', contactName: 'Kamau Realty', role: 'agent', verified: true, description: 'All en suite, DSQ, mature garden and electric fence. Ready title.' },
+        { title: 'Furnished 1 bedroom in Westlands', purpose: 'rent', type: 'apartment', price: 55000, beds: 1, baths: 1, location: 'Westlands', dLat: 0.004, contactName: 'Aisha', role: 'landlord', verified: true, description: 'Fully furnished, fast Wi-Fi, rooftop pool. Walking distance to Sarit.' },
+        { title: '1/8 acre plot with ready title', purpose: 'sale', type: 'land', price: 1500000, beds: 0, baths: 0, location: 'Kitengela', contactName: 'Otieno', role: 'landlord', verified: false, description: 'Gently sloping, water and electricity nearby, 2 km from Namanga Road.' },
+        { title: '2 bedroom apartment near Two Rivers', purpose: 'rent', type: 'apartment', price: 35000, beds: 2, baths: 2, location: 'Ruaka', contactName: 'John', role: 'caretaker', verified: true, description: 'Master en suite, balcony, ample water supply and CCTV.' },
+        { title: 'Elegant 4 bedroom townhouse', purpose: 'sale', type: 'house', price: 38000000, beds: 4, baths: 4, location: 'Lavington', contactName: 'Prime Homes', role: 'agent', verified: true, description: 'Gated community of 8 units, DSQ, solar water heating.' },
+        { title: '3 bedroom beachside apartment', purpose: 'rent', type: 'apartment', price: 90000, beds: 3, baths: 3, location: 'Nyali', contactName: 'Coast Lettings', role: 'agent', verified: false, description: 'Sea view, swimming pool, 5 minutes walk to the beach.' },
+        { title: '3 bedroom bungalow in Milimani', purpose: 'rent', type: 'house', price: 60000, beds: 3, baths: 2, location: 'Milimani, Kisumu', contactName: 'Achieng', role: 'landlord', verified: true, description: 'Quiet neighbourhood, large compound, near Kisumu CBD.' },
+        { title: 'Cosy 2 bedroom apartment', purpose: 'rent', type: 'apartment', price: 25000, beds: 2, baths: 1, location: 'Milimani, Nakuru', contactName: 'Mwangi', role: 'caretaker', verified: false, description: 'Close to Nakuru town, reliable water, secure parking.' },
+        { title: '3 bedroom apartment near SGR station', purpose: 'sale', type: 'apartment', price: 9800000, beds: 3, baths: 2, location: 'Syokimau', contactName: 'Nyumba Bora', role: 'agent', verified: true, description: 'Ready to move in, lift, backup generator, children\u2019s play area.' },
+        { title: 'Open-plan office space, 1,200 sq ft', purpose: 'rent', type: 'commercial', price: 180000, beds: 0, baths: 2, location: 'Westlands', dLat: -0.003, dLng: 0.004, contactName: 'Prime Homes', role: 'agent', verified: true, description: 'Grade A building, fibre ready, 3 parking slots included.' },
+        { title: '1 bedroom near Kasarani Stadium', purpose: 'rent', type: 'apartment', price: 18000, beds: 1, baths: 1, location: 'Kasarani', contactName: 'Wafula', role: 'caretaker', verified: false, description: 'Newly built, spacious kitchen, constant water.' },
+        { title: '4 bedroom maisonette with DSQ', purpose: 'sale', type: 'house', price: 22000000, beds: 4, baths: 3, location: 'Elgon View', contactName: 'Kiprop', role: 'landlord', verified: true, description: 'Leafy suburb, large garden, close to schools and hospitals.' }
+      ];
+      return rows.map((o, i) => {
+        const loc = locByName(o.location);
+        return {
+          id: 'seed' + (i + 1), owner: 'seed', demo: true, photo: null,
+          phone: '254700000000', createdAt: now - i * 7 * 3600 * 1000,
+          county: loc.county,
+          lat: loc.lat + (o.dLat || 0) + ((i % 3) - 1) * 0.0015,
+          lng: loc.lng + (o.dLng || 0) + ((i % 2) ? 0.0015 : -0.0015),
+          ...o
+        };
+      });
+    }
+
+    /* ---------- State ---------- */
+    let listings = store.get(KEYS.listings, null);
+    if (!Array.isArray(listings)) {
+      listings = seedListings();
+      store.set(KEYS.listings, listings);
+    }
+    let profile = store.get(KEYS.profile, null);
+    if (!profile || typeof profile !== 'object' || !profile.status) profile = { status: 'none' };
+
+    let editingId = null;
+    let currentPhoto = null;
+    let lastItems = [];
+    let mobileView = 'list';
+
+    const isVerified = (l) => (l.owner === 'me' ? profile.status === 'verified' : !!l.verified);
+
+    function saveListings(backup) {
+      if (store.set(KEYS.listings, listings)) return true;
+      if (backup) listings = backup;
+      toast('Storage is full. Delete a listing or use a smaller photo.', 'error');
+      return false;
+    }
+    function saveProfile() {
+      if (!store.set(KEYS.profile, profile)) toast('Could not save. Browser storage is full.', 'error');
+    }
+
+    /* ---------- UI fragments ---------- */
+    function placeholder(type, h) {
+      const t = TYPES[type] || TYPES.house;
+      return `<div class="${h} w-full bg-gradient-to-br ${t.color} grid place-items-center">
+        <i class="fa-solid ${t.icon} text-5xl text-white/80"></i></div>`;
+    }
+    const photoHTML = (l, h) => (l.photo
+      ? `<img src="${esc(l.photo)}" alt="${esc(l.title)}" class="${h} w-full object-cover">`
+      : placeholder(l.type, h));
+
+    const verifiedBadge = (v) => (v
+      ? '<span class="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white"><i class="fa-solid fa-circle-check"></i> Verified</span>'
+      : '<span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-600"><i class="fa-regular fa-circle-question"></i> Unverified</span>');
+    const purposeBadge = (p) => (p === 'rent'
+      ? '<span class="rounded-full bg-sky-600 px-2 py-0.5 text-xs font-semibold text-white">For rent</span>'
+      : '<span class="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white">For sale</span>');
+
+    function metaText(l) {
+      const label = (TYPES[l.type] || TYPES.house).label;
+      if (l.type === 'land' || l.type === 'commercial') return label;
+      const beds = l.beds > 0 ? `${l.beds} bd` : 'Studio';
+      return `${beds} · ${l.baths} ba · ${label}`;
+    }
+
+    function cardHTML(l) {
+      return `<article data-open="${esc(l.id)}" tabindex="0"
+          class="cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <div class="relative">
+          ${photoHTML(l, 'h-44')}
+          <div class="absolute left-2 top-2">${purposeBadge(l.purpose)}</div>
+          <div class="absolute right-2 top-2">${verifiedBadge(isVerified(l))}</div>
+        </div>
+        <div class="p-3">
+          <p class="text-lg font-extrabold">${esc(priceText(l))}</p>
+          <p class="text-sm text-slate-600">${esc(metaText(l))}</p>
+          <h3 class="mt-1 truncate font-medium">${esc(l.title)}</h3>
+          <p class="truncate text-sm text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(l.location)}, ${esc(l.county)}</p>
+        </div>
+      </article>`;
+    }
+
+    /* ---------- Filters & results ---------- */
+    function getFilters() {
+      return {
+        q: $('#fQ').value.trim().toLowerCase(),
+        purpose: $('#fPurpose').value,
+        type: $('#fType').value,
+        county: $('#fCounty').value,
+        beds: Number($('#fBeds').value) || 0,
+        max: Number($('#fMax').value) || 0,
+        verified: $('#fVerified').checked,
+        sort: $('#fSort').value
+      };
+    }
+
+    function filteredListings() {
+      const f = getFilters();
+      const out = listings.filter((l) =>
+        (!f.q || [l.title, l.location, l.county, l.description].join(' ').toLowerCase().includes(f.q)) &&
+        (!f.purpose || l.purpose === f.purpose) &&
+        (!f.type || l.type === f.type) &&
+        (!f.county || l.county === f.county) &&
+        (!f.beds || l.beds >= f.beds) &&
+        (!f.max || l.price <= f.max) &&
+        (!f.verified || isVerified(l))
+      );
+      if (f.sort === 'low') out.sort((a, b) => a.price - b.price);
+      else if (f.sort === 'high') out.sort((a, b) => b.price - a.price);
+      else out.sort((a, b) => b.createdAt - a.createdAt);
+      return out;
+    }
+
+    function renderResults() {
+      const items = filteredListings();
+      lastItems = items;
+      $('#resultCount').textContent = `${items.length} ${items.length === 1 ? 'property' : 'properties'}`;
+      $('#results').innerHTML = items.length
+        ? items.map(cardHTML).join('')
+        : `<div class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+             <i class="fa-solid fa-house-circle-xmark text-3xl text-slate-400"></i>
+             <p class="mt-2 font-medium">No properties match your filters.</p>
+             <button data-action="clear-filters" class="btn btn-ghost mt-3">Clear filters</button>
+           </div>`;
+      renderMarkers(items);
+    }
+
+    function clearFilters() {
+      ['#fQ', '#fPurpose', '#fType', '#fCounty', '#fMax'].forEach((s) => { $(s).value = ''; });
+      $('#fBeds').value = '0';
+      $('#fSort').value = 'newest';
+      $('#fVerified').checked = false;
+      renderResults();
+    }
+
+    /* ---------- Main map ---------- */
+    const map = L.map('map', { scrollWheelZoom: true }).setView([-1.286, 36.817], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    const markerLayer = L.layerGroup().addTo(map);
+    let markers = {};
+    let activeId = null;
+
+    function renderMarkers(items) {
+      markerLayer.clearLayers();
+      markers = {};
+      activeId = null;
+      items.forEach((l) => {
+        const icon = L.divIcon({
+          className: 'pin-wrap',
+          iconSize: [0, 0],
+          html: `<div class="price-pin ${isVerified(l) ? '' : 'unv'}">${esc(shortPrice(l.price))}</div>`
+        });
+        const m = L.marker([l.lat, l.lng], { icon, title: l.title, keyboard: true });
+        m.on('click', () => openDetail(l.id));
+        m.addTo(markerLayer);
+        markers[l.id] = m;
+      });
+      fitToResults();
+    }
+
+    function fitToResults() {
+      if (!lastItems.length || map.getSize().x === 0) return;
+      if (lastItems.length === 1) {
+        map.setView([lastItems[0].lat, lastItems[0].lng], 14);
+      } else {
+        map.fitBounds(L.latLngBounds(lastItems.map((l) => [l.lat, l.lng])), { padding: [40, 40], maxZoom: 14 });
+      }
+    }
+
+    function highlight(id) {
+      if (id === activeId) return;
+      activeId = id;
+      Object.entries(markers).forEach(([k, m]) => {
+        const el = m.getElement();
+        const pin = el && el.querySelector('.price-pin');
+        if (pin) pin.classList.toggle('active', k === id);
+        m.setZIndexOffset(k === id ? 1000 : 0);
+      });
+    }
+
+    function setMobileView(v, fit = true) {
+      mobileView = v;
+      $('#resultsWrap').classList.toggle('hidden', v === 'map');
+      $('#mapWrap').classList.toggle('hidden', v !== 'map');
+      $('#toggleView').innerHTML = v === 'map'
+        ? '<i class="fa-solid fa-list"></i> List'
+        : '<i class="fa-solid fa-map"></i> Map';
+      if (v === 'map') setTimeout(() => { map.invalidateSize(); if (fit) fitToResults(); }, 60);
+    }
+
+    function showOnMap(id) {
+      const l = listings.find((x) => x.id === id);
+      if (!l) return;
+      closeDetail();
+      if (location.hash !== '#browse') location.hash = '#browse';
+      setMobileView('map', false);
+      setTimeout(() => {
+        map.invalidateSize();
+        // Make sure the pin exists even if filters hide it
+        if (!markers[id]) clearFilters();
+        map.setView([l.lat, l.lng], 16);
+        highlight(id);
+        $('#mapWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+
+    /* ---------- Detail modal ---------- */
+    function openDetail(id) {
+      const l = listings.find((x) => x.id === id);
+      if (!l) return;
+      const v = isVerified(l);
+      const phone = normPhone(l.phone);
+      const msg = `Hi, I'm interested in "${l.title}" (${priceText(l)}) in ${l.location} that I saw on TrueHome Kenya. Is it still available?`;
+
+      let contactButtons;
+      if (l.demo) {
+        contactButtons = `
+          <button data-demo-contact class="btn flex-1 bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</button>
+          <button data-demo-contact class="btn btn-ghost flex-1"><i class="fa-solid fa-phone"></i> Call</button>`;
+      } else if (phone) {
+        contactButtons = `
+          <a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="btn flex-1 bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</a>
+          <a href="tel:+${phone}" class="btn btn-ghost flex-1"><i class="fa-solid fa-phone"></i> Call</a>`;
+      } else {
+        contactButtons = '<p class="text-sm text-red-600">This listing has no valid phone number.</p>';
+      }
+
+      const tiles = (l.type === 'land' || l.type === 'commercial')
+        ? ''
+        : `<div class="grid grid-cols-3 gap-2 text-center">
+            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${l.beds > 0 ? l.beds : 'Studio'}</p><p class="text-xs text-slate-500">Bedrooms</p></div>
+            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${Number(l.baths)}</p><p class="text-xs text-slate-500">Bathrooms</p></div>
+            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${esc((TYPES[l.type] || TYPES.house).label)}</p><p class="text-xs text-slate-500">Type</p></div>
+          </div>`;
+
+      $('#detailBody').innerHTML = `
+        <div class="relative">
+          ${photoHTML(l, 'h-56 sm:h-72')}
+          <button data-close aria-label="Close" class="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-700 shadow hover:bg-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-4 p-5">
+          <div class="flex flex-wrap gap-2">${purposeBadge(l.purpose)}${verifiedBadge(v)}</div>
+          <div>
+            <p class="text-2xl font-extrabold">${esc(priceText(l))}</p>
+            <h2 class="text-lg font-semibold">${esc(l.title)}</h2>
+            <p class="text-sm text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(l.location)}, ${esc(l.county)} County</p>
+          </div>
+          ${tiles}
+          ${l.description ? `<div><h3 class="mb-1 font-semibold">About this property</h3><p class="text-sm leading-relaxed text-slate-700">${esc(l.description).replace(/\n/g, '<br>')}</p></div>` : ''}
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div class="mb-3 flex items-center gap-3">
+              <div class="grid h-10 w-10 place-items-center rounded-full bg-emerald-100 font-bold text-emerald-700">${esc((l.contactName || '?').charAt(0).toUpperCase())}</div>
+              <div>
+                <p class="font-semibold">${esc(l.contactName)} ${v ? '<i class="fa-solid fa-circle-check text-emerald-600" title="Verified"></i>' : ''}</p>
+                <p class="text-xs text-slate-500">${esc(ROLES[l.role] || 'Contact')}${phone && !l.demo ? ' · ' + esc(fmtPhone(phone)) : ''}</p>
+              </div>
+            </div>
+            <div class="flex gap-2">${contactButtons}</div>
+          </div>
+          <button data-map-id="${esc(l.id)}" class="btn btn-ghost w-full"><i class="fa-solid fa-map-location-dot"></i> View on map</button>
+          <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Safety tip: never pay a deposit or viewing fee before visiting the property and confirming who owns it.</p>
+          ${l.demo ? '<p class="text-center text-xs text-slate-400">Sample listing for demonstration only.</p>' : ''}
+        </div>`;
+      $('#detailModal').hidden = false;
+      document.body.style.overflow = 'hidden';
+      highlight(id);
+    }
+
+    function closeDetail() {
+      $('#detailModal').hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    /* ---------- Listing form ---------- */
+    let formMap = null;
+    let formMarker = null;
+
+    function ensureFormMap() {
+      if (!formMap) {
+        const start = LOCATIONS[0];
+        formMap = L.map('formMap').setView([start.lat, start.lng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(formMap);
+        formMarker = L.marker([start.lat, start.lng], { draggable: true }).addTo(formMap);
+        formMap.on('click', (e) => formMarker.setLatLng(e.latlng));
+      }
+      setTimeout(() => formMap.invalidateSize(), 60);
+    }
+
+    function moveFormPin(lat, lng, zoom = 14) {
+      if (!formMarker) return;
+      formMarker.setLatLng([lat, lng]);
+      formMap.setView([lat, lng], zoom);
+    }
+
+    function updatePriceLabel() {
+      $('#lfPriceLabel').textContent = $('#lfPurpose').value === 'rent' ? 'Rent per month (KES)' : 'Sale price (KES)';
+    }
+
+    function renderPhotoPreview() {
+      $('#photoPreview').innerHTML = currentPhoto
+        ? `<div class="relative inline-block">
+             <img src="${esc(currentPhoto)}" alt="Listing photo preview" class="h-32 rounded-lg object-cover">
+             <button type="button" data-action="remove-photo" class="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-red-600 text-white shadow" aria-label="Remove photo"><i class="fa-solid fa-xmark text-xs"></i></button>
+           </div>`
+        : '<p class="text-xs text-slate-500">Optional. Photos are resized automatically to save space.</p>';
+    }
+
+    function resetForm() {
+      $('#listingForm').reset();
+      $('#lfPhone').setCustomValidity('');
+      currentPhoto = null;
+      renderPhotoPreview();
+      updatePriceLabel();
+      $('#formHeading').textContent = 'List a property';
+      $('#lfSubmit').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish listing';
+      const loc = LOCATIONS[0];
+      $('#lfLocation').value = loc.name;
+      moveFormPin(loc.lat, loc.lng);
+    }
+
+    function fillForm(l) {
+      $('#lfTitle').value = l.title;
+      $('#lfPurpose').value = l.purpose;
+      $('#lfType').value = l.type;
+      $('#lfPrice').value = l.price;
+      $('#lfBeds').value = l.beds;
+      $('#lfBaths').value = l.baths;
+      $('#lfLocation').value = l.location;
+      $('#lfContact').value = l.contactName;
+      $('#lfRole').value = l.role;
+      $('#lfPhone').value = '0' + String(l.phone).slice(3);
+      $('#lfPhone').setCustomValidity('');
+      $('#lfDesc').value = l.description || '';
+      $('#lfPhoto').value = '';
+      currentPhoto = l.photo || null;
+      renderPhotoPreview();
+      updatePriceLabel();
+      $('#formHeading').textContent = 'Edit listing';
+      $('#lfSubmit').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save changes';
+      moveFormPin(l.lat, l.lng, 15);
+    }
+
+    function compressImage(file, maxW = 1000, quality = 0.72) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxW / img.width);
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale);
+          c.height = Math.round(img.height * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          resolve(c.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read image')); };
+        img.src = url;
+      });
+    }
+
+    function editListing(id) {
+      editingId = id;
+      if (location.hash === '#list') route(); else location.hash = '#list';
+    }
+
+    function deleteListing(id) {
+      const l = listings.find((x) => x.id === id && x.owner === 'me');
+      if (!l || !confirm(`Delete "${l.title}"? This cannot be undone.`)) return;
+      const backup = listings.slice();
+      listings = listings.filter((x) => x.id !== id);
+      if (saveListings(backup)) { renderAll(); toast('Listing deleted.'); }
+    }
+
+    /* ---------- My listings ---------- */
+    function renderMine() {
+      const mine = listings.filter((l) => l.owner === 'me').sort((a, b) => b.createdAt - a.createdAt);
+      const banner = profile.status === 'verified'
+        ? '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><i class="fa-solid fa-circle-check"></i> You are verified. All your listings show the Verified badge.</div>'
+        : profile.status === 'pending'
+          ? '<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><i class="fa-solid fa-clock"></i> Your verification is under review. <a href="#verify" class="font-semibold underline">View status</a></div>'
+          : '<div class="rounded-xl border border-slate-200 bg-white p-4 text-sm"><i class="fa-solid fa-shield-halved text-emerald-600"></i> Your listings show as Unverified. <a href="#verify" class="font-semibold text-emerald-700 underline">Get verified</a> to build trust with tenants.</div>';
+
+      const list = mine.length
+        ? mine.map((l) => `
+          <div class="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
+            <div class="h-20 w-24 shrink-0 overflow-hidden rounded-lg">${photoHTML(l, 'h-20')}</div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-semibold">${esc(l.title)}</p>
+              <p class="text-sm font-bold">${esc(priceText(l))}</p>
+              <p class="truncate text-xs text-slate-500">${esc(l.location)} · ${esc(metaText(l))}</p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button data-open="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-eye"></i> View</button>
+                <button data-edit="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button data-delete="${esc(l.id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-trash"></i> Delete</button>
+              </div>
+            </div>
+          </div>`).join('')
+        : `<div class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+             <i class="fa-solid fa-house-chimney text-3xl text-slate-400"></i>
+             <p class="mt-2 font-medium">You haven't listed any properties yet.</p>
+             <a href="#list" class="btn btn-primary mt-3"><i class="fa-solid fa-plus"></i> List your first property</a>
+           </div>`;
+      $('#mineBody').innerHTML = banner + list;
+    }
+
+    /* ---------- Verification ---------- */
+    function renderVerify() {
+      const body = $('#verifyBody');
+      if (profile.status === 'verified') {
+        body.innerHTML = `
+          <div class="rounded-xl border border-emerald-200 bg-white p-6 text-center">
+            <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-2xl text-emerald-600"><i class="fa-solid fa-circle-check"></i></div>
+            <h2 class="mt-3 text-lg font-semibold">You're verified, ${esc(profile.name)}</h2>
+            <p class="mt-1 text-sm text-slate-600">All your listings now show the Verified badge.</p>
+            <div class="mt-4 flex justify-center gap-2">
+              <a href="#mine" class="btn btn-primary">My listings</a>
+              <button data-action="withdraw" class="btn btn-ghost">Reset verification</button>
+            </div>
+          </div>`;
+        return;
+      }
+      if (profile.status === 'pending') {
+        body.innerHTML = `
+          <div class="rounded-xl border border-amber-200 bg-white p-6">
+            <div class="flex items-start gap-3">
+              <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-amber-100 text-xl text-amber-600"><i class="fa-solid fa-clock"></i></div>
+              <div>
+                <h2 class="text-lg font-semibold">Verification under review</h2>
+                <p class="text-sm text-slate-600">Submitted ${esc(new Date(profile.submittedAt).toLocaleString('en-KE'))}</p>
+              </div>
+            </div>
+            <dl class="mt-4 space-y-2 text-sm">
+              <div class="flex justify-between gap-4"><dt class="text-slate-500">Name</dt><dd class="font-medium">${esc(profile.name)}</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-slate-500">National ID</dt><dd class="font-medium">•••••${esc(profile.idLast3)}</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-slate-500">ID document</dt><dd class="truncate font-medium">${esc(profile.idFileName)}</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-slate-500">Ownership document</dt><dd class="truncate font-medium">${esc(profile.deedFileName)}</dd></div>
+            </dl>
+            <div class="mt-5 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              <i class="fa-solid fa-flask"></i> Demo mode: there is no admin team reviewing documents yet. Use the button below to simulate an approval.
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button data-action="approve" class="btn btn-primary"><i class="fa-solid fa-check"></i> Simulate approval</button>
+              <button data-action="withdraw" class="btn btn-ghost">Withdraw request</button>
+            </div>
+          </div>`;
+        return;
+      }
+      body.innerHTML = `
+        <div class="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+          <div class="flex items-start gap-3">
+            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+              <h2 class="text-lg font-semibold">Get the Verified badge</h2>
+              <p class="text-sm text-slate-600">Tenants trust verified landlords more. Submit your National ID and proof of ownership: a Title Deed, or a management agreement if you're an agent.</p>
+            </div>
+          </div>
+          <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            <i class="fa-solid fa-triangle-exclamation"></i> Demo version: your files are <strong>not uploaded or stored</strong>. Only the file names are recorded. Please don't use real documents.
+          </div>
+          <form id="verifyForm" class="mt-5 space-y-4">
+            <div>
+              <label class="lbl" for="vfName">Full name (as on ID)</label>
+              <input id="vfName" class="inp" required minlength="3" maxlength="60">
+            </div>
+            <div>
+              <label class="lbl" for="vfId">National ID number</label>
+              <input id="vfId" class="inp" required inputmode="numeric" pattern="[0-9]{7,8}" title="7 or 8 digits" placeholder="e.g. 12345678">
+            </div>
+            <div>
+              <label class="lbl" for="vfIdFile">National ID (photo or PDF)</label>
+              <input id="vfIdFile" type="file" required accept="image/*,application/pdf" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700">
+            </div>
+            <div>
+              <label class="lbl" for="vfDeedFile">Title Deed or management agreement</label>
+              <input id="vfDeedFile" type="file" required accept="image/*,application/pdf" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700">
+            </div>
+            <label class="flex items-start gap-2 text-sm text-slate-700">
+              <input type="checkbox" required class="mt-1 h-4 w-4 accent-emerald-600">
+              I confirm I own or am authorised to let/sell the properties I list.
+            </label>
+            <button type="submit" class="btn btn-primary w-full sm:w-auto"><i class="fa-solid fa-paper-plane"></i> Submit for review</button>
+          </form>
+        </div>`;
+    }
+
+    function okDoc(file) {
+      return file && file.size <= 10 * 1024 * 1024 &&
+        (file.type.startsWith('image/') || file.type === 'application/pdf');
+    }
+
+    /* ---------- Router ---------- */
+    const VIEWS = ['browse', 'list', 'verify', 'mine'];
+    function route() {
+      let v = (location.hash || '#browse').slice(1);
+      if (!VIEWS.includes(v)) v = 'browse';
+      VIEWS.forEach((x) => { $('#view-' + x).hidden = x !== v; });
+      $$('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === v && a.classList.contains('navlink')));
+      closeDetail();
+      if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
+      if (v === 'list') {
+        ensureFormMap();
+        const l = editingId && listings.find((x) => x.id === editingId && x.owner === 'me');
+        if (l) fillForm(l); else { editingId = null; resetForm(); }
+      } else {
+        editingId = null;
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function renderAll() {
+      renderResults();
+      renderMine();
+      renderVerify();
+    }
+
+    /* ---------- Build selects ---------- */
+    function buildSelects() {
+      const typeOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.label}</option>`).join('');
+      $('#fType').insertAdjacentHTML('beforeend', typeOpts);
+      $('#lfType').innerHTML = typeOpts;
+      $('#fCounty').insertAdjacentHTML('beforeend', COUNTIES.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join(''));
+      $('#lfLocation').innerHTML = COUNTIES.map((c) =>
+        `<optgroup label="${esc(c)}">${LOCATIONS.filter((l) => l.county === c)
+          .map((l) => `<option value="${esc(l.name)}">${esc(l.name)}</option>`).join('')}</optgroup>`
+      ).join('');
+    }
+
+    /* ---------- Events ---------- */
+    function bindEvents() {
+      $('#fQ').addEventListener('input', debounce(renderResults, 200));
+      $('#fMax').addEventListener('input', debounce(renderResults, 300));
+      ['#fPurpose', '#fType', '#fCounty', '#fBeds', '#fSort', '#fVerified'].forEach((s) =>
+        $(s).addEventListener('change', renderResults));
+
+      // Hover a card -> highlight its map pin
+      $('#results').addEventListener('mouseover', (e) => {
+        const c = e.target.closest('[data-open]');
+        highlight(c ? c.dataset.open : null);
+      });
+      $('#results').addEventListener('mouseleave', () => highlight(null));
+      $('#results').addEventListener('keydown', (e) => {
+        const c = e.target.closest('[data-open]');
+        if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDetail(c.dataset.open); }
+      });
+
+      document.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.id === 'detailModal' || t.closest('[data-close]')) { closeDetail(); return; }
+        const open = t.closest('[data-open]');
+        if (open) { openDetail(open.dataset.open); return; }
+        if (t.closest('[data-demo-contact]')) { toast('This is a sample listing, so contact is disabled.'); return; }
+        const mapBtn = t.closest('[data-map-id]');
+        if (mapBtn) { showOnMap(mapBtn.dataset.mapId); return; }
+        const ed = t.closest('[data-edit]');
+        if (ed) { editListing(ed.dataset.edit); return; }
+        const del = t.closest('[data-delete]');
+        if (del) { deleteListing(del.dataset.delete); return; }
+
+        const act = t.closest('[data-action]');
+        if (!act) return;
+        switch (act.dataset.action) {
+          case 'toggle-view':
+            setMobileView(mobileView === 'map' ? 'list' : 'map');
+            break;
+          case 'clear-filters':
+            clearFilters();
+            break;
+          case 'remove-photo':
+            currentPhoto = null;
+            $('#lfPhoto').value = '';
+            renderPhotoPreview();
+            break;
+          case 'approve':
+            profile = { ...profile, status: 'verified', verifiedAt: Date.now() };
+            saveProfile(); renderAll();
+            toast('Verified! Your listings now show the Verified badge.');
+            break;
+          case 'withdraw':
+            if (confirm('Remove your verification status?')) {
+              profile = { status: 'none' };
+              saveProfile(); renderAll();
+            }
+            break;
+          case 'reset-demo':
+            if (confirm('Delete all your listings and verification data from this browser?')) {
+              store.remove(KEYS.listings);
+              store.remove(KEYS.profile);
+              location.hash = '#browse';
+              location.reload();
+            }
+            break;
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !$('#detailModal').hidden) closeDetail();
+      });
+
+      // Listing form
+      $('#lfPurpose').addEventListener('change', updatePriceLabel);
+      $('#lfLocation').addEventListener('change', () => {
+        const loc = locByName($('#lfLocation').value);
+        moveFormPin(loc.lat, loc.lng);
+      });
+      $('#lfPhone').addEventListener('input', (e) => {
+        const v = e.target.value.trim();
+        e.target.setCustomValidity(!v || normPhone(v) ? '' : 'Enter a valid Kenyan number, e.g. 0712 345 678');
+      });
+      $('#lfPhoto').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { toast('Please choose an image file.', 'error'); e.target.value = ''; return; }
+        if (file.size > 15 * 1024 * 1024) { toast('That photo is too large (max 15 MB).', 'error'); e.target.value = ''; return; }
+        try {
+          currentPhoto = await compressImage(file);
+          renderPhotoPreview();
+        } catch (err) {
+          toast('Could not read that photo. Try another one.', 'error');
+          e.target.value = '';
+        }
+      });
+      $('#lfCancel').addEventListener('click', () => {
+        editingId = null;
+        location.hash = listings.some((l) => l.owner === 'me') ? '#mine' : '#browse';
+      });
+
+      $('#listingForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const phone = normPhone($('#lfPhone').value);
+        if (!phone) {
+          $('#lfPhone').setCustomValidity('Enter a valid Kenyan number, e.g. 0712 345 678');
+          $('#lfPhone').reportValidity();
+          return;
+        }
+        const loc = locByName($('#lfLocation').value);
+        const pin = formMarker ? formMarker.getLatLng() : { lat: loc.lat, lng: loc.lng };
+        const data = {
+          title: $('#lfTitle').value.trim(),
+          purpose: $('#lfPurpose').value,
+          type: $('#lfType').value,
+          price: Math.round(Number($('#lfPrice').value)),
+          beds: Math.max(0, parseInt($('#lfBeds').value, 10) || 0),
+          baths: Math.max(0, parseInt($('#lfBaths').value, 10) || 0),
+          location: loc.name,
+          county: loc.county,
+          lat: Number(pin.lat.toFixed(6)),
+          lng: Number(pin.lng.toFixed(6)),
+          contactName: $('#lfContact').value.trim(),
+          role: $('#lfRole').value,
+          phone,
+          description: $('#lfDesc').value.trim(),
+          photo: currentPhoto
+        };
+
+        const backup = listings.slice();
+        const wasEditing = !!editingId;
+        if (wasEditing) {
+          const i = listings.findIndex((x) => x.id === editingId && x.owner === 'me');
+          if (i === -1) { toast('That listing no longer exists.', 'error'); return; }
+          listings[i] = { ...listings[i], ...data, updatedAt: Date.now() };
+        } else {
+          listings.unshift({
+            id: 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            owner: 'me', demo: false, verified: false, createdAt: Date.now(), ...data
+          });
+        }
+        if (!saveListings(backup)) return;
+
+        editingId = null;
+        renderAll();
+        toast(wasEditing ? 'Changes saved.' : 'Your listing is live!');
+        location.hash = '#mine';
+      });
+
+      // Verification form (rendered dynamically)
+      document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'verifyForm') return;
+        e.preventDefault();
+        const idFile = $('#vfIdFile').files[0];
+        const deedFile = $('#vfDeedFile').files[0];
+        if (!okDoc(idFile) || !okDoc(deedFile)) {
+          toast('Documents must be images or PDFs under 10 MB.', 'error');
+          return;
+        }
+        const idNum = $('#vfId').value.trim();
+        profile = {
+          status: 'pending',
+          name: $('#vfName').value.trim(),
+          idLast3: idNum.slice(-3),
+          idFileName: idFile.name,
+          deedFileName: deedFile.name,
+          submittedAt: Date.now()
+        };
+        saveProfile();
+        renderAll();
+        toast('Submitted for review.');
+      });
+
+      window.addEventListener('hashchange', route);
+    }
+
+    /* ---------- Start ---------- */
+    $('#year').textContent = new Date().getFullYear();
+    buildSelects();
+    bindEvents();
+    renderAll();
+    route();
+  })();
   </script>
 </body>
 </html>
