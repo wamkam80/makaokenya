@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Your Property - TrueHome Kenya Rental Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl font-black text-blue-700 tracking-tight"><i class="fa-solid font-bold fa-house-circle-check mr-2"></i>TrueHome Kenya</span>
+            </div>
+            <a href="index.html" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Back to Search
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="bg-blue-900 text-white py-10 px-4 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl sm:text-4xl font-extrabold mb-2">TrueHome Rental &amp; Sales Manager</h1>
+            <p class="text-blue-200 text-base sm:text-lg">Easily list, manage, and verify your property listings across Kenya.</p>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto w-full px-4 py-8 flex-grow">
+
+        <!-- Feedback Alert Banner -->
+        <div id="feedbackAlert" class="hidden mb-6 p-4 rounded-lg bg-green-50 border border-green-300 text-green-800 flex items-start space-x-3 shadow-sm">
+            <i class="fa-solid fa-circle-check text-green-600 text-xl mt-0.5"></i>
+            <div>
+                <h4 class="font-bold">Listing Submitted Successfully!</h4>
+                <p class="text-sm text-green-700">Your property listing has been published to TrueHome Kenya Rental &amp; Sales Manager. Our verification team will review your details shortly.</p>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <form id="listingForm" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden space-y-8 p-6 sm:p-10" onsubmit="handleFormSubmit(event)">
+
+            <!-- Section 1: Lister Role & Purpose -->
+            <div class="border-b border-gray-200 pb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2.5 px-2.5 py-0.5 rounded-full">1</span>
+                    Account &amp; Listing Intent
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Lister Role</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="listerRole" value="Landlord / Owner" class="h-4 w-4 text-blue-600" required checked>
+                                <span class="text-sm font-medium text-gray-700">Landlord / Owner</span>
+                            </label>
+                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="listerRole" value="Licensed Agent" class="h-4 w-4 text-blue-600">
+                                <span class="text-sm font-medium text-gray-700">Licensed Agent</span>
+                            </label>
+                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="listerRole" value="Caretaker" class="h-4 w-4 text-blue-600">
+                                <span class="text-sm font-medium text-gray-700">Caretaker</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Purpose</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="purpose" value="For Rent" class="h-4 w-4 text-blue-600" required checked>
+                                <span class="text-sm font-medium text-gray-700">For Rent</span>
+                            </label>
+                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="purpose" value="For Sale" class="h-4 w-4 text-blue-600">
+                                <span class="text-sm font-medium text-gray-700">For Sale</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Duration -->
+                <div class="mt-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Listing Duration</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-center">
+                            <input type="radio" name="duration" value="30 Days (Standard)" class="sr-only peer" checked>
+                            <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50 border p-3 rounded-lg flex flex-col items-center justify-center">
+                                <span class="text-sm font-bold text-gray-800">30 Days</span>
+                                <span class="text-xs text-gray-500">Standard</span>
+                            </div>
+                        </label>
+                        <label class="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-center">
+                            <input type="radio" name="duration" value="60 Days (Featured)" class="sr-only peer">
+                            <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50 border p-3 rounded-lg flex flex-col items-center justify-center">
+                                <span class="text-sm font-bold text-gray-800">60 Days</span>
+                                <span class="text-xs text-blue-600 font-semibold">Featured</span>
+                            </div>
+                        </label>
+                        <label class="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-center">
+                            <input type="radio" name="duration" value="90 Days (Extended)" class="sr-only peer">
+                            <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50 border p-3 rounded-lg flex flex-col items-center justify-center">
+                                <span class="text-sm font-bold text-gray-800">90 Days</span>
+                                <span class="text-xs text-gray-500">Extended</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Property Details & Pricing -->
+            <div class="border-b border-gray-200 pb-6 space-y-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2.5 px-2.5 py-0.5 rounded-full">2</span>
+                    Property Details &amp; Pricing
+                </h2>
+
+                <div>
+                    <label for="title" class="block text-sm font-semibold text-gray-700 mb-1">Property Title</label>
+                    <input type="text" id="title" required placeholder="e.g., Modern 2 Bedroom Apartment with Balcony" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="neighborhood" class="block text-sm font-semibold text-gray-700 mb-1">Neighborhood / Estate</label>
+                        <select id="neighborhood" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                            <option value="">Select Neighborhood</option>
+                            <option value="Kilimani">Kilimani</option>
+                            <option value="Westlands">Westlands</option>
+                            <option value="Karen">Karen</option>
+                            <option value="Ruaka">Ruaka</option>
+                            <option value="Kileleshwa">Kileleshwa</option>
+                            <option value="Syokimau">Syokimau</option>
+                            <option value="Lavington">Lavington</option>
+                            <option value="Runda">Runda</option>
+                            <option value="Parklands">Parklands</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="streetAddress" class="block text-sm font-semibold text-gray-700 mb-1">Street Address</label>
+                        <input type="text" id="streetAddress" required placeholder="e.g., Argwings Kodhek Rd, Gate 4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="price" class="block text-sm font-semibold text-gray-700 mb-1">Price in KSh</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm font-semibold">KSh</span>
+                            <input type="number" id="price" min="0" required placeholder="e.g. 75000" class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="serviceCharge" class="block text-sm font-semibold text-gray-700 mb-1">Service Charge in KSh</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm font-semibold">KSh</span>
+                            <input type="number" id="serviceCharge" min="0" placeholder="e.g. 5000" class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="bedrooms" class="block text-sm font-semibold text-gray-700 mb-1">Bedrooms</label>
+                        <select id="bedrooms" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                            <option value="">Select Bedrooms</option>
+                            <option value="Bedsitter">Bedsitter</option>
+                            <option value="1">1 Bedroom</option>
+                            <option value="2">2 Bedrooms</option>
+                            <option value="3">3 Bedrooms</option>
+                            <option value="4+">4+ Bedrooms</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="bathrooms" class="block text-sm font-semibold text-gray-700 mb-1">Bathrooms</label>
+                        <input type="number" id="bathrooms" min="1" step="0.5" required placeholder="e.g., 2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Amenities -->
+            <div class="border-b border-gray-200 pb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2.5 px-2.5 py-0.5 rounded-full">3</span>
+                    Kenyan Amenities
+                </h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="amenities" value="Borehole Water" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <span>Borehole Water</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="amenities" value="Backup Generator" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <span>Backup Generator</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="amenities" value="DSQ" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <span>DSQ</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="amenities" value="Perimeter Fence" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <span>Perimeter Fence</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="amenities" value="Cabro Paving" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <span>Cabro Paving</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="amenities" value="Fiber Internet" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <span>Fiber Internet</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 4: Landlord Verification & Contact Details -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2.5 px-2.5 py-0.5 rounded-full">4</span>
+                    Landlord Verification &amp; Contact Details
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nationalId" class="block text-sm font-semibold text-gray-700 mb-1">National ID / Passport Number</label>
+                        <input type="text" id="nationalId" required placeholder="e.g., 12345678" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label for="earbLicense" class="block text-sm font-semibold text-gray-700 mb-1">EARB License Number (Optional for Agents)</label>
+                        <input type="text" id="earbLicense" placeholder="e.g., EARB/2026/001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="proofOwnership" class="block text-sm font-semibold text-gray-700 mb-1">Proof of Ownership (Title Deed / Ardhisasa search / KPLC token)</label>
+                    <input type="file" id="proofOwnership" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-lg p-1">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="contactName" class="block text-sm font-semibold text-gray-700 mb-1">Contact Name</label>
+                        <input type="text" id="contactName" required placeholder="Full Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label for="contactPhone" class="block text-sm font-semibold text-gray-700 mb-1">Phone / WhatsApp</label>
+                        <input type="tel" id="contactPhone" required placeholder="+254 700 000000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-lg shadow-md transition-all duration-200 text-center">
+                    Publish Listing
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-6 text-center text-sm border-t border-gray-800 mt-12">
+        <p>&copy; 2026 TrueHome Kenya Rental &amp; Sales Manager. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript Feedback Handling -->
+    <script>
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const alertBox = document.getElementById('feedbackAlert');
+            alertBox.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
