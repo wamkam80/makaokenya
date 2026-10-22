@@ -98,6 +98,19 @@ When you approve someone, they automatically get a **badge code** (like `TH-7KQ2
 
 ---
 
+## Reviewing reported listings
+
+Tenants can tap **Report this listing** on any listing. Reports are private, and only you can see them.
+
+1. Open **Table Editor → `open_reports`** to see every open report, with the listing title, phone number, whether the owner is verified, and how many reports that listing has in total.
+2. To remove a listing: **Table Editor → `listings`**, find the row by `listing_id`, and delete it.
+3. If the owner is verified and the report is serious, also withdraw their badge (see above): `select public.revoke_verification('OWNER-ID');`
+4. Mark the report as handled: **Table Editor → `listing_reports`**, set `status` to `reviewed` (nothing needed) or `actioned` (you removed something).
+
+Or just ask Claude: "show me open reports" or "remove listing X and revoke the owner".
+
+---
+
 ## Before a public launch
 
 - **Email sending:** Supabase's built-in email only sends a few sign-in emails per hour, which is fine for testing but not for real users. Set up your own email service under **Authentication → Emails → SMTP Settings** (Brevo and Resend both have free plans).

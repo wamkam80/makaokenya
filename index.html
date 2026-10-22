@@ -372,7 +372,10 @@
       : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
 
     /* ---------- Reference data ---------- */
-    const KEYS = { listings: 'thk_listings_v1', profile: 'thk_profile_v1', afterLogin: 'thk_after_login' };
+    const KEYS = {
+      listings: 'thk_listings_v1', profile: 'thk_profile_v1', afterLogin: 'thk_after_login',
+      reports: 'thk_reports_v1', reported: 'thk_reported_v1'
+    };
 
     const TYPES = {
       apartment:  { label: 'Apartment',  icon: 'fa-building',      color: 'from-sky-500 to-indigo-600' },
@@ -930,11 +933,97 @@
           </div>
           <button data-map-id="${esc(l.id)}" class="btn btn-ghost w-full"><i class="fa-solid fa-map-location-dot"></i> View on map</button>
           <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Safety tip: never pay a deposit or viewing fee before visiting the property and confirming who owns it.${v ? '' : ' This lister has not been verified yet.'}</p>
+          ${reportButtonHTML(l)}
           ${l.demo ? '<p class="text-center text-xs text-slate-400">Sample listing for demonstration only.</p>' : ''}
         </div>`;
       $('#detailModal').hidden = false;
       document.body.style.overflow = 'hidden';
       highlight(id);
+    }
+
+    /* ---------- Report a listing ---------- */
+    const REPORT_REASONS = {
+      scam: 'Looks like a scam (asked for money before viewing, fake owner…)',
+      not_available: 'Property is no longer available',
+      wrong_info: 'Wrong price, location or details',
+      fake_photos: 'Photos are fake or of a different property',
+      duplicate: 'Same property listed more than once',
+      other: 'Something else'
+    };
+    const reportedIds = () => { const r = store.get(KEYS.reported, []); return Array.isArray(r) ? r : []; };
+
+    function reportButtonHTML(l) {
+      if (l.owner === 'me') return '';
+      if (reportedIds().includes(l.id)) {
+        return '<p class="text-center text-xs text-slate-500"><i class="fa-solid fa-flag"></i> You reported this listing. Thank you, we\'re looking into it.</p>';
+      }
+      return `<button data-report="${esc(l.id)}" class="mx-auto flex items-center gap-1 text-sm font-medium text-red-600 hover:underline"><i class="fa-regular fa-flag"></i> Report this listing</button>`;
+    }
+
+    function openReportForm(id) {
+      const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
+      if (!l) return;
+      $('#detailBody').innerHTML = `
+        <div class="space-y-4 p-5">
+          <div class="flex items-center justify-between gap-2">
+            <button data-report-back="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <button data-close aria-label="Close" class="grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold"><i class="fa-solid fa-flag text-red-600"></i> Report this listing</h2>
+            <p class="truncate text-sm text-slate-500">${esc(l.title)} · ${esc(l.location)}</p>
+          </div>
+          <form id="reportForm" data-listing="${esc(l.id)}" class="space-y-4">
+            <fieldset class="space-y-2">
+              <legend class="lbl">What's wrong?</legend>
+              ${Object.entries(REPORT_REASONS).map(([k, label], i) => `
+                <label class="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-2 text-sm hover:bg-slate-50">
+                  <input type="radio" name="rpReason" value="${k}" ${i === 0 ? 'required' : ''} class="mt-0.5 accent-red-600"> ${esc(label)}
+                </label>`).join('')}
+            </fieldset>
+            <div>
+              <label class="lbl" for="rpDetails">Tell us more <span class="font-normal text-slate-400">(optional)</span></label>
+              <textarea id="rpDetails" rows="3" maxlength="500" class="inp" placeholder="e.g. They asked me to send a deposit by M-Pesa before I could view the house."></textarea>
+            </div>
+            <div>
+              <label class="lbl" for="rpContact">Your phone or email <span class="font-normal text-slate-400">(optional, if you want us to follow up)</span></label>
+              <input id="rpContact" maxlength="100" class="inp" autocomplete="email">
+            </div>
+            <button type="submit" class="btn w-full bg-red-600 text-white hover:bg-red-700"><i class="fa-solid fa-paper-plane"></i> Send report</button>
+          </form>
+          <p class="text-xs text-slate-500">Reports are private. The lister won't see who reported them. If you've already lost money, also report it to the police.</p>
+        </div>`;
+      $('#detailBody').scrollTop = 0;
+    }
+
+    async function submitReport(form) {
+      const id = form.dataset.listing;
+      const reason = (form.querySelector('input[name=rpReason]:checked') || {}).value;
+      if (!reason) { toast('Please choose what\'s wrong.', 'error'); return; }
+      const report = {
+        listing_id: id,
+        reason,
+        details: $('#rpDetails').value.trim() || null,
+        reporter_contact: $('#rpContact').value.trim() || null
+      };
+      const btn = form.querySelector('button[type=submit]');
+      if (LIVE) {
+        setBusy(btn, true, 'Sending…');
+        const { error } = await sb.from('listing_reports').insert(report);
+        if (error) { setBusy(btn, false); toast(friendly(error), 'error'); return; }
+      } else {
+        const all = store.get(KEYS.reports, []);
+        store.set(KEYS.reports, (Array.isArray(all) ? all : []).concat([{ ...report, created_at: new Date().toISOString() }]));
+      }
+      store.set(KEYS.reported, reportedIds().concat([id]));
+      $('#detailBody').innerHTML = `
+        <div class="space-y-4 p-6 text-center">
+          <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-2xl text-emerald-600"><i class="fa-solid fa-check"></i></div>
+          <h2 class="text-lg font-semibold">Thank you, report sent</h2>
+          <p class="text-sm text-slate-600">Our team will review this listing. If it breaks our rules we'll remove it and withdraw the lister's badge.</p>
+          ${reason === 'scam' ? '<p class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900"><i class="fa-solid fa-triangle-exclamation"></i> Don\'t send any more money or personal details to this person. If you\'ve already paid, report it to the police and your mobile money provider straight away.</p>' : ''}
+          <button data-close class="btn btn-primary">Close</button>
+        </div>`;
     }
 
     function closeDetail() {
@@ -1579,6 +1668,10 @@
         const open = t.closest('[data-open]');
         if (open) { openDetail(open.dataset.open); return; }
         if (t.closest('[data-demo-contact]')) { toast('This is a sample listing, so contact is disabled.'); return; }
+        const rep = t.closest('[data-report]');
+        if (rep) { openReportForm(rep.dataset.report); return; }
+        const repBack = t.closest('[data-report-back]');
+        if (repBack) { openDetail(repBack.dataset.reportBack); return; }
         const mapBtn = t.closest('[data-map-id]');
         if (mapBtn) { showOnMap(mapBtn.dataset.mapId); return; }
         const ed = t.closest('[data-edit]');
@@ -1775,6 +1868,13 @@
         renderAll();
         toast(wasEditing ? 'Changes saved.' : 'Your listing is live!');
         location.hash = '#mine';
+      });
+
+      // ---- Report form (rendered dynamically) ----
+      document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'reportForm') return;
+        e.preventDefault();
+        submitReport(e.target);
       });
 
       // ---- Check a badge form (rendered dynamically) ----

@@ -382,3 +382,59 @@ from public.listings l
 left join public.profiles p on p.id = l.owner_id;
 
 grant select on public.listings_public to anon, authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- 7. LISTING REPORTS
+--    Anyone can report a listing; only you can read reports
+--    (Table Editor → open_reports).
+-- ---------------------------------------------------------------------
+create table if not exists public.listing_reports (
+  id               uuid primary key default gen_random_uuid(),
+  listing_id       uuid not null references public.listings (id) on delete cascade,
+  reason           text not null check (reason in ('scam', 'not_available', 'wrong_info', 'fake_photos', 'duplicate', 'other')),
+  details          text check (char_length(details) <= 500),
+  reporter_contact text check (char_length(reporter_contact) <= 100),
+  reporter_id      uuid default auth.uid(),
+  status           text not null default 'open' check (status in ('open', 'reviewed', 'actioned')),
+  created_at       timestamptz not null default now()
+);
+
+create index if not exists listing_reports_listing_idx on public.listing_reports (listing_id);
+create index if not exists listing_reports_open_idx on public.listing_reports (created_at desc) where status = 'open';
+
+alter table public.listing_reports enable row level security;
+
+drop policy if exists "Anyone can report a listing" on public.listing_reports;
+create policy "Anyone can report a listing"
+  on public.listing_reports for insert to anon, authenticated
+  with check (
+    status = 'open'
+    and (reporter_id is null or reporter_id = (select auth.uid()))
+  );
+
+grant insert on public.listing_reports to anon, authenticated;
+revoke select, update, delete, truncate on public.listing_reports from anon, authenticated;
+
+create or replace view public.open_reports
+with (security_invoker = true) as
+select
+  r.id as report_id,
+  r.created_at,
+  r.reason,
+  r.details,
+  r.reporter_contact,
+  l.id as listing_id,
+  l.title,
+  l.location,
+  l.phone as listing_phone,
+  l.owner_id,
+  coalesce(p.verified, false) as owner_verified,
+  (select count(*) from public.listing_reports r2 where r2.listing_id = l.id) as total_reports_on_listing
+from public.listing_reports r
+join public.listings l on l.id = r.listing_id
+left join public.profiles p on p.id = l.owner_id
+where r.status = 'open'
+order by r.created_at desc;
+
+revoke all on public.open_reports from anon, authenticated;

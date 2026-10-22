@@ -51,6 +51,6 @@ Live mode stores National ID numbers and documents. They are kept in a private s
 - [x] Sign-in for landlords and agents
 - [ ] Automatic ID checks against IPRS (e.g. Smile ID)
 - [x] Public verification page and QR code for each verified lister
-- [ ] "Report this listing" button
+- [x] "Report this listing" button
 - [ ] M-Pesa payments for featured listings
 - [ ] Saved searches and listing alerts
