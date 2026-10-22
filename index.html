@@ -1,313 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrueHome Kenya - Verified Homes & Apartments</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        #map { height: calc(100vh - 130px); min-height: 400px; }
-        .listings-scroll { height: calc(100vh - 130px); overflow-y: auto; }
-        .carousel-img { display: none; }
-        .carousel-img.active { display: block; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueHome Kenya - Verified Homes & Apartments</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #map { height: 100%; min-height: 400px; width: 100%; }
+    .price-pin { background: #2563eb; color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+<body class="bg-gray-100 text-gray-800 flex flex-col h-screen overflow-hidden font-sans">
+  
+  <!-- Navigation Header -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center z-20">
+    <div class="flex items-center space-x-3">
+      <div class="bg-blue-600 text-white p-2 rounded-lg">
+        <i class="fa-solid fa-house-chimney text-xl"></i>
+      </div>
+      <span class="text-xl font-bold text-gray-900 tracking-tight">TrueHome <span class="text-blue-600">Kenya</span></span>
+    </div>
+    <div class="flex items-center space-x-3">
+      <span class="hidden md:inline-block text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">
+        <i class="fa-solid fa-fire text-amber-600 mr-1"></i> Promo: Free Listings for Landlords
+      </span>
+      <a href="list.html" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-plus"></i> List Property
+      </a>
+    </div>
+  </header>
 
-    <!-- Header / Branding -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <a href="index.html" class="flex items-center space-x-2">
-                    <div class="bg-emerald-600 text-white p-2 rounded-lg">
-                        <i class="fas fa-home text-xl"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-900 tracking-tight">TrueHome <span class="text-emerald-600">Kenya</span></span>
-                </a>
-            </div>
+  <!-- Kenya Filter Bar -->
+  <section class="bg-white border-b border-gray-200 px-6 py-2.5 z-10 shadow-sm">
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center flex-1 min-w-[220px] border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+        <input type="text" placeholder="Search location (Kilimani, Westlands, Karen, Ruaka)..." class="w-full px-3 py-1.5 text-sm outline-none text-gray-700" />
+        <button class="bg-blue-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-blue-700 transition">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+      <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option>For Rent</option>
+        <option>For Sale</option>
+      </select>
+      <div class="flex items-center gap-1 border border-gray-300 rounded-lg px-2 py-1 bg-white">
+        <input type="number" placeholder="Min KSh" class="w-20 px-1 text-sm outline-none text-gray-700" />
+        <span class="text-gray-400 text-sm">-</span>
+        <input type="number" placeholder="Max KSh" class="w-20 px-1 text-sm outline-none text-gray-700" />
+      </div>
+      <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Bedrooms</option>
+        <option>Bedsitter / Studio</option>
+        <option>1 Bed</option>
+        <option>2 Beds</option>
+        <option>3 Beds</option>
+        <option>4+ Beds</option>
+      </select>
+      <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Must-Haves</option>
+        <option>Borehole Water</option>
+        <option>Backup Generator</option>
+        <option>DSQ</option>
+        <option>Perimeter Electric Fence</option>
+        <option>Cabro Paving</option>
+        <option>Fiber Internet</option>
+      </select>
+    </div>
+  </section>
 
-            <div class="flex items-center space-x-4">
-                <a href="list.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-sm">
-                    <i class="fas fa-plus"></i>
-                    <span>List Property</span>
-                </a>
-                <button class="text-gray-700 hover:text-emerald-600 font-medium px-3 py-2 text-sm">
-                    Sign In
-                </button>
-            </div>
+  <!-- Zillow Split Screen Layout -->
+  <div class="flex-1 flex flex-col md:flex-row-reverse overflow-hidden">
+    <!-- Property Cards Column (Right Side) -->
+    <div class="w-full md:w-1/2 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div class="flex justify-between items-center px-1">
+        <div>
+          <h1 class="text-base font-bold text-gray-800">Verified Properties in Nairobi</h1>
+          <p class="text-xs text-gray-500">Contact the landlord or caretaker directly — zero viewing charges</p>
         </div>
-    </header>
+        <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">2 Active</span>
+      </div>
 
-    <!-- Search & Filter Bar -->
-    <div class="bg-white border-b border-gray-200 py-3 px-4 shadow-sm sticky top-16 z-20">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
-            <!-- Location Search -->
-            <div class="relative flex-1 min-w-[200px]">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-location" placeholder="Search location (e.g., Westlands, Kilimani, Karen)..." class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-            </div>
-
-            <!-- Type Dropdown -->
-            <select id="filter-type" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                <option value="all">All Types (Rent / Sale)</option>
-                <option value="rent">For Rent</option>
-                <option value="sale">For Sale</option>
-            </select>
-
-            <!-- Price Range -->
-            <select id="filter-price" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                <option value="all">Price Range (KSh)</option>
-                <option value="0-50000">Under KSh 50,000</option>
-                <option value="50000-100000">KSh 50,000 - 100,000</option>
-                <option value="100000-200000">KSh 100,000 - 200,000</option>
-                <option value="200000+">KSh 200,000+</option>
-            </select>
-
-            <!-- Bedrooms -->
-            <select id="filter-bedrooms" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                <option value="all">Bedrooms</option>
-                <option value="1">1 Bedroom</option>
-                <option value="2">2 Bedrooms</option>
-                <option value="3">3 Bedrooms</option>
-                <option value="4">4+ Bedrooms</option>
-            </select>
-
-            <!-- Kenyan Amenities Dropdown -->
-            <div class="relative inline-block text-left">
-                <select id="filter-amenity" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="all">Kenyan Amenities</option>
-                    <option value="Borehole">Borehole</option>
-                    <option value="Generator">Backup Generator</option>
-                    <option value="DSQ">DSQ</option>
-                    <option value="Perimeter Fence">Perimeter Fence</option>
-                    <option value="Cabro">Cabro Paving</option>
-                    <option value="Fiber">Fiber Internet</option>
-                </select>
-            </div>
+      <!-- Card 1 -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+        <div class="relative h-48 bg-gray-200">
+          <img id="img1" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600" class="w-full h-full object-cover">
+          <div class="absolute top-2 left-2 flex gap-1.5">
+            <span class="bg-emerald-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
+              <i class="fa-solid fa-circle-check"></i> Verified Landlord
+            </span>
+          </div>
+          <span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md">
+            <i class="fa-regular fa-clock"></i> 3 days on TrueHome
+          </span>
+          <button onclick="prevImg(1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+          <button onclick="nextImg(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-right text-xs"></i></button>
         </div>
+        <div class="p-4">
+          <div class="flex justify-between items-start">
+            <div class="text-2xl font-bold text-blue-600">KSh 65,000 <span class="text-sm font-normal text-gray-500">/ mo</span></div>
+            <span class="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded">For Rent</span>
+          </div>
+          <h2 class="font-bold text-gray-800 text-lg mt-0.5">2 Bdrm Apartment in Kilimani</h2>
+          <p class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-location-dot text-red-500"></i> Argwings Kodhek Rd, Nairobi</p>
+          <div class="flex items-center space-x-3 text-xs text-gray-600 mb-3">
+            <span><i class="fa-solid fa-bed text-blue-500"></i> 2 Beds</span>
+            <span><i class="fa-solid fa-bath text-blue-500"></i> 2 Baths</span>
+            <span><i class="fa-solid fa-droplet text-blue-500"></i> Borehole</span>
+            <span><i class="fa-solid fa-shield-halved text-blue-500"></i> Security</span>
+          </div>
+          <!-- Direct Caretaker Contact -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">JM</div>
+              <div>
+                <div class="text-xs font-bold text-gray-800">John Mwangi (Caretaker)</div>
+                <div class="text-[10px] text-emerald-700 font-semibold"><i class="fa-solid fa-shield-check"></i> Title & ID Verified</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <a href="https://api.whatsapp.com/send?phone=254712345678" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition flex items-center gap-1 shadow-sm">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </a>
+              <a href="tel:+254712345678" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1 shadow-sm">
+                <i class="fa-solid fa-phone"></i> Call
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
+        <div class="relative h-48 bg-gray-200">
+          <img id="img2" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600" class="w-full h-full object-cover">
+          <div class="absolute top-2 left-2 flex gap-1.5">
+            <span class="bg-emerald-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
+              <i class="fa-solid fa-circle-check"></i> Verified Landlord
+            </span>
+          </div>
+          <span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md">
+            <i class="fa-regular fa-clock"></i> 14 days on TrueHome
+          </span>
+          <button onclick="prevImg(2)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+          <button onclick="nextImg(2)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-start">
+            <div class="text-2xl font-bold text-blue-600">KSh 65,000,000</div>
+            <span class="text-xs bg-green-50 text-green-700 font-semibold px-2 py-0.5 rounded">For Sale</span>
+          </div>
+          <h2 class="font-bold text-gray-800 text-lg mt-0.5">Luxury 4 Bedroom Villa</h2>
+          <p class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-location-dot text-red-500"></i> Karen, Nairobi</p>
+          <div class="flex items-center space-x-3 text-xs text-gray-600 mb-3">
+            <span><i class="fa-solid fa-bed text-blue-500"></i> 4 Beds</span>
+            <span><i class="fa-solid fa-bath text-blue-500"></i> 5 Baths</span>
+            <span><i class="fa-solid fa-bolt text-blue-500"></i> Generator</span>
+            <span><i class="fa-solid fa-shield-halved text-blue-500"></i> Electric Fence</span>
+          </div>
+          <!-- Direct Agent Contact -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">SO</div>
+              <div>
+                <div class="text-xs font-bold text-gray-800">Samuel Omondi (Agent)</div>
+                <div class="text-[10px] text-emerald-700 font-semibold"><i class="fa-solid fa-shield-check"></i> EARB Registered</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <a href="https://api.whatsapp.com/send?phone=254711000000" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition flex items-center gap-1 shadow-sm">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </a>
+              <a href="tel:+254711000000" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1 shadow-sm">
+                <i class="fa-solid fa-phone"></i> Call
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Zillow Split Screen Layout -->
-    <main class="flex flex-col lg:flex-row w-full">
-        <!-- Map Container (Left) -->
-        <div class="w-full lg:w-1/2 p-2">
-            <div id="map" class="rounded-xl shadow-md border border-gray-200"></div>
-        </div>
+    <!-- Map Column (Left Side) -->
+    <div class="w-full md:w-1/2 h-full">
+      <div id="map"></div>
+    </div>
+  </div>
 
-        <!-- Property Listings Container (Right) -->
-        <div class="w-full lg:w-1/2 p-4 listings-scroll">
-            <div class="mb-4 flex items-center justify-between">
-                <h1 class="text-xl font-bold text-gray-900">Verified Properties in Kenya</h1>
-                <span id="property-count" class="text-sm text-gray-500">Showing 3 listings</span>
-            </div>
+  <script>
+    const map = L.map('map').setView([-1.286389, 36.817223], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-            <!-- Listings Grid -->
-            <div id="listings-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Listing 1 -->
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                    <div class="relative">
-                        <!-- Image Carousel -->
-                        <div class="carousel relative h-48 bg-gray-200">
-                            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" class="carousel-img active w-full h-48 object-cover" alt="Apartment view 1">
-                            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80" class="carousel-img w-full h-48 object-cover" alt="Apartment view 2">
-                            <button onclick="prevImage(this)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 text-xs"><i class="fas fa-chevron-left px-1"></i></button>
-                            <button onclick="nextImage(this)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 text-xs"><i class="fas fa-chevron-right px-1"></i></button>
-                        </div>
-                        <span class="absolute top-3 left-3 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
-                            <i class="fas fa-check-circle"></i> Verified Landlord
-                        </span>
-                        <span class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-                            2 days on TrueHome
-                        </span>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-2xl font-bold text-gray-900">KSh 75,000</span>
-                                <span class="text-gray-500 text-sm">/month</span>
-                            </div>
-                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">For Rent</span>
-                        </div>
-                        <h2 class="font-semibold text-lg text-gray-800">Modern 2 Bedroom Apartment</h2>
-                        <p class="text-gray-500 text-sm mb-3"><i class="fas fa-map-marker-alt text-red-500 mr-1"></i> Kilimani, Nairobi</p>
-                        
-                        <div class="flex items-center gap-4 text-xs text-gray-600 mb-3 border-y border-gray-100 py-2">
-                            <span><i class="fas fa-bed text-emerald-600 mr-1"></i> 2 Beds</span>
-                            <span><i class="fas fa-bath text-emerald-600 mr-1"></i> 2 Baths</span>
-                            <span><i class="fas fa-ruler-combined text-emerald-600 mr-1"></i> 110 sqm</span>
-                        </div>
+    const listings = [
+      { lat: -1.2921, lng: 36.7821, price: 'KSh 65k', title: '2 Bdrm Kilimani' },
+      { lat: -1.3197, lng: 36.7062, price: 'KSh 65M', title: 'Karen Villa' }
+    ];
 
-                        <!-- Amenities tags -->
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Borehole</span>
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Generator</span>
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Fiber</span>
-                        </div>
+    listings.forEach(item => {
+      const icon = L.divIcon({
+        className: 'custom-pin',
+        html: `<div class="price-pin">${item.price}</div>`
+      });
+      L.marker([item.lat, item.lng], { icon: icon }).addTo(map).bindPopup(`<b>${item.title}</b><br>${item.price}`);
+    });
 
-                        <!-- Caretaker Contact -->
-                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <div>
-                                <p class="text-xs text-gray-500">Caretaker Contact</p>
-                                <p class="text-sm font-medium text-gray-800">Samuel Mwangi</p>
-                            </div>
-                            <a href="tel:+254712345678" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors">
-                                <i class="fas fa-phone"></i> Call Caretaker
-                            </a>
-                        </div>
-                    </div>
-                </div>
+    const photos = {
+      1: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600'],
+      2: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600']
+    };
+    const currentIdx = { 1: 0, 2: 0 };
 
-                <!-- Listing 2 -->
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                    <div class="relative">
-                        <!-- Image Carousel -->
-                        <div class="carousel relative h-48 bg-gray-200">
-                            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80" class="carousel-img active w-full h-48 object-cover" alt="Villa view 1">
-                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" class="carousel-img w-full h-48 object-cover" alt="Villa view 2">
-                            <button onclick="prevImage(this)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 text-xs"><i class="fas fa-chevron-left px-1"></i></button>
-                            <button onclick="nextImage(this)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 text-xs"><i class="fas fa-chevron-right px-1"></i></button>
-                        </div>
-                        <span class="absolute top-3 left-3 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
-                            <i class="fas fa-check-circle"></i> Verified Landlord
-                        </span>
-                        <span class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-                            5 days on TrueHome
-                        </span>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-2xl font-bold text-gray-900">KSh 185,000</span>
-                                <span class="text-gray-500 text-sm">/month</span>
-                            </div>
-                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">For Rent</span>
-                        </div>
-                        <h2 class="font-semibold text-lg text-gray-800">Spacious 4 Bed Villa with DSQ</h2>
-                        <p class="text-gray-500 text-sm mb-3"><i class="fas fa-map-marker-alt text-red-500 mr-1"></i> Westlands, Nairobi</p>
-                        
-                        <div class="flex items-center gap-4 text-xs text-gray-600 mb-3 border-y border-gray-100 py-2">
-                            <span><i class="fas fa-bed text-emerald-600 mr-1"></i> 4 Beds</span>
-                            <span><i class="fas fa-bath text-emerald-600 mr-1"></i> 4 Baths</span>
-                            <span><i class="fas fa-ruler-combined text-emerald-600 mr-1"></i> 320 sqm</span>
-                        </div>
+    function prevImg(id) {
+      if (!photos[id]) return;
+      currentIdx[id] = (currentIdx[id] - 1 + photos[id].length) % photos[id].length;
+      document.getElementById('img' + id).src = photos[id][currentIdx[id]];
+    }
 
-                        <!-- Amenities tags -->
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">DSQ</span>
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Perimeter Fence</span>
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Cabro</span>
-                        </div>
-
-                        <!-- Caretaker Contact -->
-                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <div>
-                                <p class="text-xs text-gray-500">Caretaker Contact</p>
-                                <p class="text-sm font-medium text-gray-800">John Otieno</p>
-                            </div>
-                            <a href="tel:+254722987654" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors">
-                                <i class="fas fa-phone"></i> Call Caretaker
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Listing 3 -->
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                    <div class="relative">
-                        <!-- Image Carousel -->
-                        <div class="carousel relative h-48 bg-gray-200">
-                            <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80" class="carousel-img active w-full h-48 object-cover" alt="Luxury Home view 1">
-                            <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80" class="carousel-img w-full h-48 object-cover" alt="Luxury Home view 2">
-                            <button onclick="prevImage(this)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 text-xs"><i class="fas fa-chevron-left px-1"></i></button>
-                            <button onclick="nextImage(this)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 text-xs"><i class="fas fa-chevron-right px-1"></i></button>
-                        </div>
-                        <span class="absolute top-3 left-3 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
-                            <i class="fas fa-check-circle"></i> Verified Landlord
-                        </span>
-                        <span class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-                            1 day on TrueHome
-                        </span>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-2xl font-bold text-gray-900">KSh 35,000,000</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">For Sale</span>
-                        </div>
-                        <h2 class="font-semibold text-lg text-gray-800">Luxury 3 Bed Townhouse</h2>
-                        <p class="text-gray-500 text-sm mb-3"><i class="fas fa-map-marker-alt text-red-500 mr-1"></i> Karen, Nairobi</p>
-                        
-                        <div class="flex items-center gap-4 text-xs text-gray-600 mb-3 border-y border-gray-100 py-2">
-                            <span><i class="fas fa-bed text-emerald-600 mr-1"></i> 3 Beds</span>
-                            <span><i class="fas fa-bath text-emerald-600 mr-1"></i> 3 Baths</span>
-                            <span><i class="fas fa-ruler-combined text-emerald-600 mr-1"></i> 250 sqm</span>
-                        </div>
-
-                        <!-- Amenities tags -->
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Borehole</span>
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Generator</span>
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Perimeter Fence</span>
-                        </div>
-
-                        <!-- Caretaker Contact -->
-                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <div>
-                                <p class="text-xs text-gray-500">Caretaker Contact</p>
-                                <p class="text-sm font-medium text-gray-800">David Kiprop</p>
-                            </div>
-                            <a href="tel:+254733112233" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors">
-                                <i class="fas fa-phone"></i> Call Caretaker
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Scripts -->
-    <script>
-        // Initialize Leaflet Map
-        const map = L.map('map').setView([-1.286389, 36.817223], 12); // Nairobi coordinates
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        const properties = [
-            { title: "Modern 2 Bed Apartment - Kilimani", lat: -1.2921, lng: 36.7842, price: "KSh 75,000/mo" },
-            { title: "4 Bed Villa - Westlands", lat: -1.2676, lng: 36.8108, price: "KSh 185,000/mo" },
-            { title: "3 Bed Townhouse - Karen", lat: -1.3197, lng: 36.7094, price: "KSh 35,000,000" }
-        ];
-
-        properties.forEach(p => {
-            L.marker([p.lat, p.lng]).addTo(map)
-                .bindPopup(`<b>${p.title}</b><br>${p.price}`);
-        });
-
-        // Image Carousel Navigation
-        function nextImage(button) {
-            const carousel = button.parentElement;
-            const images = carousel.querySelectorAll('.carousel-img');
-            let activeIdx = Array.from(images).findIndex(img => img.classList.contains('active'));
-            images[activeIdx].classList.remove('active');
-            activeIdx = (activeIdx + 1) % images.length;
-            images[activeIdx].classList.add('active');
-        }
-
-        function prevImage(button) {
-            const carousel = button.parentElement;
-            const images = carousel.querySelectorAll('.carousel-img');
-            let activeIdx = Array.from(images).findIndex(img => img.classList.contains('active'));
-            images[activeIdx].classList.remove('active');
-            activeIdx = (activeIdx - 1 + images.length) % images.length;
-            images[activeIdx].classList.add('active');
-        }
-    </script>
+    function nextImg(id) {
+      if (!photos[id]) return;
+      currentIdx[id] = (currentIdx[id] + 1) % photos[id].length;
+      document.getElementById('img' + id).src = photos[id][currentIdx[id]];
+    }
+  </script>
 </body>
 </html>
