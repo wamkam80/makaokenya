@@ -1,162 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrueHome Kenya - Verified Homes & Apartments for Rent and Sale</title>
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRUEHOMEKE"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-TRUEHOMEKE');
-    </script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mako Kenya - Real Estate</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 h-screen flex flex-col font-sans">
 
-    <!-- Navigation Header -->
-    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between z-10">
-        <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-house-chimney text-blue-600 text-2xl"></i>
-            <span class="text-xl font-bold text-gray-800">TrueHome <span class="text-blue-600">Kenya</span></span>
-        </div>
-        <div class="flex items-center space-x-4">
-            <button class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">List Property</button>
-            <button class="px-4 py-2 text-gray-600 font-medium hover:text-gray-800">Sign In</button>
-        </div>
-    </header>
+  <!-- Navigation Header -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-2">
+      <i class="fa-solid fa-house-chimney text-blue-600 text-2xl"></i>
+      <span class="text-xl font-bold text-gray-800">TrueHome <span class="text-blue-600">Kenya</span></span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">List Property</button>
+      <button class="px-4 py-2 text-gray-600 font-medium hover:text-gray-800">Sign In</button>
+    </div>
+  </header>
 
-    <!-- Zillow Split Layout -->
-    <div class="flex-1 flex flex-col md:flex-row-reverse overflow-hidden">
-        <!-- Listings Column -->
-        <div class="w-full md:w-1/2 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            <h2 class="text-lg font-bold text-gray-700 mb-2">Properties in Nairobi, Kenya</h2>
+  <!-- Search and Filter Bar -->
+  <div class="bg-white border-b border-gray-200 px-6 py-3 shadow-sm z-10">
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Location Search Input -->
+      <div class="flex items-center flex-1 min-w-[240px] border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+        <input type="text" placeholder="Location (e.g. Kilimani, Westlands, Kileleshwa, Karen, Ruaka)..." class="w-full px-3 py-2 text-sm outline-none text-gray-700" />
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition flex items-center gap-1">
+          <i class="fa-solid fa-magnifying-glass"></i> Search
+        </button>
+      </div>
 
-            <!-- Listing Card 1 -->
-            <div class="bg-white rounded-xl shadow border overflow-hidden">
-                <!-- Carousel -->
-                <div class="relative h-48 bg-gray-200">
-                    <img id="img1" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600" class="w-full h-full object-cover">
-                    <button onclick="prevImg(1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-left"></i></button>
-                    <button onclick="nextImg(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-right"></i></button>
-                </div>
-                <div class="p-4">
-                    <div class="text-2xl font-bold text-blue-600">KSh 65,000 <span class="text-sm font-normal text-gray-500">/ mo</span></div>
-                    <h3 class="font-bold text-gray-800 text-lg">2 Bdrm Apartment in Kilimani</h3>
-                    <p class="text-gray-600 text-sm mb-3">Argwings Kodhek Rd, Nairobi</p>
-                    
-                    <!-- Caretaker Info Card -->
-                    <div class="bg-blue-50 p-3 rounded-lg flex items-center justify-between border border-blue-100 mb-3">
-                        <div>
-                            <p class="text-xs text-blue-600 font-semibold uppercase">Caretaker Contact</p>
-                            <p class="text-sm font-bold text-gray-800">John Mwangi</p>
-                            <p class="text-xs text-gray-600">+254 712 345 678</p>
-                        </div>
-                        <button onclick="openModal('2 Bdrm Apartment in Kilimani')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700">Inquire</button>
-                    </div>
-                </div>
+      <!-- Listing Type Dropdown -->
+      <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="rent">For Rent</option>
+        <option value="sale">For Sale</option>
+      </select>
+
+      <!-- Price Range -->
+      <div class="flex items-center gap-1 border border-gray-300 rounded-lg px-2 py-1 bg-white">
+        <input type="number" placeholder="Min KSh" class="w-24 px-1 py-1 text-sm outline-none text-gray-700" />
+        <span class="text-gray-400 text-sm">-</span>
+        <input type="number" placeholder="Max KSh" class="w-24 px-1 py-1 text-sm outline-none text-gray-700" />
+      </div>
+
+      <!-- Bedrooms -->
+      <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Bedrooms</option>
+        <option value="studio">Bedsitter/Studio</option>
+        <option value="1">1 Bed</option>
+        <option value="2">2 Beds</option>
+        <option value="3">3 Beds</option>
+        <option value="4+">4+ Beds</option>
+      </select>
+
+      <!-- Kenya-specific Amenities / Must-Haves -->
+      <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Must-Haves / Amenities</option>
+        <option value="water">Borehole/Reliable Water</option>
+        <option value="generator">Backup Generator</option>
+        <option value="dsq">DSQ (Domestic Servant Quarters)</option>
+        <option value="fence">Perimeter Electric Fence</option>
+        <option value="cabro">Cabro Paving</option>
+        <option value="internet">High-speed Internet</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="flex-1 flex flex-col md:flex-row-reverse overflow-hidden">
+    <!-- Listings Column -->
+    <div class="w-full md:w-1/2 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <!-- Property Card 1 -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition border border-gray-200">
+        <div class="md:flex">
+          <div class="md:w-1/3">
+            <img class="h-48 w-full object-cover md:h-full" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" alt="Apartment in Kilimani">
+          </div>
+          <div class="p-4 md:w-2/3 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start">
+                <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded">For Rent</span>
+                <span class="text-lg font-bold text-gray-900">KSh 85,000 / mo</span>
+              </div>
+              <h2 class="text-md font-bold text-gray-800 mt-1">Modern 2 Bedroom Apartment</h2>
+              <p class="text-sm text-gray-500">Kilimani, Nairobi</p>
+              <div class="mt-2 flex items-center space-x-4 text-xs text-gray-600">
+                <span><i class="fa-solid fa-bed text-blue-500"></i> 2 Beds</span>
+                <span><i class="fa-solid fa-bath text-blue-500"></i> 2 Baths</span>
+                <span><i class="fa-solid fa-house-user text-blue-500"></i> DSQ</span>
+                <span><i class="fa-solid fa-faucet-drip text-blue-500"></i> Borehole</span>
+              </div>
             </div>
-
-            <!-- Listing Card 2 -->
-            <div class="bg-white rounded-xl shadow border overflow-hidden">
-                <!-- Carousel -->
-                <div class="relative h-48 bg-gray-200">
-                    <img id="img2" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600" class="w-full h-full object-cover">
-                    <button onclick="prevImg(2)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-left"></i></button>
-                    <button onclick="nextImg(2)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"><i class="fa-solid fa-chevron-right"></i></button>
-                </div>
-                <div class="p-4">
-                    <div class="text-2xl font-bold text-blue-600">KSh 120,000 <span class="text-sm font-normal text-gray-500">/ mo</span></div>
-                    <h3 class="font-bold text-gray-800 text-lg">3 Bdrm Townhouse in Westlands</h3>
-                    <p class="text-gray-600 text-sm mb-3">Peponi Rd, Nairobi</p>
-
-                    <!-- Caretaker Info Card -->
-                    <div class="bg-blue-50 p-3 rounded-lg flex items-center justify-between border border-blue-100 mb-3">
-                        <div>
-                            <p class="text-xs text-blue-600 font-semibold uppercase">Caretaker Contact</p>
-                            <p class="text-sm font-bold text-gray-800">Sarah Otieno</p>
-                            <p class="text-xs text-gray-600">+254 798 765 432</p>
-                        </div>
-                        <button onclick="openModal('3 Bdrm Townhouse in Westlands')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700">Inquire</button>
-                    </div>
-                </div>
+            <div class="mt-3 flex space-x-2">
+              <button class="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition font-medium">Contact Agent</button>
+              <button class="px-3 py-2 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-100 transition"><i class="fa-regular fa-heart"></i></button>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Map Column -->
-        <div id="map" class="w-full md:w-1/2 h-64 md:h-full"></div>
+      <!-- Property Card 2 -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition border border-gray-200">
+        <div class="md:flex">
+          <div class="md:w-1/3">
+            <img class="h-48 w-full object-cover md:h-full" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80" alt="Villa in Karen">
+          </div>
+          <div class="p-4 md:w-2/3 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start">
+                <span class="text-xs font-semibold uppercase tracking-wider text-green-600 bg-green-50 px-2 py-1 rounded">For Sale</span>
+                <span class="text-lg font-bold text-gray-900">KSh 65,000,000</span>
+              </div>
+              <h2 class="text-md font-bold text-gray-800 mt-1">Luxury 4 Bedroom Villa</h2>
+              <p class="text-sm text-gray-500">Karen, Nairobi</p>
+              <div class="mt-2 flex items-center space-x-4 text-xs text-gray-600">
+                <span><i class="fa-solid fa-bed text-blue-500"></i> 4 Beds</span>
+                <span><i class="fa-solid fa-bath text-blue-500"></i> 5 Baths</span>
+                <span><i class="fa-solid fa-bolt text-blue-500"></i> Generator</span>
+                <span><i class="fa-solid fa-shield-halved text-blue-500"></i> Electric Fence</span>
+              </div>
+            </div>
+            <div class="mt-3 flex space-x-2">
+              <button class="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition font-medium">Contact Agent</button>
+              <button class="px-3 py-2 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-100 transition"><i class="fa-regular fa-heart"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Inquiry Modal -->
-    <div id="inquiryModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
-            <h3 class="text-xl font-bold text-gray-800">Property Inquiry</h3>
-            <p id="modalPropName" class="text-sm text-gray-600 font-medium"></p>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Your Name</label>
-                <input type="text" class="w-full border rounded-lg p-2 text-sm mt-1">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Phone Number</label>
-                <input type="text" class="w-full border rounded-lg p-2 text-sm mt-1">
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm text-gray-600">Cancel</button>
-                <button onclick="submitInquiry()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Send Inquiry</button>
-            </div>
-        </div>
+    <!-- Map Column -->
+    <div class="w-full md:w-1/2 h-64 md:h-auto relative z-0">
+      <div id="map" class="h-full w-full"></div>
     </div>
+  </div>
 
-    <script>
-        // Leaflet Map Initialization
-        const map = L.map('map').setView([-1.286389, 36.817223], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+  <script>
+    const map = L.map('map').setView([-1.286389, 36.817223], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
 
-        // Map Pins
-        L.marker([-1.288, 36.782]).addTo(map).bindPopup('Kilimani Apartment - KSh 65,000');
-        L.marker([-1.261, 36.805]).addTo(map).bindPopup('Westlands Townhouse - KSh 120,000');
-
-        // Image Carousels
-        const carousels = {
-            1: ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600"],
-            2: ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600"]
-        };
-        const currentIndices = { 1: 0, 2: 0 };
-
-        function updateImg(id) {
-            document.getElementById(`img${id}`).src = carousels[id][currentIndices[id]];
-        }
-        function prevImg(id) {
-            currentIndices[id] = (currentIndices[id] - 1 + carousels[id].length) % carousels[id].length;
-            updateImg(id);
-        }
-        function nextImg(id) {
-            currentIndices[id] = (currentIndices[id] + 1) % carousels[id].length;
-            updateImg(id);
-        }
-
-        // Modal Controls
-        function openModal(propName) {
-            document.getElementById('modalPropName').innerText = propName;
-            document.getElementById('inquiryModal').classList.remove('hidden');
-        }
-        function closeModal() {
-            document.getElementById('inquiryModal').classList.add('hidden');
-        }
-        function submitInquiry() {
-            alert('Inquiry submitted!');
-            closeModal();
-        }
-    </script>
+    L.marker([-1.2921, 36.7821]).addTo(map).bindPopup('<b>Kilimani Apartment</b><br>KSh 85,000 / mo');
+    L.marker([-1.3197, 36.7062]).addTo(map).bindPopup('<b>Karen Villa</b><br>KSh 65,000,000');
+  </script>
 </body>
 </html>
