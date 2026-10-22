@@ -2,7 +2,7 @@
 
 A Zillow-inspired real estate web portal built for the Kenyan housing market. TrueHome Kenya lets landlords and agents list properties directly, connects buyers and tenants with them instantly over WhatsApp, and verifies listers by checking their ID and proof of ownership.
 
-**Live site:** https://wamkam80.github.io/makaokenya
+**Live site:** https://truehomekenya.com
 
 ## Two modes
 - **Demo mode** (default, while `config.js` is empty): sample listings, with data saved only in your own browser. Verification is simulated.

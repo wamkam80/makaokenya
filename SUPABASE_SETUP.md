@@ -32,8 +32,8 @@ This creates the tables, the file storage folders and all the security rules. It
 ## 3. Allow sign-in links to return to your site
 
 Go to **Authentication → URL Configuration**:
-- **Site URL:** `https://wamkam80.github.io/makaokenya/`
-- Under **Redirect URLs**, click *Add URL* and add `https://wamkam80.github.io/makaokenya/**`
+- **Site URL:** `https://truehomekenya.com/`
+- Under **Redirect URLs**, click *Add URL* and add `https://truehomekenya.com/**`
 
 Click **Save**.
 
@@ -57,7 +57,7 @@ Click **Save**.
 
 ## 5. Test it
 
-1. Open https://wamkam80.github.io/makaokenya and tap **List a property**.
+1. Open https://truehomekenya.com and tap **List a property**.
 2. Enter your email and open the sign-in link you receive **on the same phone or computer**.
 3. Publish a test listing, then submit a verification request.
 
