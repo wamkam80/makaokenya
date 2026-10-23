@@ -159,7 +159,7 @@
           <p class="mt-1">We sent a sign-in link to <strong id="signinEmailShown"></strong>. Open it on this phone or computer to continue. Check your spam folder if it doesn't arrive within a few minutes.</p>
           <button data-action="signin-again" class="mt-3 font-semibold underline">Use a different email</button>
         </div>
-        <p class="mt-5 text-center text-xs text-slate-500">No password needed. Browsing listings is free and needs no account. By signing in you agree to our <a href="#privacy" class="underline">Privacy Policy</a>.</p>
+        <p class="mt-5 text-center text-xs text-slate-500">No password needed. Browsing listings is free and needs no account. By signing in you agree to our <a href="#terms" class="underline">Terms of Use</a> and <a href="#privacy" class="underline">Privacy Policy</a>.</p>
       </div>
     </section>
 
@@ -244,6 +244,7 @@
           <textarea id="lfDesc" rows="4" maxlength="1000" class="inp" placeholder="Water, parking, security, distance to the main road…"></textarea>
         </div>
 
+        <p class="text-xs text-slate-500">By publishing, you confirm you own or are authorised to let/sell this property and you agree to the <a href="#terms" target="_blank" class="underline">Terms of Use</a>. Fake listings are removed and may be reported to the police.</p>
         <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" id="lfCancel" class="btn btn-ghost">Cancel</button>
           <button type="submit" id="lfSubmit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish listing</button>
@@ -377,10 +378,141 @@
         </section>
       </article>
     </section>
+
+    <!-- ========== TERMS OF USE ========== -->
+    <section id="view-terms" hidden class="mx-auto max-w-3xl px-4 py-6">
+      <article class="space-y-5 rounded-xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-700 sm:p-8">
+        <header>
+          <h1 class="text-2xl font-extrabold text-slate-900">Terms of Use</h1>
+          <p class="mt-1 text-slate-500">Last updated: 22 October 2026</p>
+        </header>
+
+        <p>These terms apply to everyone who uses truehomekenya.com ("TrueHome Kenya", "we", "us"), whether you're looking for a home or listing one. By using the site, signing in or publishing a listing, you agree to them. If you don't agree, please don't use the site.</p>
+
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
+          <p class="font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> The short version</p>
+          <ul class="mt-1 list-disc space-y-1 pl-5">
+            <li>We are a listing website. We don't own, rent out or sell any property, and we never collect rent or deposits.</li>
+            <li>Only list property you own or are authorised to let or sell. Fake listings are removed and reported.</li>
+            <li><strong>Never pay anyone before you've viewed the property and confirmed who owns it.</strong></li>
+          </ul>
+        </div>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">1. What TrueHome Kenya does</h2>
+          <p>TrueHome Kenya is an online noticeboard where landlords, agents and caretakers publish properties for rent or sale, and where tenants and buyers can find them and contact the lister directly. Any agreement to rent, buy or sell is made <strong>between you and the other person</strong>. We are not a party to it, we are not an estate agent, and we don't handle money between tenants and listers.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">2. Who can use the site</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>You must be 18 or older to sign in, list a property or request verification.</li>
+            <li>You must give true information and keep your contact details up to date.</li>
+            <li>You are responsible for everything done through your account. Sign-in links are personal, so don't forward them to anyone.</li>
+            <li>Using the site is free. If we introduce paid features (for example, featured listings), we'll show the price clearly before you pay.</li>
+          </ul>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">3. Rules for listers</h2>
+          <p>If you publish a listing, you promise that:</p>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>you own the property, or the owner has authorised you in writing to let or sell it;</li>
+            <li>if you act as an estate agent for payment, you are registered with the <strong>Estate Agents Registration Board (EARB)</strong> where the Estate Agents Act requires it;</li>
+            <li>the property exists, is available, and the photos, price, location and description are accurate and your own (or you have permission to use them);</li>
+            <li>you will remove or update the listing as soon as it is let, sold or the price changes;</li>
+            <li>you won't ask tenants for "viewing fees", "booking fees" or deposits before they have viewed the property and confirmed you're entitled to let it;</li>
+            <li>you won't refuse tenants because of their tribe, religion, race, sex, disability or any other ground prohibited by the Constitution of Kenya.</li>
+          </ul>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">4. What is not allowed</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Fake, bait or misleading listings, including listing a property you don't control or advertising a price you won't honour.</li>
+            <li>Pretending to be another person, landlord, agent or company, or using someone else's ID or documents.</li>
+            <li>Copying, editing or faking a TrueHome Kenya Verified badge, badge code or QR code.</li>
+            <li>Posting the same property many times, spam, or listings that aren't for property in Kenya.</li>
+            <li>Harassing, threatening or defrauding other users.</li>
+            <li>Scraping the site, overloading it, trying to get around its security, or any other misuse covered by the <strong>Computer Misuse and Cybercrimes Act, 2018</strong>.</li>
+          </ul>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">5. The Verified badge</h2>
+          <p>A Verified badge means that, on the date we approved it, the lister gave us an ID and ownership or management documents that we checked and that appeared genuine and consistent (for example, against Ardhisasa or the EARB register). It is a useful safety signal, <strong>not a guarantee</strong>. Documents can be forged and circumstances change. Always view the property, meet the person and confirm ownership yourself before paying. Badge codes can be checked at any time under <a href="#check" class="font-medium text-emerald-700 underline">Check a badge</a>.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">6. Our right to remove listings and close accounts</h2>
+          <p>To keep the site safe, we may, at any time and without notice where we reasonably believe it's needed:</p>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>remove or hide any listing, photo or description;</li>
+            <li>refuse, withdraw or suspend a Verified badge;</li>
+            <li>suspend or permanently close an account, and block the person from signing up again;</li>
+            <li>keep records of suspected fraud and share them with the police, the EARB, the Office of the Data Protection Commissioner or other authorities, as allowed by law and our <a href="#privacy" class="font-medium text-emerald-700 underline">Privacy Policy</a>.</li>
+          </ul>
+          <p>We usually do this after a report or a failed verification, but we don't have to wait for one. If you think we got it wrong, email <a class="font-medium text-emerald-700 underline" href="mailto:support@truehomekenya.com">support@truehomekenya.com</a> and we'll review it.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">7. Reporting a listing</h2>
+          <p>If something looks wrong, tap <strong>Report this listing</strong> or email <a class="font-medium text-emerald-700 underline" href="mailto:support@truehomekenya.com">support@truehomekenya.com</a>. Please only make honest reports. If you've lost money to a scam, also report it to the police (DCI) straight away.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">8. Staying safe as a tenant or buyer</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>View the property in person (or have someone you trust view it) before paying anything.</li>
+            <li>Check the lister's badge code on this site, and ask to see their ID and proof of ownership or authority.</li>
+            <li>For purchases, do an official land search and use a qualified advocate.</li>
+            <li>Pay deposits only against a written tenancy agreement or sale agreement, and keep receipts.</li>
+            <li>Be wary of prices that seem too good to be true, pressure to pay quickly, or requests to pay a different person.</li>
+          </ul>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">9. Your content</h2>
+          <p>You keep ownership of the photos and text you post. By posting them, you give us permission to display, resize and share them on the site and in links shared from it (for example, on WhatsApp and Facebook) for as long as the listing is live. You're responsible for having the right to post them.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">10. Limits on our responsibility</h2>
+          <p>We work hard to keep the site accurate, safe and available, but we provide it "as is".</p>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Listings are written by listers, not by us. We don't check every listing and can't promise that any listing is accurate, available or lawful.</li>
+            <li>We are not responsible for the actions, statements or property of listers, tenants or buyers, or for any agreement, payment or dispute between them.</li>
+            <li>We're not liable for indirect losses, such as lost profits, lost opportunities or the cost of finding another property, or for losses caused by events outside our reasonable control, such as internet or service-provider outages.</li>
+            <li>To the extent the law allows, our total liability to you for any claim about the site is limited to the amount you paid us in the 12 months before the claim (which is zero if you used only free features).</li>
+          </ul>
+          <p>Nothing in these terms limits any rights you have that cannot legally be excluded, including under the <strong>Consumer Protection Act, 2012</strong>, or our liability for fraud or deliberate wrongdoing.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">11. Your responsibility to us</h2>
+          <p>If you break these terms, for example by posting a fake listing, and someone makes a claim against TrueHome Kenya as a result, you agree to cover the reasonable costs and losses we suffer because of it.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">12. Changes to the site and these terms</h2>
+          <p>We may change or stop parts of the site, and we may update these terms. When we do, we'll change the date at the top; for important changes we'll also tell signed-in users by email. If you keep using the site after a change, the new terms apply.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">13. Law and disputes</h2>
+          <p>These terms are governed by the laws of Kenya. If there's a disagreement, please contact us first at <a class="font-medium text-emerald-700 underline" href="mailto:support@truehomekenya.com">support@truehomekenya.com</a> and we'll try to resolve it within 14 days. If we can't, the courts of Kenya will decide it.</p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-lg font-bold text-slate-900">14. Contact</h2>
+          <p>TrueHome Kenya · <a class="font-medium text-emerald-700 underline" href="mailto:support@truehomekenya.com">support@truehomekenya.com</a></p>
+        </section>
+      </article>
+    </section>
   </main>
 
   <footer class="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500">
-    © <span id="year"></span> TrueHome Kenya · <a href="#privacy" class="underline hover:text-slate-700">Privacy Policy</a> · <span id="modeNote"></span>
+    © <span id="year"></span> TrueHome Kenya · <a href="#terms" class="underline hover:text-slate-700">Terms of Use</a> · <a href="#privacy" class="underline hover:text-slate-700">Privacy Policy</a> · <span id="modeNote"></span>
     <button id="resetDemoBtn" data-action="reset-demo" class="underline hover:text-slate-700">Reset demo data</button>
   </footer>
 
@@ -1372,7 +1504,7 @@
             </div>
             <label class="flex items-start gap-2 text-sm text-slate-700">
               <input type="checkbox" required class="mt-1 h-4 w-4 accent-emerald-600">
-              I confirm I own or am authorised to let/sell the properties I list, and I agree to TrueHome Kenya checking these documents as described in the <a href="#privacy" target="_blank" class="underline">Privacy Policy</a>.
+              I confirm I own or am authorised to let/sell the properties I list, and I agree to TrueHome Kenya checking these documents as described in the <a href="#privacy" target="_blank" class="underline">Privacy Policy</a>, and I agree to the <a href="#terms" target="_blank" class="underline">Terms of Use</a>.
             </label>
             <button type="submit" class="btn btn-primary w-full sm:w-auto"><i class="fa-solid fa-paper-plane"></i> Submit for review</button>
           </form>
@@ -1970,7 +2102,7 @@
     /* =====================================================================
        Router
        ===================================================================== */
-    const VIEWS = ['browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'admin'];
+    const VIEWS = ['browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
     const PRIVATE = ['list', 'verify', 'mine', 'admin'];
     const SIGNIN_REASONS = {
       list: 'Sign in to list a property.',
