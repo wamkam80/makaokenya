@@ -174,6 +174,11 @@
       </div>
     </section>
 
+    <!-- ========== ONE LISTING ========== -->
+    <section id="view-listing" hidden class="mx-auto max-w-6xl px-4 pb-28 pt-4 lg:pb-10">
+      <div id="listingPage"></div>
+    </section>
+
     <!-- ========== BROWSE ========== -->
     <section id="view-browse" class="mx-auto max-w-7xl px-4 py-5">
       <h1 class="text-2xl font-extrabold sm:text-3xl">Find a verified home in Kenya</h1>
@@ -646,6 +651,15 @@
   <!-- ========== DETAIL MODAL ========== -->
   <div id="detailModal" hidden class="fixed inset-0 z-[2000] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" role="dialog" aria-modal="true">
     <div id="detailBody" class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-white sm:rounded-2xl"></div>
+  </div>
+
+  <!-- ========== FULL-SCREEN PHOTOS ========== -->
+  <div id="lightbox" hidden class="fixed inset-0 z-[2500] flex flex-col bg-black" role="dialog" aria-modal="true" aria-label="Photos">
+    <div class="flex items-center justify-between p-3 text-white">
+      <p id="lightboxTitle" class="truncate pr-3 text-sm font-semibold"></p>
+      <button data-action="close-lightbox" aria-label="Close photos" class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div id="gallery" class="flex min-h-0 flex-1 flex-col"></div>
   </div>
 
   <!-- ========== TOAST ========== -->
@@ -1570,20 +1584,33 @@
       const ps = listingPhotos(l);
       galleryListing = l;
       galleryIdx = ps.length ? (i + ps.length) % ps.length : 0;
-      if (ps.length < 2) return photoHTML(l, 'h-56 sm:h-72');
-      const arrow = (dir, icon, side) => `<button data-action="gallery-${dir}" aria-label="${dir === 'prev' ? 'Previous' : 'Next'} photo" class="absolute ${side} top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/55 text-white hover:bg-black/75"><i class="fa-solid ${icon}"></i></button>`;
+      if (!ps.length) return '';
+      const many = ps.length > 1;
+      const arrow = (dir, icon, side) => `<button data-action="gallery-${dir}" aria-label="${dir === 'prev' ? 'Previous' : 'Next'} photo" class="absolute ${side} top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white hover:bg-white/30"><i class="fa-solid ${icon} text-lg"></i></button>`;
       return `
-        <div class="relative bg-slate-950">
-          <img src="${esc(ps[galleryIdx])}" alt="${esc(l.title)}, photo ${galleryIdx + 1} of ${ps.length}" class="h-56 w-full object-contain sm:h-80">
-          ${arrow('prev', 'fa-chevron-left', 'left-3')}${arrow('next', 'fa-chevron-right', 'right-3')}
-          <div class="absolute bottom-2 left-3 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white" data-gallery-count>${galleryIdx + 1} / ${ps.length}</div>
+        <div class="relative min-h-0 flex-1">
+          <img src="${esc(ps[galleryIdx])}" alt="${esc(l.title)}, photo ${galleryIdx + 1} of ${ps.length}" class="absolute inset-0 h-full w-full object-contain">
+          ${many ? arrow('prev', 'fa-chevron-left', 'left-3') + arrow('next', 'fa-chevron-right', 'right-3') : ''}
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-sm font-semibold text-white" data-gallery-count>${galleryIdx + 1} / ${ps.length}</div>
         </div>
-        <div class="flex gap-1.5 overflow-x-auto bg-slate-950 px-2 pb-2">
-          ${ps.map((u, j) => `<button data-gallery-i="${j}" aria-label="Photo ${j + 1}" class="h-14 w-20 shrink-0 overflow-hidden rounded ${j === galleryIdx ? 'ring-2 ring-emerald-400' : 'opacity-60 hover:opacity-100'}"><img src="${esc(u)}" alt="" loading="lazy" class="h-full w-full object-cover"></button>`).join('')}
-        </div>`;
+        ${many ? `<div class="flex justify-center gap-1.5 overflow-x-auto p-3">
+          ${ps.map((u, j) => `<button data-gallery-i="${j}" aria-label="Photo ${j + 1}" class="h-14 w-20 shrink-0 overflow-hidden rounded ${j === galleryIdx ? 'ring-2 ring-emerald-400' : 'opacity-50 hover:opacity-100'}"><img src="${esc(u)}" alt="" loading="lazy" class="h-full w-full object-cover"></button>`).join('')}
+        </div>` : ''}`;
     }
     function showGallery(i) {
       if (galleryListing && $('#gallery')) $('#gallery').innerHTML = galleryHTML(galleryListing, i);
+    }
+    function openLightbox(id, i) {
+      const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
+      if (!l || !listingPhotos(l).length) return;
+      $('#lightboxTitle').textContent = `${l.title} · ${priceText(l)}`;
+      $('#gallery').innerHTML = galleryHTML(l, i || 0);
+      $('#lightbox').hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      $('#lightbox').hidden = true;
+      if ($('#detailModal').hidden) document.body.style.overflow = '';
     }
 
     function detailFeaturesHTML(l) {
@@ -1595,76 +1622,144 @@
         <div class="mt-1 flex flex-wrap gap-1.5">${g.items.map(([, label]) => `<span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"><i class="fa-solid fa-check mr-1"></i>${esc(label)}</span>`).join('')}</div></div>`).join('')}</div></div>`;
     }
 
+    // Cards and links call this: go to the listing's own page
     function openDetail(id) {
+      const target = '#l/' + encodeURIComponent(id);
+      closeDetail();
+      if (location.hash === target) renderListingPage(id);
+      else location.hash = target;
+    }
+
+    let listingMap = null;
+    let listingRenderToken = 0;
+    let pageListingId = null;
+    const daysAgo = (t) => { const d = Math.floor((Date.now() - t) / 86400000); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`; };
+
+    function photoGridHTML(l) {
+      const ps = listingPhotos(l);
+      const img = (u, i, cls) => `<button data-photo-i="${i}" class="group relative overflow-hidden ${cls}" aria-label="Open photo ${i + 1}"><img src="${esc(u)}" alt="${esc(l.title)}, photo ${i + 1}" ${i ? 'loading="lazy"' : ''} class="h-full w-full object-cover transition duration-300 group-hover:scale-105"></button>`;
+      const all = ps.length > 1 ? `<button data-photo-i="0" class="absolute bottom-3 right-3 rounded-lg bg-white px-3 py-2 text-sm font-semibold shadow hover:bg-slate-50"><i class="fa-solid fa-images"></i> See all ${ps.length} photos</button>` : '';
+      if (!ps.length) return `<div class="overflow-hidden rounded-2xl">${placeholder(l.type, 'h-64 sm:h-96')}</div>`;
+      if (ps.length === 1) return `<div class="relative h-64 overflow-hidden rounded-2xl sm:h-[28rem]">${img(ps[0], 0, 'h-full w-full')}</div>`;
+      if (ps.length < 5) {
+        return `<div class="relative grid h-64 grid-cols-3 gap-2 overflow-hidden rounded-2xl sm:h-[28rem]">
+            ${img(ps[0], 0, 'col-span-3 sm:col-span-2 h-full')}
+            <div class="hidden grid-rows-2 gap-2 sm:grid">${ps.slice(1, 3).map((u, j) => img(u, j + 1, 'h-full')).join('')}</div>
+            ${all}
+          </div>`;
+      }
+      return `<div class="relative grid h-64 grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-2xl sm:h-[28rem]">
+          ${img(ps[0], 0, 'col-span-4 row-span-2 sm:col-span-2')}
+          ${ps.slice(1, 5).map((u, j) => img(u, j + 1, 'hidden sm:block')).join('')}
+          ${all}
+        </div>`;
+    }
+
+    function renderListingPage(id) {
+      pageListingId = id;
+      const box = $('#listingPage');
       const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
-      if (!l) return;
+      if (listingMap) { listingMap.remove(); listingMap = null; }
+      if (!l || (!isLive(l) && l.owner !== 'me')) {
+        box.innerHTML = loading
+          ? '<div class="grid h-96 place-items-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>'
+          : `<div class="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+               <i class="fa-solid fa-house-circle-xmark text-4xl text-slate-400"></i>
+               <h1 class="mt-3 text-xl font-bold">This listing is no longer available</h1>
+               <p class="mt-1 text-sm text-slate-600">It may have been let, sold or removed by the lister.</p>
+               <a href="#browse" class="btn btn-primary mt-4">Browse other homes</a>
+             </div>`;
+        document.title = 'TrueHome Kenya – Find Verified Homes';
+        return;
+      }
       recordView(l);
+      document.title = `${l.title} – ${priceText(l)} | TrueHome Kenya`;
       const v = isVerified(l);
       const code = ownerCodeOf(l);
-      const badgeLink = code
-        ? `<a href="#v/${encodeURIComponent(code)}" class="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"><i class="fa-solid fa-qrcode"></i> Check badge ${esc(code)}</a>`
-        : '';
       const phone = normPhone(l.phone);
       const msg = `Hi, I'm interested in "${l.title}" (${priceText(l)}) in ${l.location} that I saw on TrueHome Kenya. Is it still available?`;
-
-      let contactButtons;
+      let contact;
       if (l.demo) {
-        contactButtons = `
-          <button data-demo-contact class="btn flex-1 bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</button>
-          <button data-demo-contact class="btn btn-ghost flex-1"><i class="fa-solid fa-phone"></i> Call</button>`;
+        contact = `<button data-demo-contact class="btn flex-1 bg-[#25D366] py-3 text-base text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</button>
+          <button data-demo-contact class="btn btn-ghost flex-1 py-3 text-base"><i class="fa-solid fa-phone"></i> Call</button>`;
       } else if (phone) {
-        contactButtons = `
-          <a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener noreferrer" class="btn flex-1 bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</a>
-          <a href="tel:+${phone}" class="btn btn-ghost flex-1"><i class="fa-solid fa-phone"></i> Call</a>`;
+        contact = `<a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener noreferrer" class="btn flex-1 bg-[#25D366] py-3 text-base text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp</a>
+          <a href="tel:+${phone}" class="btn btn-ghost flex-1 py-3 text-base"><i class="fa-solid fa-phone"></i> Call</a>`;
       } else {
-        contactButtons = '<p class="text-sm text-red-600">This listing has no valid phone number.</p>';
+        contact = '<p class="text-sm text-red-600">This listing has no valid phone number.</p>';
       }
+      const isLand = l.type === 'land' || l.type === 'commercial';
+      const fact = (icon, val, label) => `<div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3"><i class="fa-solid ${icon} w-5 text-center text-lg text-emerald-600"></i><div><p class="font-bold leading-tight">${val}</p><p class="text-xs text-slate-500">${label}</p></div></div>`;
+      const facts = [
+        !isLand ? fact('fa-bed', l.beds > 0 ? Number(l.beds) : 'Studio', 'Bedrooms') : '',
+        !isLand ? fact('fa-bath', Number(l.baths), 'Bathrooms') : '',
+        fact((TYPES[l.type] || TYPES.house).icon, esc(KIND_LABEL[l.kind] || (TYPES[l.type] || TYPES.house).label), 'Type'),
+        fact(l.purpose === 'rent' ? 'fa-key' : 'fa-tag', l.purpose === 'rent' ? 'For rent' : 'For sale', 'Listing'),
+        fact('fa-calendar', daysAgo(l.createdAt), 'Listed'),
+        LIVE && !l.demo ? fact('fa-eye', Number(l.views || 0), 'Views') : ''
+      ].join('');
+      const similar = listings.filter((x) => x.id !== l.id && isLive(x) && x.purpose === l.purpose && (x.county === l.county || x.type === l.type))
+        .sort((a, b) => (b.county === l.county) - (a.county === l.county) || b.createdAt - a.createdAt).slice(0, 4);
+      const badgeLink = code
+        ? `<a href="#v/${encodeURIComponent(code)}" class="mt-3 flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"><i class="fa-solid fa-qrcode"></i> Check badge ${esc(code)}</a>`
+        : '';
 
-      const tiles = (l.type === 'land' || l.type === 'commercial')
-        ? ''
-        : `<div class="grid grid-cols-3 gap-2 text-center">
-            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${l.beds > 0 ? Number(l.beds) : 'Studio'}</p><p class="text-xs text-slate-500">Bedrooms</p></div>
-            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${Number(l.baths)}</p><p class="text-xs text-slate-500">Bathrooms</p></div>
-            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${esc(KIND_LABEL[l.kind] || (TYPES[l.type] || TYPES.house).label)}</p><p class="text-xs text-slate-500">Type</p></div>
-          </div>`;
-
-      $('#detailBody').innerHTML = `
-        <div class="relative">
-          <div id="gallery">${galleryHTML(l, 0)}</div>
-          <button data-close aria-label="Close" class="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-700 shadow hover:bg-white"><i class="fa-solid fa-xmark"></i></button>
+      box.innerHTML = `
+        <div class="mb-3 flex items-center justify-between gap-2">
+          <button data-action="listing-back" class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"><i class="fa-solid fa-arrow-left"></i> Back<span class="hidden sm:inline"> to search</span></button>
+          <div class="flex gap-2">
+            <button data-share="${esc(l.id)}" class="btn btn-ghost px-3 py-1.5 text-sm"><i class="fa-solid fa-share-nodes"></i> Share</button>
+            <span class="hidden sm:inline"><button data-map-id="${esc(l.id)}" class="btn btn-ghost px-3 py-1.5 text-sm"><i class="fa-solid fa-map-location-dot"></i> On the big map</button></span>
+          </div>
         </div>
-        <div class="space-y-4 p-5">
-          <div class="flex flex-wrap gap-2">${purposeBadge(l.purpose)}${verifiedBadge(v)}${badgeLink}</div>
-          <div>
-            <p class="text-2xl font-extrabold">${esc(priceText(l))}</p>
-            <h2 class="text-lg font-semibold">${esc(l.title)}</h2>
-            <p class="text-sm text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(l.location)}, ${esc(l.county)} County</p>
-          </div>
-          ${tiles}
-          ${(l.type === 'land' || l.type === 'commercial') && l.kind ? `<p class="text-sm"><span class="text-slate-500">Kind:</span> <strong>${esc(KIND_LABEL[l.kind] || '')}</strong></p>` : ''}
-          ${detailFeaturesHTML(l)}
-          ${l.description ? `<div><h3 class="mb-1 font-semibold">About this property</h3><p class="text-sm leading-relaxed text-slate-700">${esc(l.description).replace(/\n/g, '<br>')}</p></div>` : ''}
-          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div class="mb-3 flex items-center gap-3">
-              <div class="grid h-10 w-10 place-items-center rounded-full bg-emerald-100 font-bold text-emerald-700">${esc((l.contactName || '?').charAt(0).toUpperCase())}</div>
-              <div>
-                <p class="font-semibold">${esc(l.contactName)} ${v ? '<i class="fa-solid fa-circle-check text-emerald-600" title="Verified"></i>' : ''}</p>
-                <p class="text-xs text-slate-500">${esc(ROLES[l.role] || 'Contact')}${phone && !l.demo ? ' · ' + esc(fmtPhone(phone)) : ''}</p>
-              </div>
+        ${photoGridHTML(l)}
+        <div class="mt-6 grid gap-8 lg:grid-cols-3">
+          <div class="space-y-8 lg:col-span-2">
+            <div>
+              <div class="flex flex-wrap gap-2">${purposeBadge(l.purpose)}${verifiedBadge(v)}</div>
+              <p class="mt-3 text-3xl font-extrabold sm:text-4xl">${esc(priceText(l))}</p>
+              <h1 class="mt-1 text-xl font-semibold sm:text-2xl">${esc(l.title)}</h1>
+              <p class="mt-1 text-slate-600"><i class="fa-solid fa-location-dot text-emerald-600"></i> ${esc(l.location)}, ${esc(l.county)} County</p>
             </div>
-            <div class="flex gap-2">${contactButtons}</div>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">${facts}</div>
+            ${l.description ? `<div><h2 class="text-xl font-bold">About this property</h2><p class="mt-2 whitespace-pre-line leading-relaxed text-slate-700">${esc(l.description)}</p></div>` : ''}
+            ${detailFeaturesHTML(l).replace('<h3 class="mb-2 font-semibold">Features</h3>', '<h2 class="mb-3 text-xl font-bold">Features</h2>')}
+            <div>
+              <h2 class="text-xl font-bold">Location</h2>
+              <p class="mt-1 text-sm text-slate-600">${esc(l.location)}, ${esc(l.county)} County. The pin shows the spot the lister marked.</p>
+              <div id="lpMap" class="relative z-0 mt-3 h-72 overflow-hidden rounded-2xl border border-slate-200"></div>
+            </div>
+            <p class="rounded-xl bg-amber-50 p-4 text-sm text-amber-900"><i class="fa-solid fa-shield-halved"></i> <strong>Stay safe:</strong> never pay a deposit or viewing fee before visiting the property and confirming who owns it.${v ? '' : ' <strong>This lister has not been verified yet.</strong>'} <a href="#home" class="underline">How we keep you safe</a></p>
+            <div class="text-center">${reportButtonHTML(l)}</div>
+            ${l.demo ? '<p class="text-center text-xs text-slate-400">Sample listing for demonstration only.</p>' : ''}
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button data-share="${esc(l.id)}" class="btn btn-ghost"><i class="fa-solid fa-share-nodes"></i> Share</button>
-            <button data-map-id="${esc(l.id)}" class="btn btn-ghost"><i class="fa-solid fa-map-location-dot"></i> View on map</button>
-          </div>
-          <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900"><i class="fa-solid fa-shield-halved"></i> Safety tip: never pay a deposit or viewing fee before visiting the property and confirming who owns it.${v ? '' : ' This lister has not been verified yet.'}</p>
-          ${reportButtonHTML(l)}
-          ${l.demo ? '<p class="text-center text-xs text-slate-400">Sample listing for demonstration only.</p>' : ''}
-        </div>`;
-      $('#detailModal').hidden = false;
-      document.body.style.overflow = 'hidden';
-      highlight(id);
+          <aside class="lg:sticky lg:top-24 lg:self-start">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-2xl font-extrabold">${esc(priceText(l))}</p>
+              <div class="mt-4 flex items-center gap-3">
+                <div class="grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-lg font-bold text-emerald-700">${esc((l.contactName || '?').charAt(0).toUpperCase())}</div>
+                <div>
+                  <p class="font-semibold">${esc(l.contactName)} ${v ? '<i class="fa-solid fa-circle-check text-emerald-600" title="Verified"></i>' : ''}</p>
+                  <p class="text-sm text-slate-500">${esc(ROLES[l.role] || 'Contact')}${phone && !l.demo ? ' · ' + esc(fmtPhone(phone)) : ''}</p>
+                </div>
+              </div>
+              <div class="mt-4 hidden gap-2 lg:flex" data-contact>${contact}</div>
+              ${badgeLink}
+              <p class="mt-3 text-xs text-slate-500">${v ? '<i class="fa-solid fa-shield-halved text-emerald-600"></i> We checked this lister\'s ID and ownership documents.' : '<i class="fa-regular fa-circle-question"></i> This lister hasn\'t been verified yet. Take extra care.'}</p>
+            </div>
+          </aside>
+        </div>
+        ${similar.length ? `<section class="mt-12"><h2 class="text-xl font-bold">Similar homes nearby</h2><div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">${similar.map(cardHTML).join('')}</div></section>` : ''}
+        <div class="fixed inset-x-0 bottom-0 z-[1050] flex gap-2 border-t border-slate-200 bg-white/95 p-3 backdrop-blur lg:hidden" data-contact-bar>${contact}</div>`;
+
+      const token = ++listingRenderToken;
+      setTimeout(() => {
+        if (token !== listingRenderToken || !$('#lpMap') || pageListingId !== l.id) return;
+        if (listingMap) { listingMap.remove(); listingMap = null; }
+        listingMap = L.map('lpMap', { scrollWheelZoom: false }).setView([l.lat, l.lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(listingMap);
+        L.marker([l.lat, l.lng]).addTo(listingMap);
+      }, 50);
     }
 
     /* ---------- Report a listing ---------- */
@@ -1719,6 +1814,8 @@
           </form>
           <p class="text-xs text-slate-500">Reports are private. The lister won't see who reported them. If you've already lost money, also report it to the police.</p>
         </div>`;
+      $('#detailModal').hidden = false;
+      document.body.style.overflow = 'hidden';
       $('#detailBody').scrollTop = 0;
     }
 
@@ -1753,8 +1850,11 @@
     }
 
     function closeDetail() {
+      const wasOpen = !$('#detailModal').hidden;
       $('#detailModal').hidden = true;
-      document.body.style.overflow = '';
+      if ($('#lightbox').hidden) document.body.style.overflow = '';
+      // refresh the page behind (e.g. "You reported this listing")
+      if (wasOpen && pageListingId && location.hash.startsWith('#l/')) renderListingPage(pageListingId);
     }
 
     /* =====================================================================
@@ -2740,7 +2840,8 @@
     /* =====================================================================
        Router
        ===================================================================== */
-    const VIEWS = ['home', 'browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
+    let lastNonListingHash = null;
+    const VIEWS = ['home', 'listing', 'browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
     const PRIVATE = ['list', 'verify', 'mine', 'admin'];
     const SIGNIN_REASONS = {
       list: 'Sign in to list a property.',
@@ -2822,6 +2923,13 @@
     function route() {
       let v = (location.hash || '#home').slice(1);
       let code = null;
+      let listingId = null;
+      if (v.startsWith('l/')) {
+        try { listingId = decodeURIComponent(v.slice(2)); } catch (e) { listingId = v.slice(2); }
+        v = 'listing';
+      } else {
+        lastNonListingHash = '#' + v;
+      }
       if (v.startsWith('v/')) {
         try { code = normCode(decodeURIComponent(v.slice(2))); } catch (e) { code = normCode(v.slice(2)); }
         v = 'check';
@@ -2846,6 +2954,9 @@
 
       if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
       if (v === 'home') renderHome();
+      if (v === 'listing') renderListingPage(listingId);
+      else { pageListingId = null; if (listingMap) { listingMap.remove(); listingMap = null; } if (document.title !== 'TrueHome Kenya – Find Verified Homes') document.title = 'TrueHome Kenya – Find Verified Homes'; }
+      if (!$('#lightbox').hidden) closeLightbox();
       if (v === 'admin') loadAdmin().then(() => { if (!isAdmin) renderAdmin(); });
       if (v === 'list') {
         ensureFormMap();
@@ -2860,6 +2971,7 @@
     function renderAll() {
       renderResults();
       renderHome();
+      if (pageListingId && location.hash.startsWith('#l/')) renderListingPage(pageListingId);
       renderMine();
       renderVerify();
     }
@@ -2920,7 +3032,7 @@
         const shr = t.closest('[data-share]');
         if (shr) { openShare(shr.dataset.share); return; }
         const shrBack = t.closest('[data-share-back]');
-        if (shrBack) { openDetail(shrBack.dataset.shareBack); return; }
+        if (shrBack) { closeDetail(); return; }
         const cpy = t.closest('[data-copy]');
         if (cpy) { copyText(cpy.dataset.copy); return; }
         const nat = t.closest('[data-native-share]');
@@ -2928,7 +3040,7 @@
         const rep = t.closest('[data-report]');
         if (rep) { openReportForm(rep.dataset.report); return; }
         const repBack = t.closest('[data-report-back]');
-        if (repBack) { openDetail(repBack.dataset.reportBack); return; }
+        if (repBack) { closeDetail(); return; }
         const mapBtn = t.closest('[data-map-id]');
         if (mapBtn) { showOnMap(mapBtn.dataset.mapId); return; }
         const ed = t.closest('[data-edit]');
@@ -2942,6 +3054,8 @@
         if (hc) { const c = HOME_CATS[Number(hc.dataset.homeCat)]; browseWith({ purpose: c.purpose || '', type: c.type || '', feature: c.feature || '' }); return; }
         const ha = t.closest('[data-home-area]');
         if (ha) { browseWith({ q: ha.dataset.homeArea }); return; }
+        const phi = t.closest('[data-photo-i]');
+        if (phi && pageListingId) { openLightbox(pageListingId, Number(phi.dataset.photoI)); return; }
         const gi = t.closest('[data-gallery-i]');
         if (gi) { showGallery(Number(gi.dataset.galleryI)); return; }
         const pick = t.closest('[data-pick-role]');
@@ -2997,6 +3111,13 @@
             renderPhotoPreview();
             break;
           }
+          case 'close-lightbox':
+            closeLightbox();
+            break;
+          case 'listing-back':
+            if (history.length > 1 && lastNonListingHash) history.back();
+            else location.hash = '#browse';
+            break;
           case 'gallery-prev':
             showGallery(galleryIdx - 1);
             break;
@@ -3057,8 +3178,9 @@
       });
 
       document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !$('#lightbox').hidden) { closeLightbox(); return; }
         if (e.key === 'Escape' && !$('#detailModal').hidden) closeDetail();
-        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !$('#detailModal').hidden && $('#gallery [data-gallery-i]')) {
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !$('#lightbox').hidden && $('#gallery [data-gallery-i]')) {
           showGallery(galleryIdx + (e.key === 'ArrowLeft' ? -1 : 1));
         }
       });
@@ -3264,8 +3386,8 @@
       const l = q.get('l');
       const v = q.get('v');
       if (!l && !v) return;
-      pendingOpenId = l || null;
-      const hash = v ? '#v/' + encodeURIComponent(normCode(v)) : (location.hash && !/access_token|error_description/.test(location.hash) ? location.hash : '#browse');
+      pendingOpenId = null;
+      const hash = v ? '#v/' + encodeURIComponent(normCode(v)) : '#l/' + encodeURIComponent(l);
       history.replaceState(null, '', location.pathname + hash);
     }
     function openPendingListing() {
