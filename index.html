@@ -47,6 +47,8 @@
     }
     .price-pin.unv { border-color: #64748b; color: #334155; }
     .price-pin.active { background: #059669; color: #fff; border-color: #047857; }
+    .hero-tab { color: #475569; }
+    .hero-tab.on { background: #059669; color: #fff; }
   </style>
 </head>
 
@@ -55,7 +57,7 @@
   <!-- ========== HEADER ========== -->
   <header class="sticky top-0 z-[1100] border-b border-slate-200 bg-white/95 backdrop-blur">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
-      <a href="#browse" class="flex items-center gap-2 text-xl font-extrabold">
+      <a href="#home" class="flex items-center gap-2 text-xl font-extrabold">
         <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-600 text-white">
           <i class="fa-solid fa-house-circle-check"></i>
         </span>
@@ -86,6 +88,84 @@
   </header>
 
   <main>
+    <!-- ========== HOME ========== -->
+    <section id="view-home" hidden>
+      <div class="relative overflow-hidden bg-slate-950">
+        <div id="heroArt" class="absolute inset-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/45 to-transparent"></div>
+        <div class="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:pb-24 sm:pt-20">
+          <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-white drop-shadow sm:text-6xl">Rentals. Homes. Land.<br><span class="text-emerald-400">Verified landlords.</span></h1>
+          <p class="mt-3 max-w-xl text-base text-slate-200 sm:text-lg">Find a home in Kenya directly from verified landlords and agents. Check the badge before you pay anything.</p>
+          <form id="heroSearch" class="mt-6 max-w-2xl">
+            <div class="inline-flex rounded-t-xl bg-white/95 p-1 text-sm font-semibold" role="tablist" aria-label="What are you looking for">
+              <button type="button" data-hero-tab="rent" class="hero-tab rounded-lg px-4 py-1.5">Rent</button>
+              <button type="button" data-hero-tab="sale" class="hero-tab rounded-lg px-4 py-1.5">Buy</button>
+              <button type="button" data-hero-tab="land" class="hero-tab rounded-lg px-4 py-1.5">Land</button>
+            </div>
+            <div class="flex items-center gap-2 rounded-b-xl rounded-tr-xl bg-white p-2 shadow-2xl">
+              <i class="fa-solid fa-location-dot pl-2 text-slate-400"></i>
+              <input id="heroQ" type="search" class="min-w-0 flex-1 bg-transparent px-1 py-2.5 text-base outline-none" placeholder="Enter an area or town, e.g. Kilimani, Ruaka, Nyali" aria-label="Area or town">
+              <button type="submit" class="btn btn-primary shrink-0 px-5 py-2.5 text-base" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i><span class="hidden sm:inline"> Search</span></button>
+            </div>
+          </form>
+          <div class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-200">
+            <span><i class="fa-solid fa-shield-halved text-emerald-400"></i> ID and title-deed checks</span>
+            <span><i class="fa-brands fa-whatsapp text-emerald-400"></i> Talk to landlords directly</span>
+            <span><i class="fa-solid fa-ban text-emerald-400"></i> Scammers banned</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mx-auto max-w-7xl space-y-12 px-4 py-10">
+        <section>
+          <h2 class="text-2xl font-extrabold">What are you looking for?</h2>
+          <div id="homeCats" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"></div>
+        </section>
+
+        <section id="homeNewestWrap" hidden>
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <h2 class="text-2xl font-extrabold">Newest homes</h2>
+              <p class="text-sm text-slate-600">Just listed by landlords and agents.</p>
+            </div>
+            <a href="#browse" class="shrink-0 font-semibold text-emerald-700 hover:underline">See all <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div id="homeNewest" class="mt-4 flex snap-x gap-4 overflow-x-auto pb-2"></div>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-extrabold">Popular areas</h2>
+          <div id="homeAreas" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+          <h2 class="text-2xl font-extrabold">How TrueHome Kenya keeps you safe</h2>
+          <p class="mt-1 text-slate-600">House-hunting scams cost Kenyans thousands of shillings every month. Here's how we stop them.</p>
+          <div class="mt-6 grid gap-6 sm:grid-cols-3">
+            <div><div class="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-id-card"></i></div>
+              <h3 class="mt-3 font-bold">We check who they are</h3><p class="mt-1 text-sm text-slate-600">Verified landlords sent us their National ID and title deed, checked against an official land search. Agents are checked on the EARB register.</p></div>
+            <div><div class="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-qrcode"></i></div>
+              <h3 class="mt-3 font-bold">You check the badge</h3><p class="mt-1 text-sm text-slate-600">Every badge has a code. Type it under <a href="#check" class="font-semibold text-emerald-700 underline">Check a badge</a> or scan the QR code. Copied badges don't work.</p></div>
+            <div><div class="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-flag"></i></div>
+              <h3 class="mt-3 font-bold">Scammers get banned</h3><p class="mt-1 text-sm text-slate-600">Report a listing with one tap. We remove fake listings and block the scammer and their phone numbers.</p></div>
+          </div>
+          <p class="mt-6 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"><i class="fa-solid fa-triangle-exclamation"></i> <strong>Golden rule:</strong> never pay a deposit or "viewing fee" before you've seen the house and confirmed who owns it.</p>
+        </section>
+
+        <section class="overflow-hidden rounded-2xl bg-slate-950 text-white sm:grid sm:grid-cols-2">
+          <div class="h-48 sm:h-auto" id="homeLandlordArt"></div>
+          <div class="p-6 sm:p-10">
+            <h2 class="text-2xl font-extrabold sm:text-3xl">Are you a landlord or agent?</h2>
+            <p class="mt-2 text-slate-300">List your property free, get the Verified badge, and get messages from tenants straight on WhatsApp. No middlemen, no commission.</p>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <a href="#list" class="btn btn-primary px-5 py-2.5 text-base"><i class="fa-solid fa-plus"></i> List your property free</a>
+              <a href="#verify" class="btn border border-white/30 px-5 py-2.5 text-base text-white hover:bg-white/10">Get verified</a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
     <!-- ========== BROWSE ========== -->
     <section id="view-browse" class="mx-auto max-w-7xl px-4 py-5">
       <h1 class="text-2xl font-extrabold sm:text-3xl">Find a verified home in Kenya</h1>
@@ -780,7 +860,49 @@
       const key = (x, y) => `<g fill="#fbbf24"><circle cx="${x}" cy="${y}" r="5" fill="none" stroke="#fbbf24" stroke-width="2.5"/><rect x="${x + 4}" y="${y - 1.5}" width="12" height="3" rx="1"/><rect x="${x + 12}" y="${y + 1}" width="2.5" height="4"/></g>`;
       const svg = (body) => `<svg viewBox="0 0 320 180" class="h-full w-full" role="img" aria-hidden="true" preserveAspectRatio="xMidYMid slice">${body}</svg>`;
 
+
+      // Big front-page scene: Nairobi at dusk, an agent showing a couple a home
+      function heroScene() {
+        let seed = 7;
+        const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+        const towers = [];
+        let x = 380;
+        while (x < 1200) {
+          const w = 40 + Math.floor(rnd() * 50), h = 90 + Math.floor(rnd() * 170);
+          const wins = [];
+          for (let wy = 440 - h + 12; wy < 420; wy += 16) for (let wx = x + 7; wx < x + w - 8; wx += 12) {
+            if (rnd() > 0.55) wins.push(`<rect x="${wx}" y="${wy}" width="5" height="7" fill="#fcd34d" opacity="${(0.35 + rnd() * 0.5).toFixed(2)}"/>`);
+          }
+          towers.push(`<rect x="${x}" y="${440 - h}" width="${w}" height="${h}" fill="#172033"/>${wins.join('')}`);
+          x += w + 4 + Math.floor(rnd() * 10);
+        }
+        return `<svg viewBox="0 0 1200 460" class="h-full w-full" role="img" aria-hidden="true" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="h-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1120"/><stop offset="0.55" stop-color="#1e1b4b"/><stop offset="1" stop-color="#9a3412"/></linearGradient>
+            <radialGradient id="h-sun" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fdba74" stop-opacity="0.9"/><stop offset="1" stop-color="#f97316" stop-opacity="0"/></radialGradient>
+            ${KITENGE('h-k')}
+          </defs>
+          <rect width="1200" height="460" fill="url(#h-sky)"/>
+          ${Array.from({ length: 40 }, () => `<circle cx="${Math.floor(rnd() * 1200)}" cy="${Math.floor(rnd() * 200)}" r="${(rnd() * 1.2 + 0.4).toFixed(1)}" fill="#fff" opacity="${(0.3 + rnd() * 0.6).toFixed(2)}"/>`).join('')}
+          <circle cx="980" cy="300" r="190" fill="url(#h-sun)"/>
+          <circle cx="980" cy="300" r="62" fill="#fb923c"/>
+          <g>${towers.join('')}</g>
+          <g fill="#0f172a"><rect x="700" y="170" width="26" height="270"/><ellipse cx="713" cy="168" rx="34" ry="9"/><rect x="709" y="140" width="8" height="28"/></g>
+          <g fill="#05070d"><rect x="1080" y="300" width="8" height="140"/><path d="M1010 306 Q1084 262 1170 306 Q1084 292 1010 306 Z"/><path d="M1030 290 Q1084 258 1140 290 Q1084 280 1030 290 Z"/></g>
+          <rect y="436" width="1200" height="24" fill="#05070d"/>
+          <g transform="translate(560 158) scale(1.65)">
+            <g><rect x="150" y="78" width="96" height="90" fill="#1f2937"/><path d="M140 82 L198 40 L256 82 Z" fill="#374151"/>
+            <rect x="186" y="114" width="24" height="54" fill="#0b0f19"/><rect x="189" y="117" width="18" height="48" fill="#f59e0b" opacity="0.9"/>
+            <rect x="160" y="96" width="18" height="16" fill="#fde68a" opacity="0.9"/><rect x="218" y="96" width="18" height="16" fill="#fde68a" opacity="0.9"/></g>
+            ${person({ x: 70, skin: SKIN[0], hair: 'wrap', top: 'url(#h-k)', dress: true, hands: [[-8, 40], [24, 6]], id: 'h' })}
+            <rect x="104" y="84" width="14" height="18" rx="1.5" fill="#f8fafc"/><rect x="106" y="88" width="10" height="1.5" fill="#94a3b8"/><rect x="106" y="92" width="8" height="1.5" fill="#94a3b8"/>
+            ${person({ x: 290, skin: SKIN[2], hair: 'afro', top: '#2563eb', bottom: '#0f172a', hands: [[-14, 40], [12, 40]], id: 'h' })}
+            ${person({ x: 330, skin: SKIN[1], hair: 'bun', top: '#10b981', bottom: '#1f2937', hands: [[-22, 30], [10, 40]], id: 'h', s: 0.95 })}
+          </g>
+        </svg>`;
+      }
       return {
+        hero: heroScene,
         landlord: () => svg(`${bg('a1', '#f59e0b')}
           <g><rect x="20" y="78" width="104" height="90" fill="#1f2937"/><path d="M10 82 L72 36 L134 82 Z" fill="#374151"/>
           <rect x="58" y="112" width="28" height="56" rx="2" fill="#0b0f19"/><rect x="61" y="115" width="22" height="50" fill="#f59e0b" opacity="0.85"/><circle cx="78" cy="142" r="1.8" fill="#78350f"/>
@@ -2610,7 +2732,7 @@
     /* =====================================================================
        Router
        ===================================================================== */
-    const VIEWS = ['browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
+    const VIEWS = ['home', 'browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
     const PRIVATE = ['list', 'verify', 'mine', 'admin'];
     const SIGNIN_REASONS = {
       list: 'Sign in to list a property.',
@@ -2619,14 +2741,79 @@
       admin: 'Sign in to use the admin page.'
     };
 
+    /* =====================================================================
+       Front page
+       ===================================================================== */
+    let heroTab = 'rent';
+    const HOME_CATS = [
+      { label: 'Bedsitters & single rooms', icon: 'fa-bed', type: 'bedsitter', purpose: 'rent', color: 'from-amber-500 to-orange-600' },
+      { label: 'Apartments', icon: 'fa-building', type: 'apartment', color: 'from-sky-500 to-indigo-600' },
+      { label: 'Houses & maisonettes', icon: 'fa-house', type: 'house', color: 'from-emerald-500 to-teal-600' },
+      { label: 'Land & plots', icon: 'fa-mountain-sun', type: 'land', purpose: 'sale', color: 'from-lime-500 to-green-700' },
+      { label: 'Shops & offices', icon: 'fa-store', type: 'commercial', color: 'from-fuchsia-500 to-purple-600' },
+      { label: 'Furnished', icon: 'fa-couch', feature: 'furnished', purpose: 'rent', color: 'from-rose-500 to-pink-600' }
+    ];
+    const HOME_AREAS = ['Kilimani', 'Westlands', 'Ruaka', 'Kasarani', 'Syokimau', 'Kitengela', 'Nyali', 'Milimani, Kisumu'];
+    const AREA_COLORS = ['from-emerald-600 to-teal-800', 'from-sky-600 to-indigo-800', 'from-amber-500 to-orange-700', 'from-violet-600 to-purple-800',
+      'from-rose-500 to-red-700', 'from-lime-600 to-green-800', 'from-cyan-500 to-blue-700', 'from-fuchsia-600 to-pink-800'];
+
+    function setHeroTab(t) {
+      heroTab = t;
+      $$('[data-hero-tab]').forEach((b) => { b.classList.toggle('on', b.dataset.heroTab === t); b.setAttribute('aria-selected', String(b.dataset.heroTab === t)); });
+    }
+
+    // Go to Browse with these filters applied
+    function browseWith({ q = '', purpose = '', type = '', feature = '' } = {}) {
+      clearFilters();
+      $('#fQ').value = q;
+      $('#fPurpose').value = purpose;
+      $('#fType').value = type;
+      if (feature) selectedFeatures.add(feature);
+      renderFilterFeatures();
+      renderResults();
+      location.hash = '#browse';
+    }
+
+    function renderHome() {
+      if (!$('#homeCats')) return;
+      if (!$('#heroArt').innerHTML) {
+        $('#heroArt').innerHTML = ART.hero();
+        $('#homeLandlordArt').innerHTML = ART.landlord();
+        setHeroTab(heroTab);
+      }
+      const live = listings.filter(isLive);
+      const count = (fn) => live.filter(fn).length;
+      const countText = (n) => (loading ? '' : n ? `${n} listing${n === 1 ? '' : 's'}` : 'Be the first to list');
+      $('#homeCats').innerHTML = HOME_CATS.map((c, i) => {
+        const n = count((l) => (!c.type || l.type === c.type) && (!c.purpose || l.purpose === c.purpose) && (!c.feature || (l.features || []).includes(c.feature)));
+        return `<button data-home-cat="${i}" class="group overflow-hidden rounded-xl border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:shadow-lg">
+            <div class="grid h-20 place-items-center bg-gradient-to-br ${c.color}"><i class="fa-solid ${c.icon} text-3xl text-white/90 transition group-hover:scale-110"></i></div>
+            <div class="p-3"><p class="font-semibold leading-tight">${esc(c.label)}</p><p class="mt-0.5 text-xs text-slate-500">${countText(n)}</p></div>
+          </button>`;
+      }).join('');
+      $('#homeAreas').innerHTML = HOME_AREAS.map((name, i) => {
+        const loc = locByName(name);
+        const n = count((l) => l.location === name);
+        return `<button data-home-area="${esc(name)}" class="relative h-28 overflow-hidden rounded-xl bg-gradient-to-br ${AREA_COLORS[i % AREA_COLORS.length]} p-4 text-left text-white transition hover:-translate-y-0.5 hover:shadow-lg">
+            <i class="fa-solid fa-city absolute -bottom-3 -right-2 text-7xl text-white/15"></i>
+            <p class="text-lg font-bold leading-tight">${esc(name.split(',')[0])}</p>
+            <p class="text-xs text-white/80">${esc(loc.county)} County</p>
+            <p class="absolute bottom-3 left-4 text-xs font-semibold">${n ? n + ' listing' + (n === 1 ? '' : 's') : 'Explore'} <i class="fa-solid fa-arrow-right"></i></p>
+          </button>`;
+      }).join('');
+      const newest = live.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 8);
+      $('#homeNewestWrap').hidden = !newest.length;
+      $('#homeNewest').innerHTML = newest.map((l) => `<div class="w-72 shrink-0 snap-start">${cardHTML(l)}</div>`).join('');
+    }
+
     function route() {
-      let v = (location.hash || '#browse').slice(1);
+      let v = (location.hash || '#home').slice(1);
       let code = null;
       if (v.startsWith('v/')) {
         try { code = normCode(decodeURIComponent(v.slice(2))); } catch (e) { code = normCode(v.slice(2)); }
         v = 'check';
       }
-      if (!VIEWS.includes(v)) v = 'browse';
+      if (!VIEWS.includes(v)) v = 'home';
       if (LIVE && session && myBan && (v === 'list' || v === 'verify')) v = 'mine';
       const navView = v;
       if (v === 'check') renderCheck(code); else { clearInterval(checkTimer); checkCode = null; }
@@ -2645,6 +2832,7 @@
       closeDetail();
 
       if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
+      if (v === 'home') renderHome();
       if (v === 'admin') loadAdmin().then(() => { if (!isAdmin) renderAdmin(); });
       if (v === 'list') {
         ensureFormMap();
@@ -2658,6 +2846,7 @@
 
     function renderAll() {
       renderResults();
+      renderHome();
       renderMine();
       renderVerify();
     }
@@ -2734,6 +2923,12 @@
         const del = t.closest('[data-delete]');
         if (del) { deleteListing(del.dataset.delete, del); return; }
 
+        const ht = t.closest('[data-hero-tab]');
+        if (ht) { setHeroTab(ht.dataset.heroTab); return; }
+        const hc = t.closest('[data-home-cat]');
+        if (hc) { const c = HOME_CATS[Number(hc.dataset.homeCat)]; browseWith({ purpose: c.purpose || '', type: c.type || '', feature: c.feature || '' }); return; }
+        const ha = t.closest('[data-home-area]');
+        if (ha) { browseWith({ q: ha.dataset.homeArea }); return; }
         const gi = t.closest('[data-gallery-i]');
         if (gi) { showGallery(Number(gi.dataset.galleryI)); return; }
         const pick = t.closest('[data-pick-role]');
@@ -2872,6 +3067,14 @@
         $('#signinEmailShown').textContent = email;
         $('#signinForm').hidden = true;
         $('#signinSent').hidden = false;
+      });
+
+      // ---- Front-page search ----
+      $('#heroSearch').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const q = $('#heroQ').value.trim();
+        if (heroTab === 'land') browseWith({ q, purpose: 'sale', type: 'land' });
+        else browseWith({ q, purpose: heroTab });
       });
 
       // ---- Listing form ----
