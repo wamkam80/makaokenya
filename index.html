@@ -19,19 +19,40 @@
   <meta property="og:url" content="https://truehomekenya.com/">
   <meta name="twitter:card" content="summary">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (window.tailwind) tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'] },
+          colors: { ink: '#0b1f17' },
+          boxShadow: { card: '0 1px 2px rgba(15,23,42,.04), 0 4px 16px -4px rgba(15,23,42,.08)', lift: '0 12px 32px -8px rgba(15,23,42,.18)' }
+        }
+      }
+    };
+  </script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style type="text/tailwindcss">
     .inp { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500; }
     .lbl { @apply mb-1 block text-sm font-medium text-slate-700; }
-    .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60; }
-    .btn-primary { @apply bg-emerald-600 text-white hover:bg-emerald-700; }
-    .btn-ghost { @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+    .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60; }
+    .btn-primary { @apply bg-emerald-700 text-white shadow-sm hover:bg-emerald-800; }
+    .btn-ghost { @apply border border-slate-200 bg-white text-slate-800 shadow-sm hover:border-slate-300 hover:bg-slate-50; }
     .btn-danger { @apply border border-red-200 bg-white text-red-600 hover:bg-red-50; }
-    .navlink { @apply whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
-    .navlink.active { @apply bg-emerald-50 text-emerald-700; }
+    .navlink { @apply relative whitespace-nowrap rounded-lg px-3 py-2 text-[15px] font-semibold text-slate-600 transition hover:text-slate-900; }
+    .navlink.active { @apply text-emerald-800; }
+    .navlink.active::after { content: ''; @apply absolute inset-x-3 -bottom-[13px] h-0.5 rounded-full bg-emerald-600; }
+    .mnav { @apply flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-slate-800 hover:bg-slate-50; }
+    .mnav i { @apply w-5 text-center text-emerald-700; }
+    .mnav.active { @apply bg-emerald-50 text-emerald-800; }
+    .eyebrow { @apply text-xs font-bold uppercase tracking-[0.14em] text-emerald-700; }
+    .h-section { @apply mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl; }
+    .foot-link { @apply text-sm text-slate-400 transition hover:text-white; }
     .filebox { @apply block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-700; }
   </style>
   <style>
@@ -48,117 +69,134 @@
     .price-pin.unv { border-color: #64748b; color: #334155; }
     .price-pin.active { background: #059669; color: #fff; border-color: #047857; }
     .hero-tab { color: #475569; }
-    .hero-tab.on { background: #059669; color: #fff; }
+    .hero-tab.on { background: #fff; color: #065f46; box-shadow: 0 1px 3px rgba(15,23,42,.15); }
+    body { font-feature-settings: "cv11", "ss01"; }
+    h1, h2, h3 { text-wrap: balance; letter-spacing: -0.015em; }
   </style>
 </head>
 
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
 
   <!-- ========== HEADER ========== -->
-  <header class="sticky top-0 z-[1100] border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
-      <a href="#home" class="flex items-center gap-2 text-xl font-extrabold">
-        <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-600 text-white">
-          <i class="fa-solid fa-house-circle-check"></i>
+  <header class="sticky top-0 z-[1100] border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+      <a href="#home" class="flex shrink-0 items-center gap-2.5" aria-label="TrueHome Kenya home">
+        <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-sm">
+          <i class="fa-solid fa-house-circle-check text-[15px]"></i>
         </span>
-        <span>TrueHome<span class="text-emerald-600"> Kenya</span></span>
+        <span class="whitespace-nowrap text-[17px] font-extrabold tracking-tight text-ink sm:text-lg">TrueHome<span class="font-semibold text-emerald-700"> Kenya</span></span>
       </a>
-      <nav class="hidden gap-1 md:flex">
-        <a href="#browse" data-nav="browse" class="navlink"><i class="fa-solid fa-magnifying-glass mr-1"></i> Browse</a>
-        <a href="#phone" data-nav="phone" class="navlink"><i class="fa-solid fa-user-check mr-1"></i> Check a landlord</a>
-        <a href="#verify" data-nav="verify" class="navlink"><i class="fa-solid fa-shield-halved mr-1"></i> Get verified</a>
-        <a href="#mine" data-nav="mine" class="navlink"><i class="fa-solid fa-list-check mr-1"></i> My listings</a>
-        <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink"><i class="fa-solid fa-user-shield mr-1"></i> Admin</a>
+      <nav class="hidden items-center gap-1 lg:flex" aria-label="Main">
+        <a href="#browse" data-nav="browse" class="navlink">Browse homes</a>
+        <a href="#phone" data-nav="phone" class="navlink">Check a landlord</a>
+        <a href="#verify" data-nav="verify" class="navlink">Get verified</a>
+        <a href="#mine" data-nav="mine" class="navlink">My listings</a>
+        <a href="/guides/" class="navlink">Guides</a>
+        <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink">Admin</a>
       </nav>
       <div class="flex items-center gap-2">
-        <button id="accountBtn" hidden data-action="account" class="btn btn-ghost px-3">
-          <i class="fa-solid fa-user"></i><span id="accountLabel" class="max-w-[7rem] truncate">Sign in</span>
+        <button id="accountBtn" hidden data-action="account" class="btn btn-ghost hidden px-3 lg:inline-flex">
+          <i class="fa-regular fa-user"></i><span id="accountLabel" class="max-w-[7rem] truncate">Sign in</span>
         </button>
-        <a href="#list" data-nav="list" class="btn btn-primary hidden sm:inline-flex"><i class="fa-solid fa-plus"></i> List a property</a>
+        <a href="#list" data-nav="list" class="btn btn-primary px-3 sm:px-4"><i class="fa-solid fa-plus"></i><span class="sm:hidden">List</span><span class="hidden sm:inline">List a property</span></a>
+        <button id="menuBtn" type="button" class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-slate-700 lg:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
       </div>
     </div>
-    <nav class="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-1 md:hidden">
-      <a href="#browse" data-nav="browse" class="navlink">Browse</a>
-      <a href="#list" data-nav="list" class="navlink">List a property</a>
-      <a href="#phone" data-nav="phone" class="navlink">Check a landlord</a>
-      <a href="#verify" data-nav="verify" class="navlink">Get verified</a>
-      <a href="#mine" data-nav="mine" class="navlink">My listings</a>
-      <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink">Admin</a>
-    </nav>
+    <div id="mobileMenu" hidden class="border-t border-slate-100 bg-white px-3 pb-4 pt-2 shadow-lift lg:hidden">
+      <nav class="grid gap-0.5" aria-label="Menu">
+        <a href="#browse" data-nav="browse" class="mnav"><i class="fa-solid fa-magnifying-glass"></i> Browse homes</a>
+        <a href="#list" data-nav="list" class="mnav"><i class="fa-solid fa-plus"></i> List a property</a>
+        <a href="#phone" data-nav="phone" class="mnav"><i class="fa-solid fa-user-check"></i> Check a landlord</a>
+        <a href="#verify" data-nav="verify" class="mnav"><i class="fa-solid fa-shield-halved"></i> Get verified</a>
+        <a href="#mine" data-nav="mine" class="mnav"><i class="fa-solid fa-list-check"></i> My listings</a>
+        <a href="/guides/" class="mnav"><i class="fa-solid fa-book-open"></i> Guides</a>
+        <a href="#admin" data-nav="admin" data-admin-link hidden class="mnav"><i class="fa-solid fa-user-shield"></i> Admin</a>
+      </nav>
+      <button id="accountBtnM" hidden data-action="account" class="btn btn-ghost mt-3 w-full py-3 text-base">
+        <i class="fa-regular fa-user"></i><span id="accountLabelM" class="truncate">Sign in</span>
+      </button>
+    </div>
   </header>
 
   <main>
     <!-- ========== HOME ========== -->
     <section id="view-home" hidden>
-      <div class="relative overflow-hidden bg-slate-950">
+      <div class="relative overflow-hidden bg-ink">
         <div id="heroArt" class="absolute inset-0"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-slate-950/10"></div>
-        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/60 to-transparent"></div>
-        <div class="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:pb-24 sm:pt-20">
-          <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-white drop-shadow sm:text-6xl">Rentals. Homes. Land.<br><span class="text-emerald-400">Verified landlords.</span></h1>
-          <p class="mt-3 max-w-xl text-base text-slate-200 sm:text-lg">Find a home in Kenya directly from verified landlords and agents. Check the badge before you pay anything.</p>
-          <form id="heroSearch" class="mt-6 max-w-2xl">
-            <div class="inline-flex rounded-t-xl bg-white/95 p-1 text-sm font-semibold" role="tablist" aria-label="What are you looking for">
-              <button type="button" data-hero-tab="rent" class="hero-tab rounded-lg px-4 py-1.5">Rent</button>
-              <button type="button" data-hero-tab="sale" class="hero-tab rounded-lg px-4 py-1.5">Buy</button>
-              <button type="button" data-hero-tab="land" class="hero-tab rounded-lg px-4 py-1.5">Land</button>
+        <div class="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/55 to-ink/90 sm:bg-gradient-to-r sm:from-ink/90 sm:via-ink/65 sm:to-ink/20"></div>
+        <div class="relative mx-auto max-w-7xl px-4 pb-24 pt-12 sm:px-6 sm:pb-32 sm:pt-20">
+          <p class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100 backdrop-blur"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Homes for rent and sale in all 47 counties</p>
+          <h1 class="mt-5 max-w-3xl text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">Find a home from <span class="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent">verified landlords</span></h1>
+          <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-200 sm:text-lg">Rent or buy directly from landlords and agents whose ID and ownership we check. See the badge before you pay anything.</p>
+          <form id="heroSearch" class="mt-8 max-w-2xl rounded-2xl bg-white p-2 shadow-lift sm:p-2.5">
+            <div class="mb-2 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-sm font-semibold sm:inline-grid sm:w-auto" role="tablist" aria-label="What are you looking for">
+              <button type="button" data-hero-tab="rent" class="hero-tab rounded-lg px-5 py-2">Rent</button>
+              <button type="button" data-hero-tab="sale" class="hero-tab rounded-lg px-5 py-2">Buy</button>
+              <button type="button" data-hero-tab="land" class="hero-tab rounded-lg px-5 py-2">Land</button>
             </div>
-            <div class="flex items-center gap-2 rounded-b-xl rounded-tr-xl bg-white p-2 shadow-2xl">
-              <i class="fa-solid fa-location-dot pl-2 text-slate-400"></i>
-              <input id="heroQ" type="search" class="min-w-0 flex-1 bg-transparent px-1 py-2.5 text-base outline-none" placeholder="Enter an area or town, e.g. Kilimani, Ruaka, Nyali" aria-label="Area or town">
-              <button type="submit" class="btn btn-primary shrink-0 px-5 py-2.5 text-base" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i><span class="hidden sm:inline"> Search</span></button>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-location-dot pl-3 text-emerald-700"></i>
+              <input id="heroQ" type="search" class="min-w-0 flex-1 bg-transparent px-1 py-3 text-base text-ink outline-none placeholder:text-slate-400" placeholder="Area or town, e.g. Kilimani" aria-label="Area or town">
+              <button type="submit" class="btn btn-primary shrink-0 px-5 py-3 text-base" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i><span class="hidden sm:inline"> Search</span></button>
             </div>
           </form>
-          <div class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-200">
-            <span><i class="fa-solid fa-shield-halved text-emerald-400"></i> ID and title-deed checks</span>
-            <span><i class="fa-brands fa-whatsapp text-emerald-400"></i> Talk to landlords directly</span>
-            <span><i class="fa-solid fa-ban text-emerald-400"></i> Scammers banned</span>
-            <a href="#phone" class="font-semibold text-white underline decoration-emerald-400 underline-offset-4"><i class="fa-solid fa-user-check text-emerald-400"></i> Check a landlord's number</a>
-          </div>
+          <ul class="mt-6 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-2 text-sm font-medium text-slate-200 sm:grid-cols-3">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-400"></i> ID and title-deed checks</li>
+            <li class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-400"></i> Talk to landlords directly</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-ban text-emerald-400"></i> Scammers banned</li>
+          </ul>
         </div>
       </div>
 
-      <div class="border-b border-emerald-100 bg-emerald-50">
-        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p class="text-lg font-extrabold text-emerald-900"><i class="fa-solid fa-user-check"></i> Found a house on Facebook or WhatsApp?</p>
-            <p class="text-sm text-emerald-900/80">Check the landlord's phone number before you pay anything. It's free.</p>
+      <div class="relative z-10 mx-auto -mt-14 max-w-7xl px-4 sm:-mt-16 sm:px-6">
+        <div class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-lift sm:p-6 md:flex-row md:items-center md:justify-between md:gap-8">
+          <div class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-700"><i class="fa-solid fa-user-check"></i></span>
+            <div>
+              <p class="text-lg font-extrabold leading-snug text-ink">Found a house on Facebook or WhatsApp?</p>
+              <p class="mt-0.5 text-sm text-slate-600">Check the landlord's phone number before you pay anything. It's free.</p>
+            </div>
           </div>
           <form id="homePhoneForm" class="flex w-full gap-2 md:w-auto">
-            <input id="homePhone" type="tel" inputmode="tel" class="inp md:w-64" placeholder="e.g. 0712 345 678" aria-label="Landlord's phone number">
-            <button type="submit" class="btn btn-primary shrink-0">Check</button>
+            <input id="homePhone" type="tel" inputmode="tel" class="inp py-3 text-base md:w-64" placeholder="e.g. 0712 345 678" aria-label="Landlord's phone number">
+            <button type="submit" class="btn btn-primary shrink-0 px-5">Check</button>
           </form>
         </div>
       </div>
 
-      <div class="mx-auto max-w-7xl space-y-12 px-4 py-10">
+      <div class="mx-auto max-w-7xl space-y-16 px-4 py-14 sm:px-6">
         <section>
-          <h2 class="text-2xl font-extrabold">What are you looking for?</h2>
-          <div id="homeCats" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"></div>
+          <p class="eyebrow">Browse by type</p>
+          <h2 class="h-section">What are you looking for?</h2>
+          <div id="homeCats" class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6"></div>
         </section>
 
         <section id="homeNewestWrap" hidden>
           <div class="flex items-end justify-between gap-3">
             <div>
-              <h2 class="text-2xl font-extrabold">Newest homes</h2>
-              <p class="text-sm text-slate-600">Just listed by landlords and agents.</p>
+              <p class="eyebrow">Just listed</p>
+              <h2 class="h-section">Newest homes</h2>
             </div>
-            <a href="#browse" class="shrink-0 font-semibold text-emerald-700 hover:underline">See all <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="#browse" class="shrink-0 text-sm font-semibold text-emerald-700 hover:text-emerald-900">See all <i class="fa-solid fa-arrow-right ml-1"></i></a>
           </div>
-          <div id="homeNewest" class="mt-4 flex snap-x gap-4 overflow-x-auto pb-2"></div>
+          <div id="homeNewest" class="mt-6 flex snap-x gap-4 overflow-x-auto pb-2"></div>
         </section>
 
         <section>
-          <h2 class="text-2xl font-extrabold">Popular areas</h2>
-          <div id="homeAreas" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
+          <p class="eyebrow">Where Kenyans are moving</p>
+          <h2 class="h-section">Popular areas</h2>
+          <div id="homeAreas" class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4"></div>
         </section>
 
-        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white lg:grid lg:grid-cols-3">
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card lg:grid lg:grid-cols-3">
           <div class="relative h-56 lg:order-last lg:h-auto">
             <img data-photo src="https://images.unsplash.com/photo-1647616927583-1d44a79a38a5?w=900&q=70&auto=format&fit=crop" alt="A young Kenyan family at home" loading="lazy" class="absolute inset-0 h-full w-full object-cover object-[50%_20%]" onerror="this.parentElement.hidden=true">
           </div>
           <div class="p-6 sm:p-8 lg:col-span-2">
-          <h2 class="text-2xl font-extrabold">How TrueHome Kenya keeps you safe</h2>
+          <p class="eyebrow">Why TrueHome</p>
+          <h2 class="h-section">How TrueHome Kenya keeps you safe</h2>
           <p class="mt-1 text-slate-600">House-hunting scams cost Kenyans thousands of shillings every month. Here's how we stop them.</p>
           <div class="mt-6 grid gap-6 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             <div><div class="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-id-card"></i></div>
@@ -183,13 +221,14 @@
           </div>
         </section>
 
-        <section class="overflow-hidden rounded-2xl bg-slate-950 text-white sm:grid sm:grid-cols-2">
+        <section class="overflow-hidden rounded-3xl bg-ink text-white shadow-lift sm:grid sm:grid-cols-2">
           <div class="relative h-64 sm:h-auto" id="homeLandlordArt">
             <img data-photo src="https://images.unsplash.com/photo-1666866834805-8cc91d4774ac?w=1000&q=70&auto=format&fit=crop" alt="A smiling Kenyan property agent" loading="lazy" class="absolute inset-0 h-full w-full object-cover object-top">
           </div>
-          <div class="p-6 sm:p-10">
-            <h2 class="text-2xl font-extrabold sm:text-3xl">Are you a landlord or agent?</h2>
-            <p class="mt-2 text-slate-300">List your property free, get the Verified badge, and get messages from tenants straight on WhatsApp. No middlemen, no commission.</p>
+          <div class="p-6 sm:p-10 lg:p-12">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-emerald-300">For landlords and agents</p>
+            <h2 class="mt-1 text-2xl font-extrabold sm:text-4xl">List your property free.</h2>
+            <p class="mt-3 max-w-md leading-relaxed text-slate-300">Landlords and agents create their own listings in about 5 minutes, earn the Verified badge, and get messages from tenants straight on WhatsApp. No middlemen, no commission.</p>
             <div class="mt-5 flex flex-wrap gap-3">
               <a href="#list" class="btn btn-primary px-5 py-2.5 text-base"><i class="fa-solid fa-plus"></i> List your property free</a>
               <a href="#verify" class="btn border border-white/30 px-5 py-2.5 text-base text-white hover:bg-white/10">Get verified</a>
@@ -689,9 +728,49 @@
     </section>
   </main>
 
-  <footer class="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500">
-    © <span id="year"></span> TrueHome Kenya · <a href="/guides/" class="underline hover:text-slate-700">Guides</a> · <a href="/rent/" class="underline hover:text-slate-700">Homes to rent</a> · <a href="/buy/" class="underline hover:text-slate-700">For sale</a> · <a href="#terms" class="underline hover:text-slate-700">Terms of Use</a> · <a href="#privacy" class="underline hover:text-slate-700">Privacy Policy</a> · Photos: <a href="https://unsplash.com/@kennymurgor" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-700">Kenny Murgor</a>, <a href="https://unsplash.com/@iamtru" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-700">Trust Katsande</a>, <a href="https://unsplash.com/@raystudiosgh" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-700">Raymond Owusu-Afriyie</a> on Unsplash · <span id="modeNote"></span>
-    <button id="resetDemoBtn" data-action="reset-demo" class="underline hover:text-slate-700">Reset demo data</button>
+  <footer class="mt-8 bg-ink text-slate-400">
+    <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div>
+        <a href="#home" class="flex items-center gap-2.5">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-600 text-white"><i class="fa-solid fa-house-circle-check text-[15px]"></i></span>
+          <span class="text-lg font-extrabold tracking-tight text-white">TrueHome<span class="font-semibold text-emerald-400"> Kenya</span></span>
+        </a>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed">Homes for rent and sale across Kenya, listed directly by landlords and agents whose ID and ownership we check.</p>
+        <p class="mt-4 text-sm"><i class="fa-regular fa-envelope mr-2 text-emerald-400"></i><a href="mailto:support@truehomekenya.com" class="foot-link">support@truehomekenya.com</a></p>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">For tenants and buyers</p>
+        <ul class="mt-3 grid gap-2">
+          <li><a href="#browse" class="foot-link">Browse homes</a></li>
+          <li><a href="/rent/" class="foot-link">Homes to rent</a></li>
+          <li><a href="/buy/" class="foot-link">Homes and land for sale</a></li>
+          <li><a href="#phone" class="foot-link">Check a landlord</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">For landlords and agents</p>
+        <ul class="mt-3 grid gap-2">
+          <li><a href="#list" class="foot-link">List a property</a></li>
+          <li><a href="#verify" class="foot-link">Get verified</a></li>
+          <li><a href="/guides/how-to-list-your-property/" class="foot-link">How to list</a></li>
+          <li><a href="#mine" class="foot-link">My listings</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">TrueHome Kenya</p>
+        <ul class="mt-3 grid gap-2">
+          <li><a href="/guides/" class="foot-link">Guides</a></li>
+          <li><a href="#terms" class="foot-link">Terms of Use</a></li>
+          <li><a href="#privacy" class="foot-link">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/10">
+      <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-slate-500 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <p>© <span id="year"></span> TrueHome Kenya. <span id="modeNote"></span> <button id="resetDemoBtn" data-action="reset-demo" class="underline hover:text-slate-300">Reset demo data</button></p>
+        <p>Photos: <a href="https://unsplash.com/@kennymurgor" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-300">Kenny Murgor</a>, <a href="https://unsplash.com/@iamtru" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-300">Trust Katsande</a>, <a href="https://unsplash.com/@raystudiosgh" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-300">Raymond Owusu-Afriyie</a> on Unsplash</p>
+      </div>
+    </div>
   </footer>
 
   <!-- ========== DETAIL MODAL ========== -->
@@ -1502,15 +1581,15 @@
 
     function cardHTML(l) {
       return `<article data-open="${esc(l.id)}" tabindex="0"
-          class="cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          class="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none focus:ring-2 focus:ring-emerald-500">
         <div class="relative">
           ${photoHTML(l, 'h-44')}
           <div class="absolute left-2 top-2">${purposeBadge(l.purpose)}</div>
           <div class="absolute right-2 top-2">${verifiedBadge(isVerified(l))}</div>
           ${listingPhotos(l).length > 1 ? `<div class="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white"><i class="fa-solid fa-camera"></i> ${listingPhotos(l).length}</div>` : ''}
         </div>
-        <div class="p-3">
-          <p class="text-lg font-extrabold">${esc(priceText(l))}</p>
+        <div class="p-4">
+          <p class="text-lg font-extrabold tracking-tight text-ink">${esc(priceText(l))}</p>
           <p class="text-sm text-slate-600">${esc(metaText(l))}</p>
           <h3 class="mt-1 truncate font-medium">${esc(l.title)}</h3>
           <p class="truncate text-sm text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(l.location)}, ${esc(l.county)}</p>
@@ -2838,12 +2917,26 @@
        Account
        ===================================================================== */
     function updateAccountUI() {
-      const btn = $('#accountBtn');
-      btn.hidden = !LIVE;
-      if (!LIVE) return;
       const email = session && session.user ? session.user.email || '' : '';
-      $('#accountLabel').textContent = email ? email.split('@')[0] : 'Sign in';
-      btn.title = email ? `Signed in as ${email}. Tap to sign out.` : 'Sign in';
+      [['#accountBtn', '#accountLabel'], ['#accountBtnM', '#accountLabelM']].forEach(([b, l]) => {
+        const btn = $(b);
+        if (!btn) return;
+        btn.hidden = !LIVE;
+        if (!LIVE) return;
+        $(l).textContent = email ? (b === '#accountBtnM' ? `Sign out (${email})` : email.split('@')[0]) : 'Sign in';
+        btn.title = email ? `Signed in as ${email}. Tap to sign out.` : 'Sign in';
+      });
+    }
+
+    // Phone menu
+    function setMenu(open) {
+      const m = $('#mobileMenu');
+      const b = $('#menuBtn');
+      if (!m || !b) return;
+      m.hidden = !open;
+      b.setAttribute('aria-expanded', String(open));
+      b.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      b.innerHTML = `<i class="fa-solid ${open ? 'fa-xmark' : 'fa-bars'} text-lg"></i>`;
     }
 
     function setupModeUI() {
@@ -3231,19 +3324,18 @@
       const countText = (n) => (loading ? '' : n ? `${n} listing${n === 1 ? '' : 's'}` : 'Be the first to list');
       $('#homeCats').innerHTML = HOME_CATS.map((c, i) => {
         const n = count((l) => (!c.type || l.type === c.type) && (!c.purpose || l.purpose === c.purpose) && (!c.feature || (l.features || []).includes(c.feature)));
-        return `<button data-home-cat="${i}" class="group overflow-hidden rounded-xl border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:shadow-lg">
-            <div class="grid h-20 place-items-center bg-gradient-to-br ${c.color}"><i class="fa-solid ${c.icon} text-3xl text-white/90 transition group-hover:scale-110"></i></div>
-            <div class="p-3"><p class="font-semibold leading-tight">${esc(c.label)}</p><p class="mt-0.5 text-xs text-slate-500">${countText(n)}</p></div>
+        return `<button data-home-cat="${i}" class="group flex flex-col items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-card transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lift sm:p-5">
+            <span class="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-lg text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white"><i class="fa-solid ${c.icon}"></i></span>
+            <span><span class="block font-bold leading-tight text-ink">${esc(c.label)}</span><span class="mt-1 block text-xs font-medium text-slate-500">${countText(n)}</span></span>
           </button>`;
       }).join('');
       $('#homeAreas').innerHTML = HOME_AREAS.map((name, i) => {
         const loc = locByName(name);
         const n = count((l) => l.location === name);
-        return `<button data-home-area="${esc(name)}" class="relative h-28 overflow-hidden rounded-xl bg-gradient-to-br ${AREA_COLORS[i % AREA_COLORS.length]} p-4 text-left text-white transition hover:-translate-y-0.5 hover:shadow-lg">
-            <i class="fa-solid fa-city absolute -bottom-3 -right-2 text-7xl text-white/15"></i>
-            <p class="text-lg font-bold leading-tight">${esc(name.split(',')[0])}</p>
-            <p class="text-xs text-white/80">${esc(loc.county)} County</p>
-            <p class="absolute bottom-3 left-4 text-xs font-semibold">${n ? n + ' listing' + (n === 1 ? '' : 's') : 'Explore'} <i class="fa-solid fa-arrow-right"></i></p>
+        return `<button data-home-area="${esc(name)}" class="group relative flex h-32 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-800 to-ink p-4 text-left text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-lift sm:p-5">
+            <i class="fa-solid fa-city pointer-events-none absolute -bottom-4 -right-3 text-8xl text-white/[0.07] transition group-hover:text-white/[0.12]"></i>
+            <span><span class="block text-lg font-bold leading-tight">${esc(name.split(',')[0])}</span><span class="mt-0.5 block text-xs text-emerald-100/80">${esc(loc.county)} County</span></span>
+            <span class="text-xs font-semibold text-emerald-200">${n ? n + ' listing' + (n === 1 ? '' : 's') : 'Explore'} <i class="fa-solid fa-arrow-right ml-1 transition group-hover:translate-x-0.5"></i></span>
           </button>`;
       }).join('');
       const newest = live.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 8);
@@ -3285,7 +3377,8 @@
       }
 
       VIEWS.forEach((x) => { $('#view-' + x).hidden = x !== v; });
-      $$('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === navView && a.classList.contains('navlink')));
+      $$('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === navView && (a.classList.contains('navlink') || a.classList.contains('mnav'))));
+      setMenu(false);
       closeDetail();
 
       if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
@@ -3547,6 +3640,11 @@
         const p = normPhone(raw);
         location.hash = '#phone/' + encodeURIComponent(p || raw);
       });
+
+      // ---- Phone menu ----
+      $('#menuBtn').addEventListener('click', () => setMenu($('#mobileMenu').hidden));
+      $('#mobileMenu').addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 
       // ---- Front-page search ----
       $('#heroSearch').addEventListener('submit', (e) => {
