@@ -728,3 +728,43 @@ revoke execute on function public.admin_banned_users()    from public, anon;
 grant execute on function public.admin_ban(uuid, text)   to authenticated;
 grant execute on function public.admin_unban(uuid)       to authenticated;
 grant execute on function public.admin_banned_users()    to authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- 11. PROPERTY KINDS AND FEATURES
+--     kind: a finer, Kenyan property type (maisonette, bedsitter, DSQ...)
+--     features: ticks like borehole, token meter, DSQ, gated, title ready.
+--     The allowed values match KINDS and FEATURE_GROUPS in index.html.
+-- ---------------------------------------------------------------------
+alter table public.listings add column if not exists kind text;
+alter table public.listings add column if not exists features text[] not null default '{}';
+
+alter table public.listings drop constraint if exists listings_kind_check;
+alter table public.listings add constraint listings_kind_check check (kind is null or kind in (
+  'flat','studio','duplex','penthouse','maisonette','bungalow','townhouse','villa','mansion','cottage','bedsitter','single_room','double_room','residential_plot','agricultural','commercial_plot','ranch','shop','office','warehouse','hotel_space','event_space'));
+
+alter table public.listings drop constraint if exists listings_features_check;
+alter table public.listings add constraint listings_features_check check (cardinality(features) <= 46 and features <@ array[
+  'borehole','constant_water','water_tank','token_meter','generator','solar','gated','guard','cctv','electric_fence','ensuite','all_ensuite','dsq','furnished','balcony','fitted_kitchen','wardrobes','hot_shower','tiled','parking','lift','pool','gym','garden','play_area','fibre','disability_access','tarmac','near_stage','near_schools','near_shopping','near_hospital','pets','water_included','one_month_deposit','no_agent_fee','title_ready','freehold','mortgage','instalments','offplan','beacons','water_on_site','power_on_site','fenced','flat_land']::text[]);
+
+create index if not exists listings_features_idx on public.listings using gin (features);
+
+-- Dropped and recreated so re-running this whole file never clashes with
+-- the column order of the earlier versions of this view above.
+drop view if exists public.listings_public;
+create view public.listings_public
+with (security_invoker = true) as
+select
+  l.id, l.owner_id, l.title, l.purpose, l.type, l.price, l.beds, l.baths, l.location, l.county,
+  l.lat, l.lng, l.contact_name, l.role, l.phone, l.description, l.photo_url, l.created_at, l.updated_at,
+  coalesce(p.verified, false) as owner_verified,
+  case when p.verified then p.public_code end as owner_code,
+  coalesce(v.views, 0) as views,
+  l.kind,
+  l.features
+from public.listings l
+left join public.profiles p on p.id = l.owner_id
+left join public.listing_views v on v.listing_id = l.id
+where not public.is_banned(l.owner_id);
+
+grant select on public.listings_public to anon, authenticated;

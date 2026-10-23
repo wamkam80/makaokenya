@@ -118,6 +118,7 @@
           <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
             <input id="fVerified" type="checkbox" class="h-4 w-4 accent-emerald-600"> Verified only
           </label>
+          <button id="moreFiltersBtn" data-action="more-filters" aria-expanded="false" aria-controls="moreFilters" class="btn btn-ghost px-3 py-1.5 text-sm"><i class="fa-solid fa-sliders"></i> More filters <span id="moreFiltersCount" hidden class="rounded-full bg-emerald-600 px-1.5 text-xs text-white"></span></button>
         </div>
         <div class="flex items-center gap-2">
           <select id="fSort" class="inp w-auto" aria-label="Sort">
@@ -127,6 +128,17 @@
           </select>
           <button id="toggleView" data-action="toggle-view" class="btn btn-ghost lg:hidden"><i class="fa-solid fa-map"></i> Map</button>
         </div>
+      </div>
+
+      <div id="moreFilters" hidden class="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div class="w-full sm:w-64">
+            <label class="lbl" for="fKind">Kind of property</label>
+            <select id="fKind" class="inp"></select>
+          </div>
+          <button data-action="clear-features" class="text-sm font-medium text-emerald-700 underline">Clear features</button>
+        </div>
+        <div id="fFeatures" class="mt-4 space-y-4"></div>
       </div>
 
       <div class="mt-3 grid gap-4 lg:grid-cols-2">
@@ -164,9 +176,21 @@
     </section>
 
     <!-- ========== LIST A PROPERTY ========== -->
-    <section id="view-list" hidden class="mx-auto max-w-3xl px-4 py-6">
+    <section id="view-list" hidden class="mx-auto max-w-6xl px-4 py-6">
+      <!-- Step 1: who are you? -->
+      <div id="rolePicker" class="py-4">
+        <h1 class="text-center text-3xl font-extrabold tracking-tight sm:text-5xl">List your property on TrueHome Kenya</h1>
+        <p class="mx-auto mt-3 max-w-xl text-center text-slate-600">Reach tenants and buyers across Kenya, directly on WhatsApp. No middlemen, no listing fees.</p>
+        <div class="mx-auto my-6 h-px w-24 bg-slate-300"></div>
+        <p class="text-center text-lg font-semibold">Select who you are to get started</p>
+        <div id="roleCards" class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4"></div>
+      </div>
+
+      <!-- Step 2: the form -->
+      <div id="listingStep" hidden class="mx-auto max-w-3xl">
       <h1 id="formHeading" class="text-2xl font-extrabold">List a property</h1>
       <p class="mt-1 text-sm text-slate-600">Your listing goes live right away. <a href="#verify" class="font-medium text-emerald-700 underline">Get verified</a> to show a Verified badge on all your listings.</p>
+      <div id="roleChosen" class="mt-3"></div>
 
       <form id="listingForm" class="mt-5 space-y-6 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
         <fieldset class="space-y-4">
@@ -188,6 +212,10 @@
               <select id="lfType" class="inp" required></select>
             </div>
           </div>
+          <div>
+            <label class="lbl" for="lfKind">Kind <span class="font-normal text-slate-400">(helps tenants find it)</span></label>
+            <select id="lfKind" class="inp"></select>
+          </div>
           <div class="grid gap-4 sm:grid-cols-3">
             <div>
               <label class="lbl" for="lfPrice" id="lfPriceLabel">Rent per month (KES)</label>
@@ -202,6 +230,12 @@
               <input id="lfBaths" type="number" class="inp" required min="0" max="20" value="1">
             </div>
           </div>
+        </fieldset>
+
+        <fieldset class="space-y-3">
+          <legend class="mb-1 font-semibold">Features</legend>
+          <p class="text-xs text-slate-500">Tick everything that applies. Tenants and buyers filter by these, so listings with more ticks show up in more searches.</p>
+          <div id="lfFeatures" class="space-y-4"></div>
         </fieldset>
 
         <fieldset class="space-y-3">
@@ -241,7 +275,7 @@
 
         <div>
           <label class="lbl" for="lfDesc">Description</label>
-          <textarea id="lfDesc" rows="4" maxlength="1000" class="inp" placeholder="Water, parking, security, distance to the main road…"></textarea>
+          <textarea id="lfDesc" rows="4" maxlength="1000" class="inp" placeholder="Anything else tenants should know: distance to the main road, nearby landmarks, viewing times…"></textarea>
         </div>
 
         <p class="text-xs text-slate-500">By publishing, you confirm you own or are authorised to let/sell this property and you agree to the <a href="#terms" target="_blank" class="underline">Terms of Use</a>. Fake listings are removed and may be reported to the police.</p>
@@ -250,6 +284,7 @@
           <button type="submit" id="lfSubmit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish listing</button>
         </div>
       </form>
+      </div>
     </section>
 
     <!-- ========== VERIFY ========== -->
@@ -646,6 +681,148 @@
     };
     const ROLES = { landlord: 'Landlord', agent: 'Agent', caretaker: 'Caretaker' };
 
+    /* Kenyan property kinds (a finer type) and features listers can tick and tenants can filter by */
+    const KINDS = {
+      apartment:  [['flat', 'Apartment / flat'], ['studio', 'Studio'], ['duplex', 'Duplex apartment'], ['penthouse', 'Penthouse']],
+      house:      [['maisonette', 'Maisonette'], ['bungalow', 'Bungalow'], ['townhouse', 'Townhouse'], ['villa', 'Villa'], ['mansion', 'Mansion'], ['cottage', 'Cottage']],
+      bedsitter:  [['bedsitter', 'Bedsitter'], ['single_room', 'Single room'], ['double_room', 'Double room']],
+      land:       [['residential_plot', 'Residential plot'], ['agricultural', 'Agricultural land'], ['commercial_plot', 'Commercial plot'], ['ranch', 'Ranch']],
+      commercial: [['shop', 'Shop'], ['office', 'Office'], ['warehouse', 'Warehouse / godown'], ['hotel_space', 'Restaurant / hotel space'], ['event_space', 'Event space']]
+    };
+    const KIND_LABEL = Object.fromEntries(Object.values(KINDS).flat());
+
+    // show(purpose, type) decides whether a group applies; '' means "any" (used by the search filters)
+    const NOT_LAND = (p, t) => t !== 'land';
+    const FEATURE_GROUPS = [
+      { name: 'Water & power', icon: 'fa-faucet-drip', show: NOT_LAND, items: [
+        ['borehole', 'Borehole'], ['constant_water', 'Constant water supply'], ['water_tank', 'Water storage tank'],
+        ['token_meter', 'Prepaid token meter'], ['generator', 'Backup generator'], ['solar', 'Solar water heating']] },
+      { name: 'Security', icon: 'fa-shield-halved', show: NOT_LAND, items: [
+        ['gated', 'Gated compound'], ['guard', '24-hour security guard'], ['cctv', 'CCTV'], ['electric_fence', 'Electric fence']] },
+      { name: 'Inside', icon: 'fa-couch', show: (p, t) => t !== 'land' && t !== 'commercial', items: [
+        ['ensuite', 'Master en-suite'], ['all_ensuite', 'All bedrooms en-suite'], ['dsq', 'DSQ / servant quarter'],
+        ['furnished', 'Furnished'], ['balcony', 'Balcony'], ['fitted_kitchen', 'Fitted kitchen'],
+        ['wardrobes', 'Built-in wardrobes'], ['hot_shower', 'Hot shower'], ['tiled', 'Tiled floors']] },
+      { name: 'Compound & building', icon: 'fa-building', show: NOT_LAND, items: [
+        ['parking', 'Parking'], ['lift', 'Lift'], ['pool', 'Swimming pool'], ['gym', 'Gym'], ['garden', 'Garden'],
+        ['play_area', "Children's play area"], ['fibre', 'Fibre internet ready'], ['disability_access', 'Wheelchair access']] },
+      { name: 'Location & access', icon: 'fa-road', show: () => true, items: [
+        ['tarmac', 'Tarmac road access'], ['near_stage', 'Near matatu stage'], ['near_schools', 'Near schools'],
+        ['near_shopping', 'Near shops / mall'], ['near_hospital', 'Near hospital']] },
+      { name: 'Rent terms', icon: 'fa-file-signature', show: (p) => p !== 'sale', items: [
+        ['pets', 'Pets allowed'], ['water_included', 'Water bill included'], ['one_month_deposit', 'Only 1 month deposit'],
+        ['no_agent_fee', 'No agent fee']] },
+      { name: 'Sale details', icon: 'fa-file-contract', show: (p) => p !== 'rent', items: [
+        ['title_ready', 'Title deed ready'], ['freehold', 'Freehold'], ['mortgage', 'Mortgage / bank financing'],
+        ['instalments', 'Payment in instalments'], ['offplan', 'Off-plan']] },
+      { name: 'Land', icon: 'fa-mountain-sun', show: (p, t) => !t || t === 'land', items: [
+        ['beacons', 'Beacons in place'], ['water_on_site', 'Water connected'], ['power_on_site', 'Electricity on site'],
+        ['fenced', 'Fenced'], ['flat_land', 'Flat / gently sloping']] }
+    ];
+    const FEATURE_LABEL = Object.fromEntries(FEATURE_GROUPS.flatMap((g) => g.items));
+    const groupsFor = (purpose, type) => FEATURE_GROUPS.filter((g) => g.show(purpose || '', type || ''));
+
+    /* =====================================================================
+       Illustrations for the "who are you?" cards (original flat art, dark backgrounds)
+       ===================================================================== */
+    const ART = (() => {
+      const SKIN = ['#5b3a24', '#7b4a2c', '#3e2416', '#8a5634'];
+      const KITENGE = (id) => `<pattern id="${id}" width="10" height="10" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" fill="#d9480f"/><circle cx="5" cy="5" r="2.6" fill="#fcc419"/><circle cx="0" cy="0" r="1.6" fill="#0ca678"/><circle cx="10" cy="10" r="1.6" fill="#0ca678"/></pattern>`;
+
+      function bg(id, glow) {
+        return `<defs>
+            <linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111827"/><stop offset="1" stop-color="#030712"/></linearGradient>
+            <radialGradient id="${id}-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="${glow}" stop-opacity="0.45"/><stop offset="1" stop-color="${glow}" stop-opacity="0"/></radialGradient>
+            ${KITENGE(id + '-k')}
+          </defs>
+          <rect width="320" height="180" fill="url(#${id}-sky)"/>
+          <circle cx="250" cy="40" r="90" fill="url(#${id}-glow)"/>
+          ${[[30, 20], [70, 34], [120, 14], [180, 28], [292, 18], [210, 12]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#e5e7eb" opacity="0.6"/>`).join('')}
+          <rect y="168" width="320" height="12" fill="#0b1324"/>`;
+      }
+
+      // A standing person. x = centre, feet at y=168. arms: [[dx,dy] for left hand, right hand] relative to shoulders
+      function person({ x, skin, hair = 'short', top = '#10b981', bottom = '#1f2937', dress = false, hands = [[-14, 40], [14, 40]], s = 1, id = 'p', cap = false, tie = false }) {
+        const g = [];
+        const sy = 86; // shoulder y
+        // legs + shoes
+        if (!dress) {
+          g.push(`<rect x="${x - 10}" y="124" width="8" height="42" rx="3" fill="${bottom}"/><rect x="${x + 2}" y="124" width="8" height="42" rx="3" fill="${bottom}"/>`);
+        } else {
+          g.push(`<rect x="${x - 7}" y="140" width="5" height="26" rx="2" fill="${skin}"/><rect x="${x + 2}" y="140" width="5" height="26" rx="2" fill="${skin}"/>`);
+        }
+        g.push(`<ellipse cx="${x - 7}" cy="167" rx="7" ry="3" fill="#0f0f0f"/><ellipse cx="${x + 7}" cy="167" rx="7" ry="3" fill="#0f0f0f"/>`);
+        // arms (behind torso)
+        const arm = (side, [dx, dy]) => {
+          const ax = x + side * 15, hx = ax + dx, hy = sy + dy;
+          return `<path d="M${ax} ${sy + 4} L${hx} ${hy}" stroke="${top}" stroke-width="9" stroke-linecap="round"/><circle cx="${hx}" cy="${hy}" r="4.5" fill="${skin}"/>`;
+        };
+        g.push(arm(-1, hands[0]), arm(1, hands[1]));
+        // torso
+        g.push(dress
+          ? `<path d="M${x - 15} ${sy - 4} Q${x} ${sy - 10} ${x + 15} ${sy - 4} L${x + 22} 144 L${x - 22} 144 Z" fill="${top}"/>`
+          : `<rect x="${x - 16}" y="${sy - 6}" width="32" height="46" rx="11" fill="${top}"/>`);
+        if (tie) g.push(`<path d="M${x - 5} ${sy - 6} L${x} ${sy + 4} L${x + 5} ${sy - 6} Z" fill="#f8fafc"/><path d="M${x} ${sy - 2} l-3 4 l3 18 l3 -18 z" fill="#b91c1c"/>`);
+        // neck + head
+        g.push(`<rect x="${x - 4}" y="${sy - 14}" width="8" height="10" fill="${skin}"/>`);
+        if (hair === 'afro') g.push(`<circle cx="${x}" cy="${sy - 30}" r="17" fill="#141414"/>`);
+        if (hair === 'bun') g.push(`<circle cx="${x}" cy="${sy - 46}" r="7" fill="#141414"/>`);
+        g.push(`<circle cx="${x}" cy="${sy - 26}" r="12.5" fill="${skin}"/>`);
+        if (hair === 'short') g.push(`<path d="M${x - 12.5} ${sy - 28} A12.5 12.5 0 0 1 ${x + 12.5} ${sy - 28} Q${x} ${sy - 36} ${x - 12.5} ${sy - 28} Z" fill="#141414"/>`);
+        if (hair === 'bun') g.push(`<path d="M${x - 12.5} ${sy - 27} A12.5 12.5 0 0 1 ${x + 12.5} ${sy - 27} Q${x} ${sy - 33} ${x - 12.5} ${sy - 27} Z" fill="#141414"/>`);
+        if (hair === 'wrap') g.push(`<path d="M${x - 14} ${sy - 27} Q${x - 16} ${sy - 50} ${x} ${sy - 50} Q${x + 18} ${sy - 50} ${x + 14} ${sy - 27} Q${x} ${sy - 33} ${x - 14} ${sy - 27} Z" fill="url(#${id}-k)"/><circle cx="${x + 9}" cy="${sy - 47}" r="5" fill="url(#${id}-k)"/>`);
+        if (cap) g.push(`<path d="M${x - 13} ${sy - 30} A13 13 0 0 1 ${x + 13} ${sy - 30} Z" fill="#facc15"/><rect x="${x}" y="${sy - 32}" width="18" height="4" rx="2" fill="#eab308"/>`);
+        return `<g transform="translate(${x} 168) scale(${s}) translate(${-x} -168)">${g.join('')}</g>`;
+      }
+
+      const key = (x, y) => `<g fill="#fbbf24"><circle cx="${x}" cy="${y}" r="5" fill="none" stroke="#fbbf24" stroke-width="2.5"/><rect x="${x + 4}" y="${y - 1.5}" width="12" height="3" rx="1"/><rect x="${x + 12}" y="${y + 1}" width="2.5" height="4"/></g>`;
+      const svg = (body) => `<svg viewBox="0 0 320 180" class="h-full w-full" role="img" aria-hidden="true" preserveAspectRatio="xMidYMid slice">${body}</svg>`;
+
+      return {
+        landlord: () => svg(`${bg('a1', '#f59e0b')}
+          <g><rect x="20" y="78" width="104" height="90" fill="#1f2937"/><path d="M10 82 L72 36 L134 82 Z" fill="#374151"/>
+          <rect x="58" y="112" width="28" height="56" rx="2" fill="#0b0f19"/><rect x="61" y="115" width="22" height="50" fill="#f59e0b" opacity="0.85"/><circle cx="78" cy="142" r="1.8" fill="#78350f"/>
+          <rect x="30" y="96" width="20" height="18" fill="#fde68a" opacity="0.9"/><rect x="96" y="96" width="20" height="18" fill="#fde68a" opacity="0.9"/>
+          <path d="M40 96 v18 M30 105 h20 M106 96 v18 M96 105 h20" stroke="#1f2937" stroke-width="2"/></g>
+          ${person({ x: 170, skin: SKIN[0], hair: 'wrap', top: 'url(#a1-k)', dress: true, hands: [[-6, 40], [26, 18]], id: 'a1' })}
+          ${person({ x: 250, skin: SKIN[2], hair: 'afro', top: '#2563eb', bottom: '#111827', hands: [[-26, 18], [8, 40]], id: 'a1' })}
+          ${key(204, 101)}`),
+
+        agent: () => svg(`${bg('a2', '#10b981')}
+          <g><rect x="176" y="70" width="128" height="98" fill="#1e293b"/><rect x="176" y="62" width="128" height="10" fill="#334155"/>
+          ${[[188, 84], [222, 84], [256, 84], [188, 118], [256, 118]].map(([x, y]) => `<rect x="${x}" y="${y}" width="24" height="22" fill="#a7f3d0" opacity="0.85"/>`).join('')}
+          <rect x="222" y="120" width="24" height="48" fill="#0b0f19"/></g>
+          <g><rect x="36" y="88" width="4" height="80" fill="#9ca3af"/><rect x="18" y="72" width="70" height="38" rx="3" fill="#f8fafc"/>
+          <text x="53" y="88" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="800" fill="#047857">TO LET</text>
+          <text x="53" y="102" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="8" font-weight="600" fill="#334155">CALL AGENT</text></g>
+          ${person({ x: 128, skin: SKIN[1], hair: 'short', top: '#1e3a8a', bottom: '#0f172a', tie: true, hands: [[-10, 40], [18, 4]], id: 'a2' })}
+          <rect x="140" y="80" width="13" height="20" rx="2" fill="#0b0f19" stroke="#94a3b8" stroke-width="1.5"/><rect x="142" y="83" width="9" height="13" fill="#34d399"/>`),
+
+        caretaker: () => svg(`${bg('a3', '#38bdf8')}
+          <g><rect x="150" y="26" width="150" height="142" fill="#1f2937"/>
+          ${Array.from({ length: 5 }, (_, r) => Array.from({ length: 5 }, (_, c) => {
+            const lit = (r * 5 + c) % 3 !== 1;
+            return `<rect x="${162 + c * 27}" y="${36 + r * 24}" width="17" height="14" fill="${lit ? '#fde68a' : '#334155'}" opacity="${lit ? 0.9 : 1}"/>`;
+          }).join('')).join('')}
+          <rect x="210" y="142" width="30" height="26" fill="#0b0f19"/></g>
+          ${person({ x: 90, skin: SKIN[3], hair: 'short', cap: true, top: '#15803d', bottom: '#14532d', hands: [[-8, 40], [22, 22]], id: 'a3' })}
+          ${key(116, 108)}${key(110, 116)}
+          <circle cx="114" cy="110" r="7" fill="none" stroke="#fbbf24" stroke-width="2"/>`),
+
+        seller: () => svg(`${bg('a4', '#f97316')}
+          <circle cx="250" cy="70" r="26" fill="#fb923c" opacity="0.9"/>
+          <path d="M0 150 Q80 132 160 146 T320 140 L320 168 L0 168 Z" fill="#1c1917"/>
+          <g fill="#0a0a0a"><rect x="268" y="96" width="5" height="56"/><path d="M226 100 Q270 74 316 100 Q270 92 226 100 Z"/><path d="M240 90 Q270 70 300 90 Q270 84 240 90 Z"/></g>
+          <g><rect x="196" y="150" width="8" height="16" fill="#e5e7eb"/><rect x="196" y="146" width="8" height="5" fill="#dc2626"/>
+          <rect x="132" y="104" width="4" height="62" fill="#9ca3af"/><rect x="108" y="84" width="72" height="34" rx="3" fill="#f8fafc"/>
+          <text x="144" y="99" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="800" fill="#c2410c">FOR SALE</text>
+          <text x="144" y="111" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="7.5" font-weight="600" fill="#334155">TITLE READY</text></g>
+          ${person({ x: 62, skin: SKIN[1], hair: 'bun', top: '#7c3aed', bottom: '#1f2937', hands: [[34, -8], [-6, 40]], id: 'a4' })}`)
+      };
+    })();
+
+
     const LOCATIONS = [
       { name: 'Westlands',        county: 'Nairobi',     lat: -1.2676, lng: 36.8108 },
       { name: 'Kilimani',         county: 'Nairobi',     lat: -1.2921, lng: 36.7856 },
@@ -674,20 +851,20 @@
     function seedListings() {
       const now = Date.now();
       const rows = [
-        { title: 'Modern 2 bedroom apartment with gym', purpose: 'rent', type: 'apartment', price: 75000, beds: 2, baths: 2, location: 'Kilimani', contactName: 'Grace', role: 'landlord', verified: true, description: 'Borehole water, backup generator, lift and secure parking. 5 minutes to Yaya Centre.' },
-        { title: 'Affordable bedsitter near Thika Road', purpose: 'rent', type: 'bedsitter', price: 12000, beds: 0, baths: 1, location: 'Roysambu', contactName: 'Peter', role: 'caretaker', verified: false, description: 'Tiled floors, prepaid token meter, close to TRM and matatu stage.' },
-        { title: '4 bedroom family home on half an acre', purpose: 'sale', type: 'house', price: 65000000, beds: 4, baths: 5, location: 'Karen', contactName: 'Kamau Realty', role: 'agent', verified: true, description: 'All en suite, DSQ, mature garden and electric fence. Ready title.' },
-        { title: 'Furnished 1 bedroom in Westlands', purpose: 'rent', type: 'apartment', price: 55000, beds: 1, baths: 1, location: 'Westlands', dLat: 0.004, contactName: 'Aisha', role: 'landlord', verified: true, description: 'Fully furnished, fast Wi-Fi, rooftop pool. Walking distance to Sarit.' },
-        { title: '1/8 acre plot with ready title', purpose: 'sale', type: 'land', price: 1500000, beds: 0, baths: 0, location: 'Kitengela', contactName: 'Otieno', role: 'landlord', verified: false, description: 'Gently sloping, water and electricity nearby, 2 km from Namanga Road.' },
-        { title: '2 bedroom apartment near Two Rivers', purpose: 'rent', type: 'apartment', price: 35000, beds: 2, baths: 2, location: 'Ruaka', contactName: 'John', role: 'caretaker', verified: true, description: 'Master en suite, balcony, ample water supply and CCTV.' },
-        { title: 'Elegant 4 bedroom townhouse', purpose: 'sale', type: 'house', price: 38000000, beds: 4, baths: 4, location: 'Lavington', contactName: 'Prime Homes', role: 'agent', verified: true, description: 'Gated community of 8 units, DSQ, solar water heating.' },
-        { title: '3 bedroom beachside apartment', purpose: 'rent', type: 'apartment', price: 90000, beds: 3, baths: 3, location: 'Nyali', contactName: 'Coast Lettings', role: 'agent', verified: false, description: 'Sea view, swimming pool, 5 minutes walk to the beach.' },
-        { title: '3 bedroom bungalow in Milimani', purpose: 'rent', type: 'house', price: 60000, beds: 3, baths: 2, location: 'Milimani, Kisumu', contactName: 'Achieng', role: 'landlord', verified: true, description: 'Quiet neighbourhood, large compound, near Kisumu CBD.' },
-        { title: 'Cosy 2 bedroom apartment', purpose: 'rent', type: 'apartment', price: 25000, beds: 2, baths: 1, location: 'Milimani, Nakuru', contactName: 'Mwangi', role: 'caretaker', verified: false, description: 'Close to Nakuru town, reliable water, secure parking.' },
-        { title: '3 bedroom apartment near SGR station', purpose: 'sale', type: 'apartment', price: 9800000, beds: 3, baths: 2, location: 'Syokimau', contactName: 'Nyumba Bora', role: 'agent', verified: true, description: 'Ready to move in, lift, backup generator, children’s play area.' },
-        { title: 'Open-plan office space, 1,200 sq ft', purpose: 'rent', type: 'commercial', price: 180000, beds: 0, baths: 2, location: 'Westlands', dLat: -0.003, dLng: 0.004, contactName: 'Prime Homes', role: 'agent', verified: true, description: 'Grade A building, fibre ready, 3 parking slots included.' },
-        { title: '1 bedroom near Kasarani Stadium', purpose: 'rent', type: 'apartment', price: 18000, beds: 1, baths: 1, location: 'Kasarani', contactName: 'Wafula', role: 'caretaker', verified: false, description: 'Newly built, spacious kitchen, constant water.' },
-        { title: '4 bedroom maisonette with DSQ', purpose: 'sale', type: 'house', price: 22000000, beds: 4, baths: 3, location: 'Elgon View', contactName: 'Kiprop', role: 'landlord', verified: true, description: 'Leafy suburb, large garden, close to schools and hospitals.' }
+        { title: 'Modern 2 bedroom apartment with gym', purpose: 'rent', type: 'apartment', price: 75000, beds: 2, baths: 2, location: 'Kilimani', contactName: 'Grace', role: 'landlord', verified: true, kind: 'flat', features: ['borehole', 'generator', 'lift', 'parking', 'gym', 'gated', 'guard'], description: 'Borehole water, backup generator, lift and secure parking. 5 minutes to Yaya Centre.' },
+        { title: 'Affordable bedsitter near Thika Road', purpose: 'rent', type: 'bedsitter', price: 12000, beds: 0, baths: 1, location: 'Roysambu', contactName: 'Peter', role: 'caretaker', verified: false, kind: 'bedsitter', features: ['token_meter', 'tiled', 'near_stage', 'tarmac', 'constant_water'], description: 'Tiled floors, prepaid token meter, close to TRM and matatu stage.' },
+        { title: '4 bedroom family home on half an acre', purpose: 'sale', type: 'house', price: 65000000, beds: 4, baths: 5, location: 'Karen', contactName: 'Kamau Realty', role: 'agent', verified: true, kind: 'villa', features: ['all_ensuite', 'dsq', 'garden', 'electric_fence', 'title_ready', 'freehold', 'borehole', 'gated'], description: 'All en suite, DSQ, mature garden and electric fence. Ready title.' },
+        { title: 'Furnished 1 bedroom in Westlands', purpose: 'rent', type: 'apartment', price: 55000, beds: 1, baths: 1, location: 'Westlands', dLat: 0.004, contactName: 'Aisha', role: 'landlord', verified: true, kind: 'flat', features: ['furnished', 'fibre', 'pool', 'parking', 'near_shopping', 'lift'], description: 'Fully furnished, fast Wi-Fi, rooftop pool. Walking distance to Sarit.' },
+        { title: '1/8 acre plot with ready title', purpose: 'sale', type: 'land', price: 1500000, beds: 0, baths: 0, location: 'Kitengela', contactName: 'Otieno', role: 'landlord', verified: false, kind: 'residential_plot', features: ['title_ready', 'beacons', 'water_on_site', 'power_on_site', 'flat_land', 'instalments'], description: 'Gently sloping, water and electricity nearby, 2 km from Namanga Road.' },
+        { title: '2 bedroom apartment near Two Rivers', purpose: 'rent', type: 'apartment', price: 35000, beds: 2, baths: 2, location: 'Ruaka', contactName: 'John', role: 'caretaker', verified: true, kind: 'flat', features: ['ensuite', 'balcony', 'constant_water', 'cctv', 'parking', 'near_shopping'], description: 'Master en suite, balcony, ample water supply and CCTV.' },
+        { title: 'Elegant 4 bedroom townhouse', purpose: 'sale', type: 'house', price: 38000000, beds: 4, baths: 4, location: 'Lavington', contactName: 'Prime Homes', role: 'agent', verified: true, kind: 'townhouse', features: ['gated', 'dsq', 'solar', 'ensuite', 'parking', 'title_ready', 'mortgage'], description: 'Gated community of 8 units, DSQ, solar water heating.' },
+        { title: '3 bedroom beachside apartment', purpose: 'rent', type: 'apartment', price: 90000, beds: 3, baths: 3, location: 'Nyali', contactName: 'Coast Lettings', role: 'agent', verified: false, kind: 'flat', features: ['pool', 'parking', 'guard', 'balcony'], description: 'Sea view, swimming pool, 5 minutes walk to the beach.' },
+        { title: '3 bedroom bungalow in Milimani', purpose: 'rent', type: 'house', price: 60000, beds: 3, baths: 2, location: 'Milimani, Kisumu', contactName: 'Achieng', role: 'landlord', verified: true, kind: 'bungalow', features: ['garden', 'parking', 'gated', 'near_schools', 'pets'], description: 'Quiet neighbourhood, large compound, near Kisumu CBD.' },
+        { title: 'Cosy 2 bedroom apartment', purpose: 'rent', type: 'apartment', price: 25000, beds: 2, baths: 1, location: 'Milimani, Nakuru', contactName: 'Mwangi', role: 'caretaker', verified: false, kind: 'flat', features: ['constant_water', 'parking', 'near_schools', 'one_month_deposit'], description: 'Close to Nakuru town, reliable water, secure parking.' },
+        { title: '3 bedroom apartment near SGR station', purpose: 'sale', type: 'apartment', price: 9800000, beds: 3, baths: 2, location: 'Syokimau', contactName: 'Nyumba Bora', role: 'agent', verified: true, kind: 'flat', features: ['lift', 'generator', 'play_area', 'title_ready', 'mortgage', 'parking'], description: 'Ready to move in, lift, backup generator, children’s play area.' },
+        { title: 'Open-plan office space, 1,200 sq ft', purpose: 'rent', type: 'commercial', price: 180000, beds: 0, baths: 2, location: 'Westlands', dLat: -0.003, dLng: 0.004, contactName: 'Prime Homes', role: 'agent', verified: true, kind: 'office', features: ['fibre', 'parking', 'lift', 'generator', 'tarmac'], description: 'Grade A building, fibre ready, 3 parking slots included.' },
+        { title: '1 bedroom near Kasarani Stadium', purpose: 'rent', type: 'apartment', price: 18000, beds: 1, baths: 1, location: 'Kasarani', contactName: 'Wafula', role: 'caretaker', verified: false, kind: 'flat', features: ['constant_water', 'tiled', 'near_stage', 'token_meter', 'no_agent_fee'], description: 'Newly built, spacious kitchen, constant water.' },
+        { title: '4 bedroom maisonette with DSQ', purpose: 'sale', type: 'house', price: 22000000, beds: 4, baths: 3, location: 'Elgon View', contactName: 'Kiprop', role: 'landlord', verified: true, kind: 'maisonette', features: ['dsq', 'garden', 'near_schools', 'near_hospital', 'title_ready', 'parking'], description: 'Leafy suburb, large garden, close to schools and hospitals.' }
       ];
       return rows.map((o, i) => {
         const loc = locByName(o.location);
@@ -742,6 +919,8 @@
         verified: !!r.owner_verified,
         ownerCode: r.owner_code || null,
         views: Number(r.views) || 0,
+        kind: r.kind || null,
+        features: Array.isArray(r.features) ? r.features : [],
         createdAt: new Date(r.created_at).getTime()
       };
     }
@@ -751,7 +930,8 @@
         title: d.title, purpose: d.purpose, type: d.type, price: d.price,
         beds: d.beds, baths: d.baths, location: d.location, county: d.county,
         lat: d.lat, lng: d.lng, contact_name: d.contactName, role: d.role,
-        phone: d.phone, description: d.description || null, photo_url: d.photo || null
+        phone: d.phone, description: d.description || null, photo_url: d.photo || null,
+        kind: d.kind || null, features: d.features || []
       };
     }
 
@@ -952,10 +1132,21 @@
       : '<span class="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white">For sale</span>');
 
     function metaText(l) {
-      const label = (TYPES[l.type] || TYPES.house).label;
+      const label = KIND_LABEL[l.kind] || (TYPES[l.type] || TYPES.house).label;
       if (l.type === 'land' || l.type === 'commercial') return label;
       const beds = l.beds > 0 ? `${l.beds} bd` : 'Studio';
       return `${beds} · ${l.baths} ba · ${label}`;
+    }
+
+    // Up to 3 features on a card, preferring the ones filtered for
+    function cardChips(l) {
+      const fs = (l.features || []).filter((k) => FEATURE_LABEL[k]);
+      if (!fs.length) return '';
+      const want = selectedFeatures;
+      const ordered = [...fs.filter((k) => want.has(k)), ...fs.filter((k) => !want.has(k))];
+      const shown = ordered.slice(0, 3);
+      const more = fs.length - shown.length;
+      return `<div class="mt-2 flex flex-wrap gap-1">${shown.map((k) => `<span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">${esc(FEATURE_LABEL[k])}</span>`).join('')}${more > 0 ? `<span class="px-1 text-[11px] text-slate-500">+${more} more</span>` : ''}</div>`;
     }
 
     function cardHTML(l) {
@@ -971,6 +1162,7 @@
           <p class="text-sm text-slate-600">${esc(metaText(l))}</p>
           <h3 class="mt-1 truncate font-medium">${esc(l.title)}</h3>
           <p class="truncate text-sm text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(l.location)}, ${esc(l.county)}</p>
+          ${cardChips(l)}
         </div>
       </article>`;
     }
@@ -987,6 +1179,8 @@
         beds: Number($('#fBeds').value) || 0,
         max: Number($('#fMax').value) || 0,
         verified: $('#fVerified').checked,
+        kind: $('#fKind').value,
+        features: [...selectedFeatures],
         sort: $('#fSort').value
       };
     }
@@ -1000,7 +1194,9 @@
         (!f.county || l.county === f.county) &&
         (!f.beds || l.beds >= f.beds) &&
         (!f.max || l.price <= f.max) &&
-        (!f.verified || isVerified(l))
+        (!f.verified || isVerified(l)) &&
+        (!f.kind || l.kind === f.kind) &&
+        f.features.every((k) => (l.features || []).includes(k))
       );
       if (f.sort === 'low') out.sort((a, b) => a.price - b.price);
       else if (f.sort === 'high') out.sort((a, b) => b.price - a.price);
@@ -1010,7 +1206,7 @@
 
     function hasActiveFilter() {
       const f = getFilters();
-      return Boolean(f.q || f.purpose || f.type || f.county || f.beds || f.max || f.verified);
+      return Boolean(f.q || f.purpose || f.type || f.county || f.beds || f.max || f.verified || f.kind || f.features.length);
     }
 
     function renderResults() {
@@ -1060,7 +1256,49 @@
       $('#fBeds').value = '0';
       $('#fSort').value = 'newest';
       $('#fVerified').checked = false;
+      $('#fKind').value = '';
+      selectedFeatures.clear();
+      renderFilterFeatures();
       renderResults();
+    }
+
+    /* ---- Kinds and features: shared helpers for the filters and the form ---- */
+    let selectedFeatures = new Set();
+
+    function kindOptions(type, emptyLabel) {
+      const opt = ([k, label]) => `<option value="${k}">${esc(label)}</option>`;
+      if (type) return `<option value="">${emptyLabel}</option>` + (KINDS[type] || []).map(opt).join('');
+      return `<option value="">${emptyLabel}</option>` + Object.entries(KINDS).map(([t, list]) =>
+        `<optgroup label="${esc((TYPES[t] || {}).label || t)}">${list.map(opt).join('')}</optgroup>`).join('');
+    }
+
+    function featureChipsHTML(groups, checked, name) {
+      return groups.map((g) => `
+        <div>
+          <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500"><i class="fa-solid ${g.icon} mr-1"></i>${esc(g.name)}</p>
+          <div class="flex flex-wrap gap-2">
+            ${g.items.map(([k, label]) => `
+              <label class="cursor-pointer">
+                <input type="checkbox" name="${name}" value="${k}" class="peer sr-only" ${checked.has(k) ? 'checked' : ''}>
+                <span class="inline-block rounded-full border border-slate-300 bg-white px-3 py-1 text-sm text-slate-700 transition peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">${esc(label)}</span>
+              </label>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    function renderFilterFeatures() {
+      const type = $('#fType').value;
+      const kindSel = $('#fKind');
+      const prevKind = kindSel.value;
+      kindSel.innerHTML = kindOptions(type, 'Any kind');
+      kindSel.value = [...kindSel.options].some((o) => o.value === prevKind) ? prevKind : '';
+      const groups = groupsFor($('#fPurpose').value, type);
+      const allowed = new Set(groups.flatMap((g) => g.items.map(([k]) => k)));
+      for (const k of [...selectedFeatures]) if (!allowed.has(k)) selectedFeatures.delete(k);
+      $('#fFeatures').innerHTML = featureChipsHTML(groups, selectedFeatures, 'fFeature');
+      const n = selectedFeatures.size + (kindSel.value ? 1 : 0);
+      $('#moreFiltersCount').hidden = !n;
+      $('#moreFiltersCount').textContent = n;
     }
 
     /* =====================================================================
@@ -1156,6 +1394,15 @@
       sb.rpc('record_view', { lid: l.id }).then(() => {}, () => {});
     }
 
+    function detailFeaturesHTML(l) {
+      const have = new Set(l.features || []);
+      const groups = FEATURE_GROUPS.map((g) => ({ ...g, items: g.items.filter(([k]) => have.has(k)) })).filter((g) => g.items.length);
+      if (!groups.length) return '';
+      return `<div><h3 class="mb-2 font-semibold">Features</h3><div class="space-y-2">${groups.map((g) => `
+        <div><p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><i class="fa-solid ${g.icon} mr-1"></i>${esc(g.name)}</p>
+        <div class="mt-1 flex flex-wrap gap-1.5">${g.items.map(([, label]) => `<span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"><i class="fa-solid fa-check mr-1"></i>${esc(label)}</span>`).join('')}</div></div>`).join('')}</div></div>`;
+    }
+
     function openDetail(id) {
       const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
       if (!l) return;
@@ -1186,7 +1433,7 @@
         : `<div class="grid grid-cols-3 gap-2 text-center">
             <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${l.beds > 0 ? Number(l.beds) : 'Studio'}</p><p class="text-xs text-slate-500">Bedrooms</p></div>
             <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${Number(l.baths)}</p><p class="text-xs text-slate-500">Bathrooms</p></div>
-            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${esc((TYPES[l.type] || TYPES.house).label)}</p><p class="text-xs text-slate-500">Type</p></div>
+            <div class="rounded-lg bg-slate-50 p-2"><p class="font-bold">${esc(KIND_LABEL[l.kind] || (TYPES[l.type] || TYPES.house).label)}</p><p class="text-xs text-slate-500">Type</p></div>
           </div>`;
 
       $('#detailBody').innerHTML = `
@@ -1202,6 +1449,8 @@
             <p class="text-sm text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(l.location)}, ${esc(l.county)} County</p>
           </div>
           ${tiles}
+          ${(l.type === 'land' || l.type === 'commercial') && l.kind ? `<p class="text-sm"><span class="text-slate-500">Kind:</span> <strong>${esc(KIND_LABEL[l.kind] || '')}</strong></p>` : ''}
+          ${detailFeaturesHTML(l)}
           ${l.description ? `<div><h3 class="mb-1 font-semibold">About this property</h3><p class="text-sm leading-relaxed text-slate-700">${esc(l.description).replace(/\n/g, '<br>')}</p></div>` : ''}
           <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
             <div class="mb-3 flex items-center gap-3">
@@ -1345,6 +1594,68 @@
       $('#lfPriceLabel').textContent = $('#lfPurpose').value === 'rent' ? 'Rent per month (KES)' : 'Sale price (KES)';
     }
 
+    // Re-draw the Kind list and the feature ticks for the chosen rent/sale + type, keeping what still applies
+    function renderFormFeatures(keepKind, keepFeatures) {
+      const type = $('#lfType').value;
+      const kindSel = $('#lfKind');
+      const prevKind = keepKind !== undefined ? keepKind : kindSel.value;
+      kindSel.innerHTML = kindOptions(type, 'Choose…');
+      kindSel.value = (KINDS[type] || []).some(([k]) => k === prevKind) ? prevKind : '';
+      const checked = new Set(keepFeatures || formFeatures());
+      $('#lfFeatures').innerHTML = featureChipsHTML(groupsFor($('#lfPurpose').value, type), checked, 'lfFeature');
+    }
+    const formFeatures = () => Array.from($$('#lfFeatures input[name=lfFeature]:checked'), (i) => i.value);
+
+    /* ---- Step 1 of listing: who are you? ---- */
+    const ROLE_CARDS = [
+      { key: 'landlord', role: 'landlord', title: "I'm a landlord", text: 'Rent out a house, apartment or bedsitter you own.', art: 'landlord' },
+      { key: 'agent', role: 'agent', title: "I'm an agent", text: 'List properties for your clients, to rent or to sell.', art: 'agent' },
+      { key: 'caretaker', role: 'caretaker', title: "I'm a caretaker or property manager", text: "Advertise vacant units you manage for the owner.", art: 'caretaker' },
+      { key: 'seller', role: 'landlord', purpose: 'sale', title: "I'm selling a home or land", text: 'Sell a house, apartment or plot directly to buyers.', art: 'seller' }
+    ];
+    let chosenCard = null;
+
+    function renderRoleCards() {
+      $('#roleCards').innerHTML = ROLE_CARDS.map((c) => `
+        <div class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+          <div class="h-44 bg-slate-950">${ART[c.art]()}</div>
+          <div class="flex flex-1 flex-col items-center p-6 text-center">
+            <h2 class="text-xl font-bold">${esc(c.title)}</h2>
+            <p class="mt-2 flex-1 text-sm text-slate-600">${esc(c.text)}</p>
+            <button data-pick-role="${c.key}" class="btn btn-primary mt-5 w-full max-w-[14rem] py-2.5 text-base">Get started</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function showListStep(step) {
+      $('#rolePicker').hidden = step !== 'pick';
+      $('#listingStep').hidden = step !== 'form';
+      if (step === 'form') {
+        const c = ROLE_CARDS.find((x) => x.key === chosenCard);
+        $('#roleChosen').innerHTML = c && !editingId
+          ? `<div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-2 pr-3">
+               <div class="h-12 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-950">${ART[c.art]()}</div>
+               <p class="flex-1 text-sm">Listing as <strong>${esc(c.title.replace("I'm ", '').replace(/^an? /, ''))}</strong></p>
+               <button type="button" data-action="change-role" class="text-sm font-semibold text-emerald-700 underline">Change</button>
+             </div>`
+          : '';
+        setTimeout(() => { if (formMap) { formMap.invalidateSize(); if (formMarker) formMap.setView(formMarker.getLatLng(), formMap.getZoom()); } }, 60);
+      }
+    }
+
+    function pickRole(key) {
+      const c = ROLE_CARDS.find((x) => x.key === key);
+      if (!c) return;
+      chosenCard = key;
+      $('#lfRole').value = c.role;
+      $('#lfPurpose').value = c.purpose || 'rent';
+      if (c.key === 'seller') $('#lfType').value = 'house';
+      updatePriceLabel();
+      renderFormFeatures('', []);
+      showListStep('form');
+      window.scrollTo(0, 0);
+    }
+
     function renderPhotoPreview() {
       $('#photoPreview').innerHTML = currentPhoto
         ? `<div class="relative inline-block">
@@ -1365,6 +1676,7 @@
       updatePriceLabel();
       $('#formHeading').textContent = 'List a property';
       $('#lfSubmit').innerHTML = SUBMIT_NEW;
+      renderFormFeatures('', []);
       const loc = LOCATIONS[0];
       $('#lfLocation').value = loc.name;
       moveFormPin(loc.lat, loc.lng);
@@ -1383,6 +1695,7 @@
       $('#lfPhone').value = '0' + String(l.phone).slice(3);
       $('#lfPhone').setCustomValidity('');
       $('#lfDesc').value = l.description || '';
+      renderFormFeatures(l.kind || '', l.features || []);
       $('#lfPhoto').value = '';
       currentPhoto = l.photo || null;
       renderPhotoPreview();
@@ -2230,7 +2543,7 @@
       if (v === 'list') {
         ensureFormMap();
         const l = editingId && listings.find((x) => x.id === editingId && x.owner === 'me');
-        if (l) fillForm(l); else { editingId = null; resetForm(); }
+        if (l) { fillForm(l); showListStep('form'); } else { editingId = null; chosenCard = null; resetForm(); showListStep('pick'); }
       } else {
         editingId = null;
       }
@@ -2247,6 +2560,8 @@
        Build selects
        ===================================================================== */
     function buildSelects() {
+      renderRoleCards();
+      $('#fKind').innerHTML = kindOptions('', 'Any kind');
       const typeOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.label}</option>`).join('');
       $('#fType').insertAdjacentHTML('beforeend', typeOpts);
       $('#lfType').innerHTML = typeOpts;
@@ -2263,6 +2578,14 @@
     function bindEvents() {
       $('#fQ').addEventListener('input', debounce(renderResults, 200));
       $('#fMax').addEventListener('input', debounce(renderResults, 300));
+      ['#fPurpose', '#fType'].forEach((s) => $(s).addEventListener('change', renderFilterFeatures));
+      $('#fKind').addEventListener('change', () => { renderFilterFeatures(); renderResults(); });
+      $('#fFeatures').addEventListener('change', (e) => {
+        if (e.target.name !== 'fFeature') return;
+        if (e.target.checked) selectedFeatures.add(e.target.value); else selectedFeatures.delete(e.target.value);
+        renderFilterFeatures();
+        renderResults();
+      });
       ['#fPurpose', '#fType', '#fCounty', '#fBeds', '#fSort', '#fVerified'].forEach((s) =>
         $(s).addEventListener('change', renderResults));
 
@@ -2305,9 +2628,29 @@
         const del = t.closest('[data-delete]');
         if (del) { deleteListing(del.dataset.delete, del); return; }
 
+        const pick = t.closest('[data-pick-role]');
+        if (pick) { pickRole(pick.dataset.pickRole); return; }
+
         const act = t.closest('[data-action]');
         if (!act) return;
         switch (act.dataset.action) {
+          case 'more-filters': {
+            const panel = $('#moreFilters');
+            panel.hidden = !panel.hidden;
+            act.setAttribute('aria-expanded', String(!panel.hidden));
+            if (!panel.hidden) renderFilterFeatures();
+            break;
+          }
+          case 'clear-features':
+            selectedFeatures.clear();
+            $('#fKind').value = '';
+            renderFilterFeatures();
+            renderResults();
+            break;
+          case 'change-role':
+            showListStep('pick');
+            window.scrollTo(0, 0);
+            break;
           case 'toggle-view':
             setMobileView(mobileView === 'map' ? 'list' : 'map');
             break;
@@ -2406,7 +2749,8 @@
       });
 
       // ---- Listing form ----
-      $('#lfPurpose').addEventListener('change', updatePriceLabel);
+      $('#lfPurpose').addEventListener('change', () => { updatePriceLabel(); renderFormFeatures(); });
+      $('#lfType').addEventListener('change', () => renderFormFeatures());
       $('#lfLocation').addEventListener('change', () => {
         const loc = locByName($('#lfLocation').value);
         moveFormPin(loc.lat, loc.lng);
@@ -2458,6 +2802,8 @@
           role: $('#lfRole').value,
           phone,
           description: $('#lfDesc').value.trim(),
+          kind: $('#lfKind').value || null,
+          features: formFeatures(),
           photo: currentPhoto
         };
         const wasEditing = !!editingId;
