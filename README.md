@@ -17,6 +17,8 @@ A Zillow-inspired real estate web portal built for the Kenyan housing market. Tr
 - **Interactive map and search:** filter by rent/sale, type, county, bedrooms, price and verified-only, and explore listings on a map.
 - **Badge you can check:** every verified lister gets a code like `TH-7KQ2MX`, a QR code and a public page (`?v=TH-7KQ2MX`) with a live clock. Tenants scan or type the code under **Check a badge**, so copied badge images don't work.
 - **Admin page:** approve or reject verification requests, view private documents, and handle reports with one tap at `#admin` (admins only, enforced by the database).
+- **Up to 10 photos per listing** with a swipeable gallery.
+- **Listings expire** after 60 days (rent) or 90 days (sale) unless renewed, so let homes don't linger.
 - **Ban scammers:** one tap hides all their listings, removes their badge and blocks their phone numbers.
 - **Visitor numbers:** cookie-free Cloudflare Web Analytics, plus a view count on every listing.
 - **Share buttons:** landlords share listings and badges straight to WhatsApp and Facebook, with links that open the exact listing or badge check.

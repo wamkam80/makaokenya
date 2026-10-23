@@ -97,9 +97,15 @@ The **Banned** tab lists everyone banned. **Lift ban** undoes it.
 
 ---
 
-## Keeping the database awake
+## Automatic jobs (twice a week)
 
-Supabase's free plan pauses a project after about a week with no activity. A small GitHub job (`.github/workflows/keep-awake.yml`) visits the database every Monday and Thursday so this never happens. You can see it, or run it by hand, under the repo's **Actions** tab.
+A small GitHub job (`.github/workflows/keep-awake.yml`) runs every Monday and Thursday. You can see it, or run it by hand, under the repo's **Actions** tab. It:
+- visits the database, because Supabase's free plan pauses a project after about a week with no activity;
+- calls the `cleanup-docs` Edge Function (`supabase/functions/cleanup-docs`), which deletes the ID and ownership documents of verification requests rejected more than 83 days ago, as the privacy policy promises.
+
+## Listing expiry
+
+Rentals stay live for 60 days and sales for 90 days. After that they're hidden from search until the lister taps **Still available** (or edits the listing) under **My listings**. This keeps let or sold homes off the site.
 
 ## Visitor numbers
 

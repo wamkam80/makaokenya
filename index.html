@@ -246,8 +246,9 @@
         </fieldset>
 
         <fieldset class="space-y-3">
-          <legend class="mb-2 font-semibold">Photo</legend>
-          <input id="lfPhoto" type="file" accept="image/*" class="filebox">
+          <legend class="mb-1 font-semibold">Photos <span class="font-normal text-slate-400">(up to 10)</span></legend>
+          <p class="text-xs text-slate-500">Add the outside, sitting room, kitchen, bedrooms and bathroom. Listings with several clear photos get far more WhatsApp messages. The first photo is the cover.</p>
+          <input id="lfPhoto" type="file" accept="image/*" multiple class="filebox">
           <div id="photoPreview"></div>
         </fieldset>
 
@@ -422,7 +423,7 @@
       <article class="space-y-5 rounded-xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-700 sm:p-8">
         <header>
           <h1 class="text-2xl font-extrabold text-slate-900">Terms of Use</h1>
-          <p class="mt-1 text-slate-500">Last updated: 22 October 2026</p>
+          <p class="mt-1 text-slate-500">Last updated: 23 October 2026</p>
         </header>
 
         <p>These terms apply to everyone who uses truehomekenya.com ("TrueHome Kenya", "we", "us"), whether you're looking for a home or listing one. By using the site, signing in or publishing a listing, you agree to them. If you don't agree, please don't use the site.</p>
@@ -458,7 +459,7 @@
             <li>you own the property, or the owner has authorised you in writing to let or sell it;</li>
             <li>if you act as an estate agent for payment, you are registered with the <strong>Estate Agents Registration Board (EARB)</strong> where the Estate Agents Act requires it;</li>
             <li>the property exists, is available, and the photos, price, location and description are accurate and your own (or you have permission to use them);</li>
-            <li>you will remove or update the listing as soon as it is let, sold or the price changes;</li>
+            <li>you will remove or update the listing as soon as it is let, sold or the price changes. Listings expire automatically after 60 days (rentals) or 90 days (sales) unless you renew them;</li>
             <li>you won't ask tenants for "viewing fees", "booking fees" or deposits before they have viewed the property and confirmed you're entitled to let it;</li>
             <li>you won't refuse tenants because of their tribe, religion, race, sex, disability or any other ground prohibited by the Constitution of Kenya.</li>
           </ul>
@@ -873,6 +874,7 @@
           phone: '254700000000', createdAt: now - i * 7 * 3600 * 1000,
           ownerCode: o.verified ? 'TH-DEMO' + String(i + 1).padStart(2, '0') : null,
           verifiedAt: now - (30 + i) * 24 * 3600 * 1000,
+          expiresAt: now + (40 - i) * 24 * 3600 * 1000,
           county: loc.county,
           lat: loc.lat + (o.dLat || 0) + ((i % 3) - 1) * 0.0015,
           lng: loc.lng + (o.dLng || 0) + ((i % 2) ? 0.0015 : -0.0015),
@@ -916,6 +918,8 @@
         phone: r.phone,
         description: r.description || '',
         photo: r.photo_url || null,
+        photos: Array.isArray(r.photos) && r.photos.length ? r.photos : (r.photo_url ? [r.photo_url] : []),
+        expiresAt: r.expires_at ? Date.parse(r.expires_at) : null,
         verified: !!r.owner_verified,
         ownerCode: r.owner_code || null,
         views: Number(r.views) || 0,
@@ -930,7 +934,7 @@
         title: d.title, purpose: d.purpose, type: d.type, price: d.price,
         beds: d.beds, baths: d.baths, location: d.location, county: d.county,
         lat: d.lat, lng: d.lng, contact_name: d.contactName, role: d.role,
-        phone: d.phone, description: d.description || null, photo_url: d.photo || null,
+        phone: d.phone, description: d.description || null, photo_url: (d.photos && d.photos[0]) || d.photo || null, photos: d.photos || [],
         kind: d.kind || null, features: d.features || []
       };
     }
@@ -940,6 +944,13 @@
       if (m) return m[1].toLowerCase();
       return (file.type.split('/')[1] || 'bin').replace('jpeg', 'jpg');
     };
+
+    const listingPhotos = (l) => (!l ? [] : (l.photos && l.photos.length ? l.photos : (l.photo ? [l.photo] : [])));
+
+    // Listings expire (rent 60 days, sale 90) unless the lister renews them
+    const EXPIRY_DAYS = (purpose) => (purpose === 'sale' ? 90 : 60);
+    const isLive = (l) => !l.expiresAt || l.expiresAt > Date.now();
+    const daysLeft = (l) => (l.expiresAt ? Math.ceil((l.expiresAt - Date.now()) / 86400000) : null);
 
     function photoPathFromUrl(url) {
       const marker = '/storage/v1/object/public/listing-photos/';
@@ -964,24 +975,50 @@
         return sb.storage.from('listing-photos').getPublicUrl(path).data.publicUrl;
       },
 
-      async saveListing(data, id) {
+      async saveListing(data, id, prev, onProgress) {
         const d = { ...data };
-        if (d.photo && d.photo.startsWith('data:')) d.photo = await remote.uploadPhoto(d.photo);
-        if (id) {
-          const { error } = await sb.from('listings')
-            .update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', id);
-          if (error) throw error;
-        } else {
-          const { error } = await sb.from('listings').insert(toRow(d));
-          if (error) throw error;
+        const uploaded = [];
+        const photos = [];
+        try {
+          for (const [i, p] of (d.photos || []).entries()) {
+            if (p.startsWith('data:')) {
+              if (onProgress) onProgress(i + 1, d.photos.length);
+              const url = await remote.uploadPhoto(p);
+              uploaded.push(url);
+              photos.push(url);
+            } else photos.push(p);
+          }
+          d.photos = photos;
+          d.photo = photos[0] || null;
+          if (id) {
+            const { error } = await sb.from('listings')
+              .update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', id);
+            if (error) throw error;
+          } else {
+            const { error } = await sb.from('listings').insert(toRow(d));
+            if (error) throw error;
+          }
+        } catch (err) {
+          // Don't leave orphan files behind if saving failed
+          const paths = uploaded.map(photoPathFromUrl).filter(Boolean);
+          if (paths.length) await sb.storage.from('listing-photos').remove(paths).catch(() => {});
+          throw err;
         }
+        // Remove files of photos that were taken off the listing
+        const gone = listingPhotos(prev).filter((u) => !photos.includes(u)).map(photoPathFromUrl).filter(Boolean);
+        if (gone.length) await sb.storage.from('listing-photos').remove(gone).catch(() => {});
+      },
+
+      async renewListing(id) {
+        const { error } = await sb.from('listings').update({ updated_at: new Date().toISOString() }).eq('id', id);
+        if (error) throw error;
       },
 
       async deleteListing(l) {
         const { error } = await sb.from('listings').delete().eq('id', l.id);
         if (error) throw error;
-        const path = photoPathFromUrl(l.photo);
-        if (path) await sb.storage.from('listing-photos').remove([path]).catch(() => {});
+        const paths = listingPhotos(l).map(photoPathFromUrl).filter(Boolean);
+        if (paths.length) await sb.storage.from('listing-photos').remove(paths).catch(() => {});
       },
 
       async loadProfile() {
@@ -1067,7 +1104,8 @@
     let loadError = null;
 
     let editingId = null;
-    let currentPhoto = null;
+    let currentPhotos = [];   // data: URLs (new) or https URLs (already uploaded); first one is the cover
+    const MAX_PHOTOS = 10;
     let lastItems = [];
     let mobileView = 'list';
     let pendingView = null;
@@ -1156,6 +1194,7 @@
           ${photoHTML(l, 'h-44')}
           <div class="absolute left-2 top-2">${purposeBadge(l.purpose)}</div>
           <div class="absolute right-2 top-2">${verifiedBadge(isVerified(l))}</div>
+          ${listingPhotos(l).length > 1 ? `<div class="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white"><i class="fa-solid fa-camera"></i> ${listingPhotos(l).length}</div>` : ''}
         </div>
         <div class="p-3">
           <p class="text-lg font-extrabold">${esc(priceText(l))}</p>
@@ -1187,7 +1226,7 @@
 
     function filteredListings() {
       const f = getFilters();
-      const out = listings.filter((l) =>
+      const out = listings.filter((l) => isLive(l) &&
         (!f.q || [l.title, l.location, l.county, l.description].join(' ').toLowerCase().includes(f.q)) &&
         (!f.purpose || l.purpose === f.purpose) &&
         (!f.type || l.type === f.type) &&
@@ -1394,6 +1433,29 @@
       sb.rpc('record_view', { lid: l.id }).then(() => {}, () => {});
     }
 
+    // Photo gallery in the listing details
+    let galleryListing = null;
+    let galleryIdx = 0;
+    function galleryHTML(l, i) {
+      const ps = listingPhotos(l);
+      galleryListing = l;
+      galleryIdx = ps.length ? (i + ps.length) % ps.length : 0;
+      if (ps.length < 2) return photoHTML(l, 'h-56 sm:h-72');
+      const arrow = (dir, icon, side) => `<button data-action="gallery-${dir}" aria-label="${dir === 'prev' ? 'Previous' : 'Next'} photo" class="absolute ${side} top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/55 text-white hover:bg-black/75"><i class="fa-solid ${icon}"></i></button>`;
+      return `
+        <div class="relative bg-slate-950">
+          <img src="${esc(ps[galleryIdx])}" alt="${esc(l.title)}, photo ${galleryIdx + 1} of ${ps.length}" class="h-56 w-full object-contain sm:h-80">
+          ${arrow('prev', 'fa-chevron-left', 'left-3')}${arrow('next', 'fa-chevron-right', 'right-3')}
+          <div class="absolute bottom-2 left-3 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white" data-gallery-count>${galleryIdx + 1} / ${ps.length}</div>
+        </div>
+        <div class="flex gap-1.5 overflow-x-auto bg-slate-950 px-2 pb-2">
+          ${ps.map((u, j) => `<button data-gallery-i="${j}" aria-label="Photo ${j + 1}" class="h-14 w-20 shrink-0 overflow-hidden rounded ${j === galleryIdx ? 'ring-2 ring-emerald-400' : 'opacity-60 hover:opacity-100'}"><img src="${esc(u)}" alt="" loading="lazy" class="h-full w-full object-cover"></button>`).join('')}
+        </div>`;
+    }
+    function showGallery(i) {
+      if (galleryListing && $('#gallery')) $('#gallery').innerHTML = galleryHTML(galleryListing, i);
+    }
+
     function detailFeaturesHTML(l) {
       const have = new Set(l.features || []);
       const groups = FEATURE_GROUPS.map((g) => ({ ...g, items: g.items.filter(([k]) => have.has(k)) })).filter((g) => g.items.length);
@@ -1438,7 +1500,7 @@
 
       $('#detailBody').innerHTML = `
         <div class="relative">
-          ${photoHTML(l, 'h-56 sm:h-72')}
+          <div id="gallery">${galleryHTML(l, 0)}</div>
           <button data-close aria-label="Close" class="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-700 shadow hover:bg-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-4 p-5">
@@ -1657,12 +1719,19 @@
     }
 
     function renderPhotoPreview() {
-      $('#photoPreview').innerHTML = currentPhoto
-        ? `<div class="relative inline-block">
-             <img src="${esc(currentPhoto)}" alt="Listing photo preview" class="h-32 rounded-lg object-cover">
-             <button type="button" data-action="remove-photo" class="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-red-600 text-white shadow" aria-label="Remove photo"><i class="fa-solid fa-xmark text-xs"></i></button>
-           </div>`
-        : '<p class="text-xs text-slate-500">Optional. Photos are resized automatically to save space.</p>';
+      const n = currentPhotos.length;
+      $('#lfPhoto').disabled = n >= MAX_PHOTOS;
+      $('#photoPreview').innerHTML = n
+        ? `<div class="grid grid-cols-3 gap-2 sm:grid-cols-5">${currentPhotos.map((u, i) => `
+            <div class="relative">
+              <img src="${esc(u)}" alt="Listing photo ${i + 1}" class="h-24 w-full rounded-lg object-cover ${i === 0 ? 'ring-2 ring-emerald-500' : ''}">
+              ${i === 0
+                ? '<span class="absolute bottom-1 left-1 rounded bg-emerald-600 px-1.5 text-[10px] font-semibold text-white">Cover</span>'
+                : `<button type="button" data-action="cover-photo" data-i="${i}" class="absolute bottom-1 left-1 rounded bg-black/70 px-1.5 text-[10px] font-semibold text-white">Make cover</button>`}
+              <button type="button" data-action="remove-photo" data-i="${i}" class="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-red-600 text-white shadow" aria-label="Remove photo ${i + 1}"><i class="fa-solid fa-xmark text-xs"></i></button>
+            </div>`).join('')}</div>
+           <p class="mt-2 text-xs text-slate-500">${n} of ${MAX_PHOTOS} photos${n >= MAX_PHOTOS ? ' (maximum reached)' : ''}</p>`
+        : '<p class="text-xs text-slate-500">Photos are resized automatically, so you can add them straight from your phone camera.</p>';
     }
 
     const SUBMIT_NEW = '<i class="fa-solid fa-paper-plane"></i> Publish listing';
@@ -1671,7 +1740,7 @@
     function resetForm() {
       $('#listingForm').reset();
       $('#lfPhone').setCustomValidity('');
-      currentPhoto = null;
+      currentPhotos = [];
       renderPhotoPreview();
       updatePriceLabel();
       $('#formHeading').textContent = 'List a property';
@@ -1697,7 +1766,7 @@
       $('#lfDesc').value = l.description || '';
       renderFormFeatures(l.kind || '', l.features || []);
       $('#lfPhoto').value = '';
-      currentPhoto = l.photo || null;
+      currentPhotos = listingPhotos(l).slice(0, MAX_PHOTOS);
       renderPhotoPreview();
       updatePriceLabel();
       $('#formHeading').textContent = 'Edit listing';
@@ -1752,6 +1821,37 @@
     /* =====================================================================
        My listings
        ===================================================================== */
+    function expiryHTML(l) {
+      const d = daysLeft(l);
+      if (d === null) return '';
+      const renew = `<button data-action="renew" data-id="${esc(l.id)}" class="ml-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-emerald-700"><i class="fa-solid fa-rotate"></i> Still available</button>`;
+      if (d <= 0) return `<p class="mt-1 text-xs font-semibold text-red-700" data-expiry><i class="fa-solid fa-circle-pause"></i> Expired, hidden from search ${renew}</p>`;
+      if (d <= 14) return `<p class="mt-1 text-xs font-semibold text-amber-700" data-expiry><i class="fa-regular fa-clock"></i> Expires in ${d} day${d === 1 ? '' : 's'} ${renew}</p>`;
+      return `<p class="mt-0.5 text-xs text-slate-500" data-expiry><i class="fa-regular fa-clock"></i> Live until ${new Date(l.expiresAt).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' })}</p>`;
+    }
+
+    async function renewListing(id, btn) {
+      const l = listings.find((x) => x.id === id && x.owner === 'me');
+      if (!l) return;
+      if (LIVE) {
+        setBusy(btn, true, 'Renewing…');
+        try {
+          await remote.renewListing(id);
+          listings = await remote.loadListings();
+        } catch (err) {
+          setBusy(btn, false);
+          toast(friendly(err), 'error');
+          return;
+        }
+      } else {
+        const backup = listings.slice();
+        l.expiresAt = Date.now() + EXPIRY_DAYS(l.purpose) * 86400000;
+        if (!saveLocalListings(backup)) return;
+      }
+      renderAll();
+      toast(`Renewed. Your listing stays live for another ${EXPIRY_DAYS(l.purpose)} days.`);
+    }
+
     function renderMine() {
       const mine = listings.filter((l) => l.owner === 'me').sort((a, b) => b.createdAt - a.createdAt);
       let banner;
@@ -1783,6 +1883,7 @@
               <p class="text-sm font-bold">${esc(priceText(l))}</p>
               <p class="truncate text-xs text-slate-500">${esc(l.location)} · ${esc(metaText(l))}</p>
               ${LIVE ? `<p class="mt-0.5 text-xs font-medium text-slate-600" data-views><i class="fa-regular fa-eye"></i> ${l.views} view${l.views === 1 ? '' : 's'}</p>` : ''}
+              ${expiryHTML(l)}
               <div class="mt-2 flex flex-wrap gap-2">
                 <button data-open="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-eye"></i> View</button>
                 <button data-share="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-share-nodes"></i> Share</button>
@@ -1796,7 +1897,12 @@
              <p class="mt-2 font-medium">You haven't listed any properties yet.</p>
              <a href="#list" class="btn btn-primary mt-3"><i class="fa-solid fa-plus"></i> List your first property</a>
            </div>`;
-      $('#mineBody').innerHTML = banner + list;
+      const expired = mine.filter((l) => !isLive(l)).length;
+      const expiredNote = expired
+        ? `<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900"><i class="fa-solid fa-circle-pause"></i> ${expired} listing${expired === 1 ? ' has' : 's have'} expired and ${expired === 1 ? 'is' : 'are'} hidden from search. If ${expired === 1 ? "it's" : "they're"} still available, tap <strong>Still available</strong> to show ${expired === 1 ? 'it' : 'them'} again.</div>`
+        : '';
+      const howLong = mine.length ? '<p class="text-xs text-slate-500"><i class="fa-solid fa-circle-info"></i> Rentals stay live for 60 days and sales for 90 days. Editing a listing or tapping <strong>Still available</strong> renews it, so tenants only see homes that are really free.</p>' : '';
+      $('#mineBody').innerHTML = banner + expiredNote + howLong + list;
     }
 
     /* =====================================================================
@@ -2488,8 +2594,8 @@
           const l = listings.find((x) => x.id === btn.dataset.listing);
           const { error } = await sb.from('listings').delete().eq('id', btn.dataset.listing);
           if (error) throw error;
-          const path = l && photoPathFromUrl(l.photo);
-          if (path) await sb.storage.from('listing-photos').remove([path]).catch(() => {});
+          const paths = listingPhotos(l).map(photoPathFromUrl).filter(Boolean);
+          if (paths.length) await sb.storage.from('listing-photos').remove(paths).catch(() => {});
           toast('Listing removed.');
         }
       } catch (err) {
@@ -2628,6 +2734,8 @@
         const del = t.closest('[data-delete]');
         if (del) { deleteListing(del.dataset.delete, del); return; }
 
+        const gi = t.closest('[data-gallery-i]');
+        if (gi) { showGallery(Number(gi.dataset.galleryI)); return; }
         const pick = t.closest('[data-pick-role]');
         if (pick) { pickRole(pick.dataset.pickRole); return; }
 
@@ -2671,9 +2779,24 @@
             route();
             break;
           case 'remove-photo':
-            currentPhoto = null;
+            currentPhotos.splice(Number(act.dataset.i), 1);
             $('#lfPhoto').value = '';
             renderPhotoPreview();
+            break;
+          case 'cover-photo': {
+            const [ph] = currentPhotos.splice(Number(act.dataset.i), 1);
+            currentPhotos.unshift(ph);
+            renderPhotoPreview();
+            break;
+          }
+          case 'gallery-prev':
+            showGallery(galleryIdx - 1);
+            break;
+          case 'gallery-next':
+            showGallery(galleryIdx + 1);
+            break;
+          case 'renew':
+            renewListing(act.dataset.id, act);
             break;
           case 'account':
             if (!session) { location.hash = '#signin'; break; }
@@ -2727,6 +2850,9 @@
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !$('#detailModal').hidden) closeDetail();
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !$('#detailModal').hidden && $('#gallery [data-gallery-i]')) {
+          showGallery(galleryIdx + (e.key === 'ArrowLeft' ? -1 : 1));
+        }
       });
 
       // ---- Sign in ----
@@ -2760,17 +2886,20 @@
         e.target.setCustomValidity(!v || normPhone(v) ? '' : 'Enter a valid Kenyan number, e.g. 0712 345 678');
       });
       $('#lfPhoto').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) { toast('Please choose an image file.', 'error'); e.target.value = ''; return; }
-        if (file.size > 15 * 1024 * 1024) { toast('That photo is too large (max 15 MB).', 'error'); e.target.value = ''; return; }
-        try {
-          currentPhoto = await compressImage(file);
-          renderPhotoPreview();
-        } catch (err) {
-          toast('Could not read that photo. Try a JPG or PNG.', 'error');
-          e.target.value = '';
+        const files = Array.from(e.target.files || []);
+        e.target.value = '';
+        if (!files.length) return;
+        const room = MAX_PHOTOS - currentPhotos.length;
+        if (files.length > room) toast(`Only ${MAX_PHOTOS} photos allowed, so ${room ? 'the first ' + room + ' were added' : 'none were added'}.`, 'error');
+        let bad = 0;
+        for (const file of files.slice(0, Math.max(0, room))) {
+          if (!file.type.startsWith('image/') || file.size > 15 * 1024 * 1024) { bad++; continue; }
+          try {
+            currentPhotos.push(await compressImage(file, LIVE ? 1200 : 800, LIVE ? 0.75 : 0.6));
+            renderPhotoPreview();
+          } catch (err) { bad++; }
         }
+        if (bad) toast(`${bad} file${bad === 1 ? " wasn't a photo we could read" : "s weren't photos we could read"} (JPG or PNG, max 15 MB).`, 'error');
       });
       $('#lfCancel').addEventListener('click', () => {
         editingId = null;
@@ -2804,16 +2933,18 @@
           description: $('#lfDesc').value.trim(),
           kind: $('#lfKind').value || null,
           features: formFeatures(),
-          photo: currentPhoto
+          photo: currentPhotos[0] || null,
+          photos: currentPhotos.slice()
         };
         const wasEditing = !!editingId;
 
         if (LIVE) {
           if (!session) { route(); return; }
           const btn = $('#lfSubmit');
-          setBusy(btn, true, currentPhoto && currentPhoto.startsWith('data:') ? 'Uploading photo…' : 'Saving…');
+          setBusy(btn, true, 'Saving…');
+          const prev = editingId ? listings.find((x) => x.id === editingId) : null;
           try {
-            await remote.saveListing(data, editingId);
+            await remote.saveListing(data, editingId, prev, (i, n) => setBusy(btn, true, `Uploading photo ${i} of ${n}…`));
             listings = await remote.loadListings();
           } catch (err) {
             setBusy(btn, false);
@@ -2826,11 +2957,12 @@
           if (wasEditing) {
             const i = listings.findIndex((x) => x.id === editingId && x.owner === 'me');
             if (i === -1) { toast('That listing no longer exists.', 'error'); return; }
-            listings[i] = { ...listings[i], ...data, updatedAt: Date.now() };
+            listings[i] = { ...listings[i], ...data, updatedAt: Date.now(), expiresAt: Date.now() + EXPIRY_DAYS(data.purpose) * 86400000 };
           } else {
             listings.unshift({
               id: 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-              owner: 'me', demo: false, verified: false, createdAt: Date.now(), ...data
+              owner: 'me', demo: false, verified: false, createdAt: Date.now(),
+              expiresAt: Date.now() + EXPIRY_DAYS(data.purpose) * 86400000, ...data
             });
           }
           if (!saveLocalListings(backup)) return;
@@ -2924,7 +3056,7 @@
       if (!pendingOpenId) return;
       const id = pendingOpenId;
       pendingOpenId = null;
-      if (listings.some((x) => x.id === id)) openDetail(id);
+      if (listings.some((x) => x.id === id && (isLive(x) || x.owner === 'me'))) openDetail(id);
       else toast('That listing is no longer available.', 'error');
     }
 

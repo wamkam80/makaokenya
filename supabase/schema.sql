@@ -768,3 +768,59 @@ left join public.listing_views v on v.listing_id = l.id
 where not public.is_banned(l.owner_id);
 
 grant select on public.listings_public to anon, authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- 12. PHOTOS, LISTING EXPIRY AND DOCUMENT CLEAN-UP
+--     photos: up to 10 photo URLs (photo_url stays as the cover).
+--     expires_at: rentals 60 days, sales 90 days. Every insert or update
+--     (including the "Still available" button) renews it; the website
+--     hides expired listings.
+--     docs_deleted_at: set by the cleanup-docs Edge Function when it deletes
+--     the documents of requests rejected more than 83 days ago.
+-- ---------------------------------------------------------------------
+create or replace function public.all_https(urls text[])
+returns boolean language sql immutable set search_path = ''
+as $$ select coalesce(bool_and(u like 'https://%'), true) from unnest(urls) as u; $$;
+
+alter table public.listings add column if not exists photos text[] not null default '{}';
+alter table public.listings drop constraint if exists listings_photos_check;
+alter table public.listings add constraint listings_photos_check
+  check (cardinality(photos) <= 10 and public.all_https(photos));
+
+alter table public.listings add column if not exists expires_at timestamptz;
+
+create or replace function public.set_listing_expiry()
+returns trigger language plpgsql set search_path = ''
+as $$
+begin
+  new.expires_at := now() + case when new.purpose = 'sale' then interval '90 days' else interval '60 days' end;
+  return new;
+end;
+$$;
+drop trigger if exists listings_set_expiry on public.listings;
+create trigger listings_set_expiry
+  before insert or update on public.listings
+  for each row execute function public.set_listing_expiry();
+
+alter table public.verification_requests add column if not exists docs_deleted_at timestamptz;
+
+drop view if exists public.listings_public;
+create view public.listings_public
+with (security_invoker = true) as
+select
+  l.id, l.owner_id, l.title, l.purpose, l.type, l.price, l.beds, l.baths, l.location, l.county,
+  l.lat, l.lng, l.contact_name, l.role, l.phone, l.description, l.photo_url, l.created_at, l.updated_at,
+  coalesce(p.verified, false) as owner_verified,
+  case when p.verified then p.public_code end as owner_code,
+  coalesce(v.views, 0) as views,
+  l.kind,
+  l.features,
+  l.photos,
+  l.expires_at
+from public.listings l
+left join public.profiles p on p.id = l.owner_id
+left join public.listing_views v on v.listing_id = l.id
+where not public.is_banned(l.owner_id);
+
+grant select on public.listings_public to anon, authenticated;

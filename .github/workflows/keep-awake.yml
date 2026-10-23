@@ -1,5 +1,8 @@
-# Supabase's free plan pauses a project after about a week without activity.
-# This visits the database twice a week so the site never goes to sleep.
+# Twice a week:
+#  1. visits the database, because Supabase's free plan pauses a project after
+#     about a week without activity;
+#  2. deletes ID documents from verification requests rejected more than
+#     83 days ago, as the privacy policy promises (within 90 days).
 name: Keep database awake
 
 on:
@@ -21,3 +24,9 @@ jobs:
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
           echo "Supabase answered with HTTP $code"
           test "$code" = "200"
+
+      - name: Delete old rejected ID documents
+        run: |
+          out=$(curl -s -X POST https://oweftgefkijetuqzcvgl.supabase.co/functions/v1/cleanup-docs)
+          echo "Clean-up result: $out"
+          echo "$out" | grep -q '"ok":true'
