@@ -87,6 +87,25 @@ Every open report, with the reason, the listing, its phone number and how many r
 ### Verified tab
 Everyone with a badge. **Withdraw badge** removes it at any time.
 
+### Banning a scammer
+Every request, report and verified lister has a **Ban user** button. Type a reason and tap **Confirm ban**. Then:
+- all their listings disappear from the site, and any badge is withdrawn;
+- they can't post, edit, upload or ask for verification, and see a "suspended" notice under **My listings**;
+- the phone numbers they used are blocked, so nobody can post new listings with them.
+
+The **Banned** tab lists everyone banned. **Lift ban** undoes it.
+
+---
+
+## Keeping the database awake
+
+Supabase's free plan pauses a project after about a week with no activity. A small GitHub job (`.github/workflows/keep-awake.yml`) visits the database every Monday and Thursday so this never happens. You can see it, or run it by hand, under the repo's **Actions** tab.
+
+## Visitor numbers
+
+- **Site visits:** Cloudflare dashboard → **Analytics → Web analytics** → truehomekenya.com. No cookies, nothing personal.
+- **Listing views:** each lister sees "N views" under **My listings**. A visitor is counted once per listing per day.
+
 ### Adding another admin
 In **SQL Editor**, run: `insert into public.admins (user_id) select id from auth.users where email = 'their@email.com';` (they must have signed in once first).
 

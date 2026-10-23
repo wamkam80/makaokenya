@@ -287,7 +287,7 @@
       <article class="space-y-5 rounded-xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-700 sm:p-8">
         <header>
           <h1 class="text-2xl font-extrabold text-slate-900">Privacy Policy</h1>
-          <p class="mt-1 text-slate-500">Last updated: 22 October 2026</p>
+          <p class="mt-1 text-slate-500">Last updated: 23 October 2026</p>
         </header>
 
         <p>TrueHome Kenya ("we", "us") runs this website, where landlords, agents and caretakers list properties and tenants and buyers find them. This policy explains what personal data we collect, why, who we share it with, and your rights under Kenya's <strong>Data Protection Act, 2019</strong>.</p>
@@ -300,7 +300,8 @@
         <section class="space-y-2">
           <h2 class="text-lg font-bold text-slate-900">2. What we collect</h2>
           <ul class="list-disc space-y-1 pl-5">
-            <li><strong>Browsing the site:</strong> no account is needed. We don't use advertising or tracking cookies. Your browser stores a few settings on your own device (for example, listings you've reported).</li>
+            <li><strong>Browsing the site:</strong> no account is needed. We don't use advertising or tracking cookies. Your browser stores a few settings on your own device (for example, listings you've reported or viewed today).</li>
+            <li><strong>Visit statistics:</strong> we count page visits with Cloudflare Web Analytics, which uses no cookies and doesn't identify or follow individual visitors. We also count how many times each listing is opened, so listers can see how many views they get. These counts contain no personal data.</li>
             <li><strong>Account:</strong> your email address, used to send you sign-in links.</li>
             <li><strong>Listings:</strong> property details, photos, location, and the contact name, role and phone number you choose to publish. <em>These are public</em>, so anyone can see them.</li>
             <li><strong>Verification:</strong> your full name, National ID number, a copy of your ID, and a Title Deed or management agreement, plus optionally your title/LR number and Estate Agents Registration Board number.</li>
@@ -334,6 +335,7 @@
             <li><strong>Supabase</strong>: database, sign-in and file storage (servers in the European Union, Ireland).</li>
             <li><strong>Brevo</strong>: sends sign-in emails (European Union).</li>
             <li><strong>GitHub Pages</strong>: hosts the website (United States).</li>
+            <li><strong>Cloudflare</strong>: runs our domain and email forwarding, and counts visits anonymously (Web Analytics).</li>
             <li><strong>OpenStreetMap</strong> and content delivery networks (jsDelivr, unpkg, cdnjs, Tailwind): deliver maps and website code; they see your IP address when your browser loads them.</li>
           </ul>
           <p>Because these providers are outside Kenya, your data is transferred abroad. We use providers that apply strong security and data-protection safeguards, as required by Part VI of the Data Protection Act.</p>
@@ -346,6 +348,7 @@
             <li><strong>Listings:</strong> until you delete them or your account.</li>
             <li><strong>Verification documents:</strong> while you're a verified lister, and deleted when you withdraw your request, close your account, or ask us to. If a request is rejected, we delete the documents within 90 days unless you resubmit.</li>
             <li><strong>Reports:</strong> up to 2 years, so we can spot repeat scammers.</li>
+            <li><strong>Suspended accounts:</strong> if we ban an account for fraud, we keep a record of the account and the phone numbers it used for as long as needed to stop it posting again.</li>
           </ul>
         </section>
 
@@ -2645,5 +2648,7 @@
     init();
   })();
   </script>
+  <!-- Cloudflare Web Analytics: counts visits without cookies or tracking individuals -->
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "20d583530a5c475ba83cbf49a620e3a8", "spa": true}'></script>
 </body>
 </html>
