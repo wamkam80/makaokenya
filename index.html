@@ -92,7 +92,8 @@
     <section id="view-home" hidden>
       <div class="relative overflow-hidden bg-slate-950">
         <div id="heroArt" class="absolute inset-0"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/45 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-slate-950/10"></div>
+        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/60 to-transparent"></div>
         <div class="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:pb-24 sm:pt-20">
           <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-white drop-shadow sm:text-6xl">Rentals. Homes. Land.<br><span class="text-emerald-400">Verified landlords.</span></h1>
           <p class="mt-3 max-w-xl text-base text-slate-200 sm:text-lg">Find a home in Kenya directly from verified landlords and agents. Check the badge before you pay anything.</p>
@@ -138,10 +139,14 @@
           <div id="homeAreas" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
         </section>
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white lg:grid lg:grid-cols-3">
+          <div class="relative h-56 lg:order-last lg:h-auto">
+            <img data-photo src="https://images.unsplash.com/photo-1647616927583-1d44a79a38a5?w=900&q=70&auto=format&fit=crop" alt="A young Kenyan family at home" loading="lazy" class="absolute inset-0 h-full w-full object-cover" onerror="this.parentElement.hidden=true">
+          </div>
+          <div class="p-6 sm:p-8 lg:col-span-2">
           <h2 class="text-2xl font-extrabold">How TrueHome Kenya keeps you safe</h2>
           <p class="mt-1 text-slate-600">House-hunting scams cost Kenyans thousands of shillings every month. Here's how we stop them.</p>
-          <div class="mt-6 grid gap-6 sm:grid-cols-3">
+          <div class="mt-6 grid gap-6 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             <div><div class="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-id-card"></i></div>
               <h3 class="mt-3 font-bold">We check who they are</h3><p class="mt-1 text-sm text-slate-600">Verified landlords sent us their National ID and title deed, checked against an official land search. Agents are checked on the EARB register.</p></div>
             <div><div class="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-qrcode"></i></div>
@@ -150,10 +155,13 @@
               <h3 class="mt-3 font-bold">Scammers get banned</h3><p class="mt-1 text-sm text-slate-600">Report a listing with one tap. We remove fake listings and block the scammer and their phone numbers.</p></div>
           </div>
           <p class="mt-6 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"><i class="fa-solid fa-triangle-exclamation"></i> <strong>Golden rule:</strong> never pay a deposit or "viewing fee" before you've seen the house and confirmed who owns it.</p>
+          </div>
         </section>
 
         <section class="overflow-hidden rounded-2xl bg-slate-950 text-white sm:grid sm:grid-cols-2">
-          <div class="h-48 sm:h-auto" id="homeLandlordArt"></div>
+          <div class="relative h-64 sm:h-auto" id="homeLandlordArt">
+            <img data-photo src="https://images.unsplash.com/photo-1666866834805-8cc91d4774ac?w=1000&q=70&auto=format&fit=crop" alt="A smiling Kenyan property agent" loading="lazy" class="absolute inset-0 h-full w-full object-cover object-top">
+          </div>
           <div class="p-6 sm:p-10">
             <h2 class="text-2xl font-extrabold sm:text-3xl">Are you a landlord or agent?</h2>
             <p class="mt-2 text-slate-300">List your property free, get the Verified badge, and get messages from tenants straight on WhatsApp. No middlemen, no commission.</p>
@@ -452,7 +460,7 @@
             <li><strong>Brevo</strong>: sends sign-in emails (European Union).</li>
             <li><strong>GitHub Pages</strong>: hosts the website (United States).</li>
             <li><strong>Cloudflare</strong>: runs our domain and email forwarding, and counts visits anonymously (Web Analytics).</li>
-            <li><strong>OpenStreetMap</strong> and content delivery networks (jsDelivr, unpkg, cdnjs, Tailwind): deliver maps and website code; they see your IP address when your browser loads them.</li>
+            <li><strong>OpenStreetMap</strong>, <strong>Unsplash</strong> (front-page photos) and content delivery networks (jsDelivr, unpkg, cdnjs, Tailwind): deliver maps and website code; they see your IP address when your browser loads them.</li>
           </ul>
           <p>Because these providers are outside Kenya, your data is transferred abroad. We use providers that apply strong security and data-protection safeguards, as required by Part VI of the Data Protection Act.</p>
           <p>We may also share information with the police or other authorities when the law requires it, or to report suspected fraud.</p>
@@ -631,7 +639,7 @@
   </main>
 
   <footer class="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500">
-    © <span id="year"></span> TrueHome Kenya · <a href="#terms" class="underline hover:text-slate-700">Terms of Use</a> · <a href="#privacy" class="underline hover:text-slate-700">Privacy Policy</a> · <span id="modeNote"></span>
+    © <span id="year"></span> TrueHome Kenya · <a href="#terms" class="underline hover:text-slate-700">Terms of Use</a> · <a href="#privacy" class="underline hover:text-slate-700">Privacy Policy</a> · Photos: <a href="https://unsplash.com/@kennymurgor" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-700">Kenny Murgor</a>, <a href="https://unsplash.com/@iamtru" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-700">Trust Katsande</a>, <a href="https://unsplash.com/@raystudiosgh" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-700">Raymond Owusu-Afriyie</a> on Unsplash · <span id="modeNote"></span>
     <button id="resetDemoBtn" data-action="reset-demo" class="underline hover:text-slate-700">Reset demo data</button>
   </footer>
 
@@ -2777,8 +2785,13 @@
     function renderHome() {
       if (!$('#homeCats')) return;
       if (!$('#heroArt').innerHTML) {
-        $('#heroArt').innerHTML = ART.hero();
-        $('#homeLandlordArt').innerHTML = ART.landlord();
+        // Real photo of Nairobi; if it can't load, show the drawing instead
+        const base = 'https://images.unsplash.com/photo-1693902997450-7e912c0d3554?q=70&auto=format&fit=crop';
+        $('#heroArt').innerHTML = `<img src="${base}&w=1600" srcset="${base}&w=800 800w, ${base}&w=1400 1400w, ${base}&w=2200 2200w" sizes="100vw" alt="Nairobi skyline with KICC" class="h-full w-full object-cover object-center" data-photo>`;
+        $('#heroArt img').addEventListener('error', () => { $('#heroArt').innerHTML = ART.hero(); });
+        const agent = $('#homeLandlordArt img');
+        if (agent) agent.addEventListener('error', () => { $('#homeLandlordArt').innerHTML = ART.landlord(); });
+        else if (!$('#homeLandlordArt').innerHTML.trim()) $('#homeLandlordArt').innerHTML = ART.landlord();
         setHeroTab(heroTab);
       }
       const live = listings.filter(isLive);
