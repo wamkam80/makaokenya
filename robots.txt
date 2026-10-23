@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /list.html
 Disallow: /supabase/
+Disallow: /scripts/
 
 Sitemap: https://truehomekenya.com/sitemap.xml
