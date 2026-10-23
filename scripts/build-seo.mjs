@@ -138,7 +138,7 @@ function cardHTML(l) {
 function listingPage(l, similar) {
   const ps = photosOf(l);
   const appLink = `/#l/${encodeURIComponent(l.id)}`;
-  const desc = `${typeLabel(l)} ${l.purpose === 'rent' ? 'for rent' : 'for sale'} in ${l.location}, ${l.county}: ${priceText(l)}. ${l.type === 'land' || l.type === 'commercial' ? '' : (l.beds > 0 ? l.beds + ' bedroom' : 'Studio') + ', ' + l.baths + ' bathroom. '}${l.owner_verified ? 'Verified lister. ' : ''}Contact the ${l.role || 'lister'} directly on WhatsApp.`;
+  const desc = `${typeLabel(l)} ${l.purpose === 'rent' ? 'for rent' : 'for sale'} in ${l.location}, ${l.county}: ${priceText(l)}. ${l.landmarks ? l.landmarks + '. ' : ''}${l.type === 'land' || l.type === 'commercial' ? '' : (l.beds > 0 ? l.beds + ' bedroom' : 'Studio') + ', ' + l.baths + ' bathroom. '}${l.owner_verified ? 'Verified lister. ' : ''}Contact the ${l.role || 'lister'} directly on WhatsApp.`;
   const features = FEATURE_GROUPS.map((g) => ({ ...g, items: g.items.filter(([k]) => (l.features || []).includes(k)) })).filter((g) => g.items.length);
   const isLand = l.type === 'land' || l.type === 'commercial';
   const jsonld = {
@@ -169,6 +169,8 @@ function listingPage(l, similar) {
         <p class="mt-1 text-3xl font-extrabold">${esc(priceText(l))}</p>
         <h1 class="mt-1 text-2xl font-bold">${esc(l.title)}</h1>
         <p class="mt-1 text-slate-600"><i class="fa-solid fa-location-dot text-emerald-600"></i> ${esc(l.location)}, ${esc(l.county)} County</p>
+        ${l.landmarks ? `<p class="mt-1 text-sm text-slate-500"><i class="fa-solid fa-signs-post"></i> ${esc(l.landmarks)}</p>` : ''}
+        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=${l.lat},${l.lng}" rel="noopener" target="_blank" class="mt-1 inline-block text-sm font-semibold text-emerald-700 underline">Get directions</a>
         <ul class="mt-5 flex flex-wrap gap-3 text-sm">
           ${isLand ? '' : `<li class="rounded-lg border border-slate-200 bg-white px-3 py-2"><strong>${l.beds > 0 ? l.beds : 'Studio'}</strong> bedrooms</li><li class="rounded-lg border border-slate-200 bg-white px-3 py-2"><strong>${l.baths}</strong> bathrooms</li>`}
           <li class="rounded-lg border border-slate-200 bg-white px-3 py-2"><strong>${esc(typeLabel(l))}</strong></li>

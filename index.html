@@ -65,7 +65,7 @@
       </a>
       <nav class="hidden gap-1 md:flex">
         <a href="#browse" data-nav="browse" class="navlink"><i class="fa-solid fa-magnifying-glass mr-1"></i> Browse</a>
-        <a href="#check" data-nav="check" class="navlink"><i class="fa-solid fa-qrcode mr-1"></i> Check a badge</a>
+        <a href="#phone" data-nav="phone" class="navlink"><i class="fa-solid fa-user-check mr-1"></i> Check a landlord</a>
         <a href="#verify" data-nav="verify" class="navlink"><i class="fa-solid fa-shield-halved mr-1"></i> Get verified</a>
         <a href="#mine" data-nav="mine" class="navlink"><i class="fa-solid fa-list-check mr-1"></i> My listings</a>
         <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink"><i class="fa-solid fa-user-shield mr-1"></i> Admin</a>
@@ -80,7 +80,7 @@
     <nav class="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-1 md:hidden">
       <a href="#browse" data-nav="browse" class="navlink">Browse</a>
       <a href="#list" data-nav="list" class="navlink">List a property</a>
-      <a href="#check" data-nav="check" class="navlink">Check a badge</a>
+      <a href="#phone" data-nav="phone" class="navlink">Check a landlord</a>
       <a href="#verify" data-nav="verify" class="navlink">Get verified</a>
       <a href="#mine" data-nav="mine" class="navlink">My listings</a>
       <a href="#admin" data-nav="admin" data-admin-link hidden class="navlink">Admin</a>
@@ -113,7 +113,21 @@
             <span><i class="fa-solid fa-shield-halved text-emerald-400"></i> ID and title-deed checks</span>
             <span><i class="fa-brands fa-whatsapp text-emerald-400"></i> Talk to landlords directly</span>
             <span><i class="fa-solid fa-ban text-emerald-400"></i> Scammers banned</span>
+            <a href="#phone" class="font-semibold text-white underline decoration-emerald-400 underline-offset-4"><i class="fa-solid fa-user-check text-emerald-400"></i> Check a landlord's number</a>
           </div>
+        </div>
+      </div>
+
+      <div class="border-b border-emerald-100 bg-emerald-50">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p class="text-lg font-extrabold text-emerald-900"><i class="fa-solid fa-user-check"></i> Found a house on Facebook or WhatsApp?</p>
+            <p class="text-sm text-emerald-900/80">Check the landlord's phone number before you pay anything. It's free.</p>
+          </div>
+          <form id="homePhoneForm" class="flex w-full gap-2 md:w-auto">
+            <input id="homePhone" type="tel" inputmode="tel" class="inp md:w-64" placeholder="e.g. 0712 345 678" aria-label="Landlord's phone number">
+            <button type="submit" class="btn btn-primary shrink-0">Check</button>
+          </form>
         </div>
       </div>
 
@@ -343,9 +357,23 @@
 
         <fieldset class="space-y-3">
           <legend class="mb-2 font-semibold">Location</legend>
-          <select id="lfLocation" class="inp" required aria-label="Area"></select>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="lbl" for="lfLocation">Estate or area</label>
+              <input id="lfLocation" class="inp" required minlength="2" maxlength="60" list="areaList" autocomplete="off" placeholder="e.g. Githurai 45, Kahawa West, Nyali">
+              <datalist id="areaList"></datalist>
+            </div>
+            <div>
+              <label class="lbl" for="lfCounty">County</label>
+              <select id="lfCounty" class="inp" required></select>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="lfLandmarks">Landmarks and directions <span class="font-normal text-slate-400">(helps tenants find it)</span></label>
+            <input id="lfLandmarks" class="inp" maxlength="200" placeholder="e.g. Behind Quickmart, 5 minutes' walk from the Ruaka stage">
+          </div>
           <div id="formMap" class="relative z-0 h-64 rounded-lg border border-slate-200"></div>
-          <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot"></i> Tap the map or drag the pin to mark the exact spot.</p>
+          <p id="pinHint" class="text-xs text-slate-500"><i class="fa-solid fa-location-dot"></i> Tap the map or drag the pin onto the exact building. Tenants use this pin to find the house.</p>
         </fieldset>
 
         <fieldset class="space-y-3">
@@ -398,6 +426,10 @@
     </section>
 
     <!-- ========== CHECK A BADGE ========== -->
+    <section id="view-phone" hidden class="mx-auto max-w-2xl px-4 py-6">
+      <div id="phoneBody"></div>
+    </section>
+
     <section id="view-check" hidden class="mx-auto max-w-2xl px-4 py-6">
       <div id="checkBody"></div>
     </section>
@@ -440,6 +472,7 @@
           <h2 class="text-lg font-bold text-slate-900">2. What we collect</h2>
           <ul class="list-disc space-y-1 pl-5">
             <li><strong>Browsing the site:</strong> no account is needed. We don't use advertising or tracking cookies. Your browser stores a few settings on your own device (for example, listings you've reported or viewed today).</li>
+            <li><strong>Phone number check:</strong> anyone can type a phone number under "Check a landlord" to see whether it belongs to a verified lister, a lister who isn't verified yet, or a number we have blocked. We only answer for numbers that listers themselves published on the site, and we don't record who checked which number.</li>
             <li><strong>Visit statistics:</strong> we count page visits with Cloudflare Web Analytics, which uses no cookies and doesn't identify or follow individual visitors. We also count how many times each listing is opened, so listers can see how many views they get. These counts contain no personal data.</li>
             <li><strong>Account:</strong> your email address, used to send you sign-in links.</li>
             <li><strong>Listings:</strong> property details, photos, location, and the contact name, role and phone number you choose to publish. <em>These are public</em>, so anyone can see them.</li>
@@ -978,6 +1011,8 @@
     })();
 
 
+    // Common estates and towns (suggestions only: landlords can type any estate). Coordinates are approximate
+    // and only used to centre the map; the landlord's own pin is what's saved.
     const LOCATIONS = [
       { name: 'Westlands',        county: 'Nairobi',     lat: -1.2676, lng: 36.8108 },
       { name: 'Kilimani',         county: 'Nairobi',     lat: -1.2921, lng: 36.7856 },
@@ -995,9 +1030,129 @@
       { name: 'Nyali',            county: 'Mombasa',     lat: -4.0220, lng: 39.7100 },
       { name: 'Milimani, Kisumu', county: 'Kisumu',      lat: -0.1030, lng: 34.7540 },
       { name: 'Milimani, Nakuru', county: 'Nakuru',      lat: -0.2830, lng: 36.0660 },
-      { name: 'Elgon View',       county: 'Uasin Gishu', lat:  0.5100, lng: 35.2800 }
+      { name: 'Elgon View',       county: 'Uasin Gishu', lat:  0.5100, lng: 35.2800 },
+      // Nairobi
+      { name: 'Upper Hill', county: 'Nairobi', lat: -1.2990, lng: 36.8150 },
+      { name: 'Hurlingham', county: 'Nairobi', lat: -1.2960, lng: 36.7950 },
+      { name: 'Parklands', county: 'Nairobi', lat: -1.2610, lng: 36.8170 },
+      { name: 'Ngara', county: 'Nairobi', lat: -1.2760, lng: 36.8230 },
+      { name: 'Pangani', county: 'Nairobi', lat: -1.2690, lng: 36.8390 },
+      { name: 'Eastleigh', county: 'Nairobi', lat: -1.2740, lng: 36.8480 },
+      { name: 'Runda', county: 'Nairobi', lat: -1.2180, lng: 36.8090 },
+      { name: 'Muthaiga', county: 'Nairobi', lat: -1.2440, lng: 36.8300 },
+      { name: 'Gigiri', county: 'Nairobi', lat: -1.2330, lng: 36.8030 },
+      { name: 'Spring Valley', county: 'Nairobi', lat: -1.2480, lng: 36.7900 },
+      { name: 'Loresho', county: 'Nairobi', lat: -1.2550, lng: 36.7600 },
+      { name: 'Kitisuru', county: 'Nairobi', lat: -1.2300, lng: 36.7800 },
+      { name: 'Garden Estate', county: 'Nairobi', lat: -1.2290, lng: 36.8450 },
+      { name: 'Thome', county: 'Nairobi', lat: -1.2160, lng: 36.8650 },
+      { name: 'Langata', county: 'Nairobi', lat: -1.3400, lng: 36.7650 },
+      { name: 'South C', county: 'Nairobi', lat: -1.3200, lng: 36.8270 },
+      { name: 'Madaraka', county: 'Nairobi', lat: -1.3090, lng: 36.8180 },
+      { name: 'Nairobi West', county: 'Nairobi', lat: -1.3050, lng: 36.8160 },
+      { name: 'Imara Daima', county: 'Nairobi', lat: -1.3290, lng: 36.8800 },
+      { name: 'Pipeline', county: 'Nairobi', lat: -1.3150, lng: 36.8950 },
+      { name: 'Fedha', county: 'Nairobi', lat: -1.3130, lng: 36.9000 },
+      { name: 'Tassia', county: 'Nairobi', lat: -1.3080, lng: 36.9080 },
+      { name: 'Utawala', county: 'Nairobi', lat: -1.2850, lng: 36.9600 },
+      { name: 'Ruai', county: 'Nairobi', lat: -1.2650, lng: 37.0000 },
+      { name: 'Donholm', county: 'Nairobi', lat: -1.2950, lng: 36.8900 },
+      { name: 'Buruburu', county: 'Nairobi', lat: -1.2850, lng: 36.8750 },
+      { name: 'Umoja', county: 'Nairobi', lat: -1.2830, lng: 36.8950 },
+      { name: 'Kayole', county: 'Nairobi', lat: -1.2750, lng: 36.9150 },
+      { name: 'Dandora', county: 'Nairobi', lat: -1.2550, lng: 36.9000 },
+      { name: 'Kariobangi', county: 'Nairobi', lat: -1.2550, lng: 36.8800 },
+      { name: 'Zimmerman', county: 'Nairobi', lat: -1.2100, lng: 36.8950 },
+      { name: 'Githurai 44', county: 'Nairobi', lat: -1.1950, lng: 36.9150 },
+      { name: 'Kahawa West', county: 'Nairobi', lat: -1.1850, lng: 36.8900 },
+      { name: 'Kahawa Wendani', county: 'Kiambu', lat: -1.1800, lng: 36.9300 },
+      { name: 'Kahawa Sukari', county: 'Kiambu', lat: -1.1950, lng: 36.9350 },
+      { name: 'Mountain View', county: 'Nairobi', lat: -1.2600, lng: 36.7400 },
+      { name: 'Kangemi', county: 'Nairobi', lat: -1.2650, lng: 36.7500 },
+      { name: 'Kawangware', county: 'Nairobi', lat: -1.2850, lng: 36.7500 },
+      { name: 'Dagoretti', county: 'Nairobi', lat: -1.2950, lng: 36.7300 },
+      { name: 'Riruta', county: 'Nairobi', lat: -1.2900, lng: 36.7400 },
+      { name: 'Uthiru', county: 'Kiambu', lat: -1.2650, lng: 36.7150 },
+      { name: 'Kibera', county: 'Nairobi', lat: -1.3130, lng: 36.7880 },
+      { name: 'Nairobi CBD', county: 'Nairobi', lat: -1.2864, lng: 36.8172 },
+      // Kiambu
+      { name: 'Ruiru', county: 'Kiambu', lat: -1.1460, lng: 36.9610 },
+      { name: 'Juja', county: 'Kiambu', lat: -1.1020, lng: 37.0140 },
+      { name: 'Githurai 45', county: 'Kiambu', lat: -1.1950, lng: 36.9250 },
+      { name: 'Membley', county: 'Kiambu', lat: -1.1650, lng: 36.9450 },
+      { name: 'Tatu City', county: 'Kiambu', lat: -1.1600, lng: 36.9000 },
+      { name: 'Kiambu Town', county: 'Kiambu', lat: -1.1714, lng: 36.8356 },
+      { name: 'Banana Hill', county: 'Kiambu', lat: -1.1800, lng: 36.7500 },
+      { name: 'Gachie', county: 'Kiambu', lat: -1.2150, lng: 36.7700 },
+      { name: 'Kikuyu', county: 'Kiambu', lat: -1.2460, lng: 36.6630 },
+      { name: 'Kinoo', county: 'Kiambu', lat: -1.2550, lng: 36.6900 },
+      { name: 'Regen', county: 'Kiambu', lat: -1.2500, lng: 36.6750 },
+      { name: 'Limuru', county: 'Kiambu', lat: -1.1130, lng: 36.6420 },
+      { name: 'Lower Kabete', county: 'Kiambu', lat: -1.2450, lng: 36.7400 },
+      // Machakos / Kajiado
+      { name: 'Mlolongo', county: 'Machakos', lat: -1.3900, lng: 36.9400 },
+      { name: 'Athi River', county: 'Machakos', lat: -1.4560, lng: 36.9780 },
+      { name: 'Machakos Town', county: 'Machakos', lat: -1.5177, lng: 37.2634 },
+      { name: 'Ongata Rongai', county: 'Kajiado', lat: -1.3960, lng: 36.7600 },
+      { name: 'Kiserian', county: 'Kajiado', lat: -1.4300, lng: 36.6900 },
+      { name: 'Ngong', county: 'Kajiado', lat: -1.3600, lng: 36.6550 },
+      { name: 'Kajiado Town', county: 'Kajiado', lat: -1.8524, lng: 36.7768 },
+      // Coast
+      { name: 'Bamburi', county: 'Mombasa', lat: -3.9900, lng: 39.7200 },
+      { name: 'Shanzu', county: 'Mombasa', lat: -3.9500, lng: 39.7450 },
+      { name: 'Kizingo', county: 'Mombasa', lat: -4.0700, lng: 39.6700 },
+      { name: 'Tudor', county: 'Mombasa', lat: -4.0450, lng: 39.6750 },
+      { name: 'Likoni', county: 'Mombasa', lat: -4.0850, lng: 39.6600 },
+      { name: 'Bombolulu', county: 'Mombasa', lat: -4.0100, lng: 39.7000 },
+      { name: 'Mombasa CBD', county: 'Mombasa', lat: -4.0600, lng: 39.6650 },
+      { name: 'Mtwapa', county: 'Kilifi', lat: -3.9400, lng: 39.7450 },
+      { name: 'Kilifi Town', county: 'Kilifi', lat: -3.6305, lng: 39.8499 },
+      { name: 'Malindi', county: 'Kilifi', lat: -3.2190, lng: 40.1170 },
+      { name: 'Watamu', county: 'Kilifi', lat: -3.3540, lng: 40.0190 },
+      { name: 'Diani', county: 'Kwale', lat: -4.2800, lng: 39.5900 },
+      // Western, Nyanza, Rift Valley
+      { name: 'Mamboleo', county: 'Kisumu', lat: -0.0700, lng: 34.7900 },
+      { name: 'Nyalenda', county: 'Kisumu', lat: -0.1100, lng: 34.7750 },
+      { name: 'Kondele', county: 'Kisumu', lat: -0.0850, lng: 34.7700 },
+      { name: 'Kisumu CBD', county: 'Kisumu', lat: -0.0917, lng: 34.7680 },
+      { name: 'Section 58', county: 'Nakuru', lat: -0.2900, lng: 36.0800 },
+      { name: 'Lanet', county: 'Nakuru', lat: -0.3000, lng: 36.1400 },
+      { name: 'Nakuru CBD', county: 'Nakuru', lat: -0.3031, lng: 36.0800 },
+      { name: 'Naivasha', county: 'Nakuru', lat: -0.7170, lng: 36.4310 },
+      { name: 'Kapsoya', county: 'Uasin Gishu', lat: 0.5050, lng: 35.3000 },
+      { name: 'Pioneer', county: 'Uasin Gishu', lat: 0.5350, lng: 35.2900 },
+      { name: 'Eldoret CBD', county: 'Uasin Gishu', lat: 0.5143, lng: 35.2698 },
+      { name: 'Kakamega Town', county: 'Kakamega', lat: 0.2827, lng: 34.7519 },
+      { name: 'Kisii Town', county: 'Kisii', lat: -0.6817, lng: 34.7666 },
+      { name: 'Kitale', county: 'Trans Nzoia', lat: 1.0157, lng: 35.0062 },
+      { name: 'Kericho Town', county: 'Kericho', lat: -0.3689, lng: 35.2863 },
+      { name: 'Bungoma Town', county: 'Bungoma', lat: 0.5635, lng: 34.5606 },
+      // Central and Eastern
+      { name: 'Nyeri Town', county: 'Nyeri', lat: -0.4201, lng: 36.9476 },
+      { name: 'Nanyuki', county: 'Laikipia', lat: 0.0174, lng: 37.0740 },
+      { name: 'Meru Town', county: 'Meru', lat: 0.0470, lng: 37.6496 },
+      { name: 'Embu Town', county: 'Embu', lat: -0.5389, lng: 37.4596 },
+      { name: "Murang'a Town", county: "Murang'a", lat: -0.7210, lng: 37.1526 },
+      { name: 'Kerugoya', county: 'Kirinyaga', lat: -0.4990, lng: 37.2803 },
+      { name: 'Kitui Town', county: 'Kitui', lat: -1.3667, lng: 38.0106 }
     ];
-    const COUNTIES = [...new Set(LOCATIONS.map((l) => l.county))];
+    // All 47 counties, with a point to centre the map on
+    const COUNTY_CENTERS = {
+      'Nairobi': [-1.2864, 36.8172], 'Mombasa': [-4.0435, 39.6682], 'Kwale': [-4.1816, 39.4606], 'Kilifi': [-3.6305, 39.8499],
+      'Tana River': [-1.4950, 40.0333], 'Lamu': [-2.2717, 40.9020], 'Taita-Taveta': [-3.3961, 38.5561], 'Garissa': [-0.4532, 39.6461],
+      'Wajir': [1.7471, 40.0573], 'Mandera': [3.9366, 41.8670], 'Marsabit': [2.3346, 37.9899], 'Isiolo': [0.3546, 37.5822],
+      'Meru': [0.0470, 37.6496], 'Tharaka-Nithi': [-0.3333, 37.6500], 'Embu': [-0.5389, 37.4596], 'Kitui': [-1.3667, 38.0106],
+      'Machakos': [-1.5177, 37.2634], 'Makueni': [-1.8038, 37.6200], 'Nyandarua': [-0.2700, 36.3800], 'Nyeri': [-0.4201, 36.9476],
+      'Kirinyaga': [-0.4990, 37.2803], "Murang'a": [-0.7210, 37.1526], 'Kiambu': [-1.1714, 36.8356], 'Turkana': [3.1191, 35.5973],
+      'West Pokot': [1.2389, 35.1119], 'Samburu': [1.0950, 36.6980], 'Trans Nzoia': [1.0157, 35.0062], 'Uasin Gishu': [0.5143, 35.2698],
+      'Elgeyo-Marakwet': [0.6780, 35.5080], 'Nandi': [0.2030, 35.1000], 'Baringo': [0.4919, 35.7430], 'Laikipia': [0.0174, 37.0740],
+      'Nakuru': [-0.3031, 36.0800], 'Narok': [-1.0783, 35.8601], 'Kajiado': [-1.8524, 36.7768], 'Kericho': [-0.3689, 35.2863],
+      'Bomet': [-0.7813, 35.3416], 'Kakamega': [0.2827, 34.7519], 'Vihiga': [0.0760, 34.7230], 'Bungoma': [0.5635, 34.5606],
+      'Busia': [0.4605, 34.1115], 'Siaya': [0.0612, 34.2881], 'Kisumu': [-0.0917, 34.7680], 'Homa Bay': [-0.5273, 34.4571],
+      'Migori': [-1.0634, 34.4731], 'Kisii': [-0.6817, 34.7666], 'Nyamira': [-0.5633, 34.9358]
+    };
+    const COUNTIES = ['Nairobi', ...Object.keys(COUNTY_CENTERS).filter((c) => c !== 'Nairobi').sort()];
+    const findArea = (n) => { const k = String(n || '').trim().toLowerCase(); return LOCATIONS.find((l) => l.name.toLowerCase() === k) || null; };
     const locByName = (n) => LOCATIONS.find((l) => l.name === n) || LOCATIONS[0];
 
     /* =====================================================================
@@ -1078,6 +1233,7 @@
         ownerCode: r.owner_code || null,
         views: Number(r.views) || 0,
         kind: r.kind || null,
+        landmarks: r.landmarks || '',
         features: Array.isArray(r.features) ? r.features : [],
         createdAt: new Date(r.created_at).getTime()
       };
@@ -1089,7 +1245,7 @@
         beds: d.beds, baths: d.baths, location: d.location, county: d.county,
         lat: d.lat, lng: d.lng, contact_name: d.contactName, role: d.role,
         phone: d.phone, description: d.description || null, photo_url: (d.photos && d.photos[0]) || d.photo || null, photos: d.photos || [],
-        kind: d.kind || null, features: d.features || []
+        kind: d.kind || null, features: d.features || [], landmarks: d.landmarks || null
       };
     }
 
@@ -1381,7 +1537,7 @@
     function filteredListings() {
       const f = getFilters();
       const out = listings.filter((l) => isLive(l) &&
-        (!f.q || [l.title, l.location, l.county, l.description].join(' ').toLowerCase().includes(f.q)) &&
+        (!f.q || [l.title, l.location, l.county, l.description, l.landmarks].join(' ').toLowerCase().includes(f.q)) &&
         (!f.purpose || l.purpose === f.purpose) &&
         (!f.type || l.type === f.type) &&
         (!f.county || l.county === f.county) &&
@@ -1730,6 +1886,7 @@
               <p class="mt-3 text-3xl font-extrabold sm:text-4xl">${esc(priceText(l))}</p>
               <h1 class="mt-1 text-xl font-semibold sm:text-2xl">${esc(l.title)}</h1>
               <p class="mt-1 text-slate-600"><i class="fa-solid fa-location-dot text-emerald-600"></i> ${esc(l.location)}, ${esc(l.county)} County</p>
+              ${l.landmarks ? `<p class="mt-1 text-sm text-slate-500"><i class="fa-solid fa-signs-post"></i> ${esc(l.landmarks)}</p>` : ''}
             </div>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">${facts}</div>
             ${l.description ? `<div><h2 class="text-xl font-bold">About this property</h2><p class="mt-2 whitespace-pre-line leading-relaxed text-slate-700">${esc(l.description)}</p></div>` : ''}
@@ -1737,6 +1894,8 @@
             <div>
               <h2 class="text-xl font-bold">Location</h2>
               <p class="mt-1 text-sm text-slate-600">${esc(l.location)}, ${esc(l.county)} County. The pin shows the spot the lister marked.</p>
+              ${l.landmarks ? `<p class="mt-2 rounded-lg bg-white p-3 text-sm ring-1 ring-slate-200"><i class="fa-solid fa-signs-post text-emerald-600"></i> <strong>Directions:</strong> ${esc(l.landmarks)}</p>` : ''}
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 underline"><i class="fa-solid fa-diamond-turn-right"></i> Get directions</a>
               <div id="lpMap" class="relative z-0 mt-3 h-72 overflow-hidden rounded-2xl border border-slate-200"></div>
             </div>
             <p class="rounded-xl bg-amber-50 p-4 text-sm text-amber-900"><i class="fa-solid fa-shield-halved"></i> <strong>Stay safe:</strong> never pay a deposit or viewing fee before visiting the property and confirming who owns it.${v ? '' : ' <strong>This lister has not been verified yet.</strong>'} <a href="#home" class="underline">How we keep you safe</a></p>
@@ -1875,15 +2034,38 @@
 
     function ensureFormMap() {
       if (!formMap) {
-        const start = LOCATIONS[0];
-        formMap = L.map('formMap').setView([start.lat, start.lng], 14);
+        const start = { lat: COUNTY_CENTERS.Nairobi[0], lng: COUNTY_CENTERS.Nairobi[1] };
+        formMap = L.map('formMap').setView([start.lat, start.lng], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
         }).addTo(formMap);
         formMarker = L.marker([start.lat, start.lng], { draggable: true }).addTo(formMap);
-        formMap.on('click', (e) => formMarker.setLatLng(e.latlng));
+        formMap.on('click', (e) => { formMarker.setLatLng(e.latlng); pinPlaced(); });
+        formMarker.on('dragend', pinPlaced);
       }
       setTimeout(() => formMap.invalidateSize(), 60);
+    }
+
+    let pinTouched = false;
+    function pinPlaced() {
+      pinTouched = true;
+      $('#pinHint').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> Pin placed. Drag it again if it isn\'t exactly on the building.';
+      $('#pinHint').className = 'text-xs font-medium text-emerald-700';
+    }
+    function resetPinHint() {
+      pinTouched = false;
+      $('#pinHint').innerHTML = '<i class="fa-solid fa-location-dot"></i> Tap the map or drag the pin onto the exact building. Tenants use this pin to find the house.';
+      $('#pinHint').className = 'text-xs text-slate-500';
+    }
+    // When the landlord types a known estate, or changes county, move the map there (unless they've placed the pin)
+    function syncAreaToMap() {
+      const a = findArea($('#lfLocation').value);
+      if (a) { $('#lfCounty').value = a.county; if (!pinTouched) moveFormPin(a.lat, a.lng, 15); return; }
+    }
+    function syncCountyToMap() {
+      const c = COUNTY_CENTERS[$('#lfCounty').value];
+      const a = findArea($('#lfLocation').value);
+      if (c && !pinTouched && !(a && a.county === $('#lfCounty').value)) moveFormPin(c[0], c[1], 12);
     }
 
     function moveFormPin(lat, lng, zoom = 14) {
@@ -1986,9 +2168,11 @@
       $('#formHeading').textContent = 'List a property';
       $('#lfSubmit').innerHTML = SUBMIT_NEW;
       renderFormFeatures('', []);
-      const loc = LOCATIONS[0];
-      $('#lfLocation').value = loc.name;
-      moveFormPin(loc.lat, loc.lng);
+      $('#lfLocation').value = '';
+      $('#lfCounty').value = 'Nairobi';
+      $('#lfLandmarks').value = '';
+      moveFormPin(COUNTY_CENTERS.Nairobi[0], COUNTY_CENTERS.Nairobi[1], 12);
+      resetPinHint();
     }
 
     function fillForm(l) {
@@ -1999,6 +2183,9 @@
       $('#lfBeds').value = l.beds;
       $('#lfBaths').value = l.baths;
       $('#lfLocation').value = l.location;
+      if (!COUNTY_CENTERS[l.county]) $('#lfCounty').insertAdjacentHTML('beforeend', `<option value="${esc(l.county)}">${esc(l.county)}</option>`);
+      $('#lfCounty').value = l.county;
+      $('#lfLandmarks').value = l.landmarks || '';
       $('#lfContact').value = l.contactName;
       $('#lfRole').value = l.role;
       $('#lfPhone').value = '0' + String(l.phone).slice(3);
@@ -2012,6 +2199,7 @@
       $('#formHeading').textContent = 'Edit listing';
       $('#lfSubmit').innerHTML = SUBMIT_EDIT;
       moveFormPin(l.lat, l.lng, 15);
+      pinPlaced();
     }
 
     function compressImage(file, maxW = 1200, quality = 0.75) {
@@ -2401,8 +2589,137 @@
     let checkTimer = null;
     let checkCode = null;
 
+    /* ---------- Check a landlord's phone number ---------- */
+    const checkTabsHTML = (active) => `
+      <div class="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 text-sm font-semibold">
+        <a href="#phone" class="rounded-lg px-3 py-2 text-center ${active === 'phone' ? 'bg-white shadow' : 'text-slate-600 hover:text-slate-900'}"><i class="fa-solid fa-phone"></i> Phone number</a>
+        <a href="#check" class="rounded-lg px-3 py-2 text-center ${active === 'badge' ? 'bg-white shadow' : 'text-slate-600 hover:text-slate-900'}"><i class="fa-solid fa-qrcode"></i> Badge code</a>
+      </div>`;
+    const SAFETY_STEPS = `
+      <ul class="mt-3 space-y-1.5 text-sm text-slate-700">
+        <li><i class="fa-solid fa-house-circle-check w-5 text-emerald-600"></i> View the house in person before paying anything.</li>
+        <li><i class="fa-solid fa-id-card w-5 text-emerald-600"></i> Ask for ID and the title deed or the owner's letter, and check the names match the M-Pesa name.</li>
+        <li><i class="fa-solid fa-hand w-5 text-red-500"></i> Never pay "viewing" or "booking" fees.</li>
+        <li><i class="fa-solid fa-book-open w-5 text-emerald-600"></i> <a href="/guides/how-to-avoid-rental-scams-in-kenya/" class="font-semibold text-emerald-700 underline">How to avoid rental scams</a></li>
+      </ul>`;
+
+    function phoneFormHTML(prefill, error) {
+      return `${checkTabsHTML('phone')}
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-user-check"></i></div>
+          <h1 class="mt-3 text-center text-2xl font-extrabold">Check a landlord or agent</h1>
+          <p class="mt-1 text-center text-sm text-slate-600">Found a house on Facebook, WhatsApp or anywhere else? Type the landlord's or agent's phone number to see if they're verified on TrueHome Kenya.</p>
+          <form id="phoneForm" class="mt-5 flex gap-2">
+            <input id="pcPhone" type="tel" inputmode="tel" class="inp" required autocomplete="off" placeholder="e.g. 0712 345 678" value="${esc(prefill || '')}" aria-label="Phone number">
+            <button type="submit" class="btn btn-primary shrink-0"><i class="fa-solid fa-magnifying-glass"></i> Check</button>
+          </form>
+          ${error ? `<p class="mt-2 text-sm font-medium text-red-600">${esc(error)}</p>` : ''}
+          <p class="mt-4 text-xs text-slate-500">We only show whether a number belongs to a verified lister on our site. We never show who looked a number up.</p>
+        </div>`;
+    }
+
+    function phoneResultHTML(phone, res, items) {
+      const shown = fmtPhone(phone);
+      const again = '<div class="mt-5 text-center"><a href="#phone" class="btn btn-ghost"><i class="fa-solid fa-rotate-left"></i> Check another number</a></div>';
+      const cards = items.length ? `<div class="mt-5"><p class="mb-2 text-sm font-semibold">Their listings on TrueHome Kenya</p><div class="grid gap-3 sm:grid-cols-2">${items.slice(0, 4).map(cardHTML).join('')}</div></div>` : '';
+      const invite = encodeURIComponent("Hi, I saw your house advert. Are you verified on TrueHome Kenya? You can list your property free and get the Verified badge at " + siteBase());
+      if (res.status === 'verified') {
+        return `${checkTabsHTML('phone')}
+          <div class="overflow-hidden rounded-2xl border-2 border-emerald-500 bg-white">
+            <div class="bg-emerald-600 p-5 text-center text-white">
+              <i class="fa-solid fa-circle-check text-4xl"></i>
+              <p class="mt-2 text-2xl font-extrabold">VERIFIED LISTER</p>
+              <p class="font-mono">${esc(shown)}</p>
+            </div>
+            <div class="p-5">
+              <p>This number belongs to <strong>${esc(res.name || 'a verified lister')}</strong>, whose National ID and ownership documents we checked.${res.code ? ` Their badge code is <a href="#v/${encodeURIComponent(res.code)}" class="font-mono font-semibold text-emerald-700 underline">${esc(res.code)}</a>.` : ''}</p>
+              <p class="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"><i class="fa-solid fa-shield-halved"></i> Verified means lower risk, not zero risk. Still view the house and make sure you're dealing with this person before paying.</p>
+              ${cards}
+            </div>
+          </div>${again}`;
+      }
+      if (res.status === 'blocked') {
+        return `${checkTabsHTML('phone')}
+          <div class="overflow-hidden rounded-2xl border-2 border-red-500 bg-white">
+            <div class="bg-red-600 p-5 text-center text-white">
+              <i class="fa-solid fa-ban text-4xl"></i>
+              <p class="mt-2 text-2xl font-extrabold">BLOCKED ON TRUEHOME</p>
+              <p class="font-mono">${esc(shown)}</p>
+            </div>
+            <div class="p-5">
+              <p>We blocked this number from listing on TrueHome Kenya after reviewing reports about it.</p>
+              <p class="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-900"><i class="fa-solid fa-triangle-exclamation"></i> Be very careful. Don't send any money or personal documents to this number.</p>
+              ${SAFETY_STEPS}
+              <p class="mt-3 text-sm text-slate-600">Lost money already? Contact your mobile money provider and the police straight away.</p>
+            </div>
+          </div>${again}`;
+      }
+      if (res.status === 'listed') {
+        return `${checkTabsHTML('phone')}
+          <div class="overflow-hidden rounded-2xl border-2 border-amber-400 bg-white">
+            <div class="bg-amber-400 p-5 text-center text-amber-950">
+              <i class="fa-regular fa-circle-question text-4xl"></i>
+              <p class="mt-2 text-2xl font-extrabold">NOT VERIFIED YET</p>
+              <p class="font-mono">${esc(shown)}</p>
+            </div>
+            <div class="p-5">
+              <p>This number has ${Number(res.listings) === 1 ? 'a listing' : esc(res.listings) + ' listings'} on TrueHome Kenya, but the lister hasn't been verified yet. That doesn't mean they're a scammer, only that we haven't checked their documents.</p>
+              ${SAFETY_STEPS}
+              ${cards}
+            </div>
+          </div>${again}`;
+      }
+      return `${checkTabsHTML('phone')}
+        <div class="overflow-hidden rounded-2xl border border-slate-300 bg-white">
+          <div class="bg-slate-100 p-5 text-center">
+            <i class="fa-solid fa-magnifying-glass text-4xl text-slate-500"></i>
+            <p class="mt-2 text-2xl font-extrabold">NOT ON TRUEHOME</p>
+            <p class="font-mono text-slate-600">${esc(shown)}</p>
+          </div>
+          <div class="p-5">
+            <p>We don't know this number yet. That's normal: most landlords aren't on TrueHome Kenya yet. It's not a sign of a scam, but it means we can't vouch for them.</p>
+            ${SAFETY_STEPS}
+            <a href="https://wa.me/${phone}?text=${invite}" target="_blank" rel="noopener noreferrer" class="btn mt-4 w-full bg-[#25D366] text-white hover:brightness-95"><i class="fa-brands fa-whatsapp text-lg"></i> Ask them to get verified on TrueHome</a>
+          </div>
+        </div>${again}`;
+    }
+
+    let phoneCheckSeq = 0;
+    async function renderPhoneCheck(raw) {
+      const body = $('#phoneBody');
+      if (!raw) { body.innerHTML = phoneFormHTML(''); return; }
+      const phone = normPhone(raw);
+      if (!phone) { body.innerHTML = phoneFormHTML(raw, 'That doesn\'t look like a Kenyan mobile number. Try e.g. 0712 345 678.'); return; }
+      const seq = ++phoneCheckSeq;
+      body.innerHTML = checkTabsHTML('phone') + '<div class="rounded-xl border border-slate-200 bg-white p-10 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2">Checking…</p></div>';
+      const items = listings.filter((l) => normPhone(l.phone) === phone && isLive(l));
+      let res;
+      try {
+        if (LIVE) {
+          const { data, error } = await sb.rpc('check_phone', { p: phone });
+          if (error) throw error;
+          res = data || { status: 'unknown' };
+        } else {
+          res = !items.length ? { status: 'unknown' }
+            : items.some(isVerified) ? { status: 'verified', listings: items.length, name: (items.find(isVerified) || {}).contactName, code: ownerCodeOf(items.find(isVerified)) }
+              : { status: 'listed', listings: items.length };
+        }
+      } catch (err) {
+        if (seq !== phoneCheckSeq) return;
+        body.innerHTML = phoneFormHTML(raw, 'Couldn\'t check right now: ' + friendly(err));
+        return;
+      }
+      if (seq !== phoneCheckSeq) return;
+      body.innerHTML = phoneResultHTML(phone, res, res.status === 'blocked' ? [] : items) + (res.status === 'blocked' ? '' : `
+        <div class="mt-6 flex flex-col items-center gap-3 rounded-2xl bg-slate-900 p-5 text-center text-white sm:flex-row sm:text-left">
+          <i class="fa-solid fa-house-circle-check text-3xl text-emerald-400"></i>
+          <div class="flex-1"><p class="font-bold">Are you a landlord, agent or caretaker?</p><p class="text-sm text-slate-300">List your property free and get the Verified badge, so tenants checking your number see the green tick.</p></div>
+          <a href="#list" class="btn btn-primary shrink-0">List your property free</a>
+        </div>`);
+    }
+
     function checkFormHTML(prefill) {
-      return `
+      return `${checkTabsHTML('badge')}
         <div class="rounded-xl border border-slate-200 bg-white p-6">
           <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-50 text-xl text-emerald-600"><i class="fa-solid fa-qrcode"></i></div>
           <h1 class="mt-3 text-center text-2xl font-extrabold">Check a Verified badge</h1>
@@ -2851,7 +3168,7 @@
        Router
        ===================================================================== */
     let lastNonListingHash = null;
-    const VIEWS = ['home', 'listing', 'browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
+    const VIEWS = ['home', 'listing', 'phone', 'browse', 'signin', 'check', 'list', 'verify', 'mine', 'privacy', 'terms', 'admin'];
     const PRIVATE = ['list', 'verify', 'mine', 'admin'];
     const SIGNIN_REASONS = {
       list: 'Sign in to list a property.',
@@ -2940,6 +3257,11 @@
       } else {
         lastNonListingHash = '#' + v;
       }
+      let phoneArg = null;
+      if (v === 'phone' || v.startsWith('phone/')) {
+        try { phoneArg = decodeURIComponent(v.slice(6)); } catch (e) { phoneArg = v.slice(6); }
+        v = 'phone';
+      }
       if (v.startsWith('v/')) {
         try { code = normCode(decodeURIComponent(v.slice(2))); } catch (e) { code = normCode(v.slice(2)); }
         v = 'check';
@@ -2964,6 +3286,7 @@
 
       if (v === 'browse') setTimeout(() => { map.invalidateSize(); fitToResults(); }, 60);
       if (v === 'home') renderHome();
+      if (v === 'phone') renderPhoneCheck(phoneArg);
       if (v === 'listing') renderListingPage(listingId);
       else { pageListingId = null; if (listingMap) { listingMap.remove(); listingMap = null; } if (document.title !== 'TrueHome Kenya – Find Verified Homes') document.title = 'TrueHome Kenya – Find Verified Homes'; }
       if (!$('#lightbox').hidden) closeLightbox();
@@ -2996,10 +3319,8 @@
       $('#fType').insertAdjacentHTML('beforeend', typeOpts);
       $('#lfType').innerHTML = typeOpts;
       $('#fCounty').insertAdjacentHTML('beforeend', COUNTIES.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join(''));
-      $('#lfLocation').innerHTML = COUNTIES.map((c) =>
-        `<optgroup label="${esc(c)}">${LOCATIONS.filter((l) => l.county === c)
-          .map((l) => `<option value="${esc(l.name)}">${esc(l.name)}</option>`).join('')}</optgroup>`
-      ).join('');
+      $('#lfCounty').innerHTML = COUNTIES.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      $('#areaList').innerHTML = LOCATIONS.map((l) => `<option value="${esc(l.name)}">${esc(l.county)}</option>`).join('');
     }
 
     /* =====================================================================
@@ -3214,6 +3535,15 @@
         $('#signinSent').hidden = false;
       });
 
+      // ---- Phone check forms ----
+      document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'phoneForm' && e.target.id !== 'homePhoneForm') return;
+        e.preventDefault();
+        const raw = (e.target.id === 'phoneForm' ? $('#pcPhone') : $('#homePhone')).value.trim();
+        const p = normPhone(raw);
+        location.hash = '#phone/' + encodeURIComponent(p || raw);
+      });
+
       // ---- Front-page search ----
       $('#heroSearch').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -3225,10 +3555,9 @@
       // ---- Listing form ----
       $('#lfPurpose').addEventListener('change', () => { updatePriceLabel(); renderFormFeatures(); });
       $('#lfType').addEventListener('change', () => renderFormFeatures());
-      $('#lfLocation').addEventListener('change', () => {
-        const loc = locByName($('#lfLocation').value);
-        moveFormPin(loc.lat, loc.lng);
-      });
+      $('#lfLocation').addEventListener('change', syncAreaToMap);
+      $('#lfLocation').addEventListener('input', () => { if (findArea($('#lfLocation').value)) syncAreaToMap(); });
+      $('#lfCounty').addEventListener('change', syncCountyToMap);
       $('#lfPhone').addEventListener('input', (e) => {
         const v = e.target.value.trim();
         e.target.setCustomValidity(!v || normPhone(v) ? '' : 'Enter a valid Kenyan number, e.g. 0712 345 678');
@@ -3262,8 +3591,18 @@
           $('#lfPhone').reportValidity();
           return;
         }
-        const loc = locByName($('#lfLocation').value);
-        const pin = formMarker ? formMarker.getLatLng() : { lat: loc.lat, lng: loc.lng };
+        // Tidy the estate name; a known estate uses its usual spelling
+        const typed = $('#lfLocation').value.trim().replace(/\s+/g, ' ');
+        const known = findArea(typed);
+        const areaName = known ? known.name : typed.replace(/\b([a-z])/g, (m) => m.toUpperCase());
+        const county = $('#lfCounty').value;
+        if (areaName.length < 2) { $('#lfLocation').focus(); return; }
+        if (!pinTouched && !(known && known.county === county)) {
+          toast('Please tap the map to put the pin on the exact building, so tenants can find it.', 'error');
+          $('#formMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        const pin = formMarker ? formMarker.getLatLng() : { lat: (known || {}).lat || COUNTY_CENTERS[county][0], lng: (known || {}).lng || COUNTY_CENTERS[county][1] };
         const data = {
           title: $('#lfTitle').value.trim(),
           purpose: $('#lfPurpose').value,
@@ -3271,8 +3610,9 @@
           price: Math.round(Number($('#lfPrice').value)),
           beds: Math.max(0, parseInt($('#lfBeds').value, 10) || 0),
           baths: Math.max(0, parseInt($('#lfBaths').value, 10) || 0),
-          location: loc.name,
-          county: loc.county,
+          location: areaName,
+          county,
+          landmarks: $('#lfLandmarks').value.trim() || null,
           lat: Number(pin.lat.toFixed(6)),
           lng: Number(pin.lng.toFixed(6)),
           contactName: $('#lfContact').value.trim(),

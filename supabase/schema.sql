@@ -824,3 +824,67 @@ left join public.listing_views v on v.listing_id = l.id
 where not public.is_banned(l.owner_id);
 
 grant select on public.listings_public to anon, authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- 13. LOCATIONS AND PHONE CHECK
+--     Landlords type any estate; county must be one of Kenya's 47.
+--     landmarks: "behind Quickmart, 5 minutes from the stage".
+--     check_phone(p): 'verified' / 'listed' / 'blocked' / 'unknown' for a
+--     Kenyan number (2547XXXXXXXX), used by the "Check a landlord" page.
+-- ---------------------------------------------------------------------
+alter table public.listings add column if not exists landmarks text;
+alter table public.listings drop constraint if exists listings_landmarks_len;
+alter table public.listings add constraint listings_landmarks_len check (landmarks is null or char_length(landmarks) <= 200);
+alter table public.listings drop constraint if exists listings_county_valid;
+alter table public.listings add constraint listings_county_valid check (county in (
+  'Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita-Taveta','Garissa','Wajir','Mandera','Marsabit','Isiolo',
+  'Meru','Tharaka-Nithi','Embu','Kitui','Machakos','Makueni','Nyandarua','Nyeri','Kirinyaga','Murang''a','Kiambu','Turkana',
+  'West Pokot','Samburu','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Nandi','Baringo','Laikipia','Nakuru','Narok','Kajiado',
+  'Kericho','Bomet','Kakamega','Vihiga','Bungoma','Busia','Siaya','Kisumu','Homa Bay','Migori','Kisii','Nyamira'));
+alter table public.listings drop constraint if exists listings_location_len;
+alter table public.listings add constraint listings_location_len check (char_length(trim(location)) >= 2);
+
+drop view if exists public.listings_public;
+create view public.listings_public
+with (security_invoker = true) as
+select
+  l.id, l.owner_id, l.title, l.purpose, l.type, l.price, l.beds, l.baths, l.location, l.county,
+  l.lat, l.lng, l.contact_name, l.role, l.phone, l.description, l.photo_url, l.created_at, l.updated_at,
+  coalesce(p.verified, false) as owner_verified,
+  case when p.verified then p.public_code end as owner_code,
+  coalesce(v.views, 0) as views,
+  l.kind,
+  l.features,
+  l.photos,
+  l.expires_at,
+  l.landmarks
+from public.listings l
+left join public.profiles p on p.id = l.owner_id
+left join public.listing_views v on v.listing_id = l.id
+where not public.is_banned(l.owner_id);
+grant select on public.listings_public to anon, authenticated;
+
+create or replace function public.check_phone(p text)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $$
+declare r jsonb;
+begin
+  if p is null or p !~ '^254[17][0-9]{8}$' then raise exception 'Enter a valid Kenyan phone number'; end if;
+  if public.phone_banned(p) then return jsonb_build_object('status', 'blocked'); end if;
+  select jsonb_build_object(
+           'status', case when bool_or(coalesce(pr.verified, false)) then 'verified' else 'listed' end,
+           'listings', count(*),
+           'name', max(case when pr.verified then pr.public_name end),
+           'code', max(case when pr.verified then pr.public_code end))
+    into r
+    from public.listings l
+    left join public.profiles pr on pr.id = l.owner_id
+   where l.phone = p
+     and (l.expires_at is null or l.expires_at > now())
+     and not public.is_banned(l.owner_id);
+  if coalesce((r->>'listings')::int, 0) = 0 then return jsonb_build_object('status', 'unknown'); end if;
+  return r;
+end;
+$$;
+grant execute on function public.check_phone(text) to anon, authenticated;
