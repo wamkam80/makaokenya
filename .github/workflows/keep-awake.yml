@@ -1,0 +1,23 @@
+# Supabase's free plan pauses a project after about a week without activity.
+# This visits the database twice a week so the site never goes to sleep.
+name: Keep database awake
+
+on:
+  schedule:
+    - cron: '17 6 * * 1,4'   # Mondays and Thursdays, 06:17 UTC (09:17 Nairobi)
+  workflow_dispatch:          # lets you run it by hand from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read one listing from Supabase
+        run: |
+          # Uses the public (publishable) key from config.js. It's safe to share.
+          URL=https://oweftgefkijetuqzcvgl.supabase.co
+          KEY=sb_publishable_StwrxAfgUsOdCm6yQ8QobQ_PYkJDZb0
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            "$URL/rest/v1/listings_public?select=id&limit=1" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Supabase answered with HTTP $code"
+          test "$code" = "200"
