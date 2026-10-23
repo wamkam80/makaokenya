@@ -584,8 +584,10 @@
     function friendly(err) {
       const m = (err && (err.message || err.error_description)) || String(err);
       if (/failed to fetch|networkerror|load failed/i.test(m)) return 'Network problem. Check your connection and try again.';
+      if (/banned users can't/i.test(m)) return myBan ? 'Your account is suspended, so you can\'t post or change listings.' : 'That phone number belongs to a suspended account and can\'t be used. Contact support@truehomekenya.com if this is a mistake.';
       if (/row-level security|permission denied|not authorized|jwt/i.test(m)) return 'You are not allowed to do that. Please sign in again.';
       if (/one_pending_request_per_user|duplicate key/i.test(m)) return 'You already have a verification request under review.';
+      if (/can't ban an admin/i.test(m)) return "You can't ban an admin.";
       if (/not allowed/i.test(m)) return 'Only admins can do that.';
       if (/rate limit|too many/i.test(m)) return 'Too many attempts. Please wait a few minutes and try again.';
       if (/mime type|invalid.*type/i.test(m)) return 'That file type is not allowed. Use a photo (JPG/PNG) or a PDF.';
@@ -629,7 +631,7 @@
     /* ---------- Reference data ---------- */
     const KEYS = {
       listings: 'thk_listings_v1', profile: 'thk_profile_v1', afterLogin: 'thk_after_login',
-      reports: 'thk_reports_v1', reported: 'thk_reported_v1'
+      reports: 'thk_reports_v1', reported: 'thk_reported_v1', viewed: 'thk_viewed_v1'
     };
 
     const TYPES = {
@@ -736,6 +738,7 @@
         photo: r.photo_url || null,
         verified: !!r.owner_verified,
         ownerCode: r.owner_code || null,
+        views: Number(r.views) || 0,
         createdAt: new Date(r.created_at).getTime()
       };
     }
@@ -910,12 +913,14 @@
       loading = true; loadError = null;
       renderResults();
       try {
-        const [ls, pr, adm] = await Promise.all([
+        const [ls, pr, adm, ban] = await Promise.all([
           remote.loadListings(),
           remote.loadProfile(),
-          session ? sb.rpc('is_admin').then((r) => !r.error && r.data === true) : Promise.resolve(false)
+          session ? sb.rpc('is_admin').then((r) => !r.error && r.data === true) : Promise.resolve(false),
+          session ? sb.from('banned_users').select('reason, lifted_at').eq('user_id', uid())
+            .then((r) => (r.data || []).find((b) => !b.lifted_at) || null) : Promise.resolve(null)
         ]);
-        listings = ls; profile = pr; isAdmin = adm;
+        listings = ls; profile = pr; isAdmin = adm; myBan = ban;
         updateAdminLinks();
       } catch (err) {
         loadError = friendly(err);
@@ -1135,9 +1140,23 @@
     /* =====================================================================
        Detail modal
        ===================================================================== */
+    // Count a view at most once per listing per day per browser (no personal data is sent)
+    function recordView(l) {
+      if (!LIVE || l.demo || l.owner === 'me') return;
+      const today = new Date().toISOString().slice(0, 10);
+      let seen = store.get(KEYS.viewed, {});
+      if (!seen || typeof seen !== 'object' || Array.isArray(seen)) seen = {};
+      if (seen[l.id] === today) return;
+      for (const k of Object.keys(seen)) if (seen[k] !== today) delete seen[k];
+      seen[l.id] = today;
+      store.set(KEYS.viewed, seen);
+      sb.rpc('record_view', { lid: l.id }).then(() => {}, () => {});
+    }
+
     function openDetail(id) {
       const l = listings.find((x) => x.id === id) || lastCheckListings.find((x) => x.id === id);
       if (!l) return;
+      recordView(l);
       const v = isVerified(l);
       const code = ownerCodeOf(l);
       const badgeLink = code
@@ -1420,6 +1439,15 @@
     function renderMine() {
       const mine = listings.filter((l) => l.owner === 'me').sort((a, b) => b.createdAt - a.createdAt);
       let banner;
+      if (LIVE && myBan) {
+        banner = `<div class="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-900">
+            <p class="text-base font-semibold"><i class="fa-solid fa-ban"></i> Your account has been suspended</p>
+            <p class="mt-1">You can't post, edit or verify listings, and your listings are hidden from the site. Reason: ${esc(myBan.reason)}</p>
+            <p class="mt-1">If you think this is a mistake, email <a class="font-semibold underline" href="mailto:support@truehomekenya.com">support@truehomekenya.com</a>. See our <a class="underline" href="#terms">Terms of Use</a>.</p>
+          </div>`;
+        $('#mineBody').innerHTML = banner;
+        return;
+      }
       if (profile.status === 'verified') {
         banner = '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><i class="fa-solid fa-circle-check"></i> You are verified. All your listings show the Verified badge.</div>' + badgeCardHTML();
       } else if (profile.status === 'pending') {
@@ -1438,6 +1466,7 @@
               <p class="truncate font-semibold">${esc(l.title)}</p>
               <p class="text-sm font-bold">${esc(priceText(l))}</p>
               <p class="truncate text-xs text-slate-500">${esc(l.location)} · ${esc(metaText(l))}</p>
+              ${LIVE ? `<p class="mt-0.5 text-xs font-medium text-slate-600" data-views><i class="fa-regular fa-eye"></i> ${l.views} view${l.views === 1 ? '' : 's'}</p>` : ''}
               <div class="mt-2 flex flex-wrap gap-2">
                 <button data-open="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-eye"></i> View</button>
                 <button data-share="${esc(l.id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-share-nodes"></i> Share</button>
@@ -1907,20 +1936,22 @@
        Admin page
        ===================================================================== */
     let isAdmin = false;
+    let myBan = null;
     let adminTab = 'requests';
-    let adminData = { requests: [], reports: [], verified: [], loaded: false, error: null };
+    let adminData = { requests: [], reports: [], verified: [], banned: [], loaded: false, error: null };
 
     const adminApi = {
       async load() {
-        const [req, rep, ver] = await Promise.all([
+        const [req, rep, ver, ban] = await Promise.all([
           sb.from('verification_requests')
             .select('id, user_id, full_name, id_number, agent_reg_no, property_ref, id_doc_path, deed_doc_path, created_at')
             .eq('status', 'pending').order('created_at', { ascending: true }),
           sb.from('open_reports').select('*'),
-          sb.rpc('admin_verified_listers')
+          sb.rpc('admin_verified_listers'),
+          sb.rpc('admin_banned_users')
         ]);
-        for (const r of [req, rep, ver]) if (r.error) throw r.error;
-        return { requests: req.data || [], reports: rep.data || [], verified: ver.data || [] };
+        for (const r of [req, rep, ver, ban]) if (r.error) throw r.error;
+        return { requests: req.data || [], reports: rep.data || [], verified: ver.data || [], banned: ban.data || [] };
       },
       async rpc(name, args) {
         const { data, error } = await sb.rpc(name, args);
@@ -1940,12 +1971,44 @@
       try {
         adminData = { ...(await adminApi.load()), loaded: true, error: null };
       } catch (err) {
-        adminData = { requests: [], reports: [], verified: [], loaded: true, error: friendly(err) };
+        adminData = { requests: [], reports: [], verified: [], banned: [], loaded: true, error: friendly(err) };
       }
       renderAdmin();
     }
 
     const fmtDate = (d) => (d ? new Date(d).toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' }) : '');
+
+    // "Ban user" button that opens an inline reason box
+    function banBoxHTML(userId) {
+      if (!userId) return '';
+      return `
+        <div data-ban-box class="w-full">
+          <button data-admin-action="ban-start" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-user-slash"></i> Ban user</button>
+          <div data-ban-form hidden class="mt-2 rounded-lg border border-red-200 bg-red-50 p-3">
+            <p class="text-xs text-red-900">Banning hides all their listings, removes any badge, and stops them (and the phone numbers they used) from posting again.</p>
+            <div class="mt-2 flex flex-col gap-2 sm:flex-row">
+              <input data-ban-reason maxlength="300" class="inp" value="Fake or scam listing" aria-label="Reason for ban">
+              <div class="flex shrink-0 gap-2">
+                <button data-admin-action="ban-cancel" class="btn btn-ghost px-3 py-1 text-xs">Cancel</button>
+                <button data-admin-action="ban" data-user="${esc(userId)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-user-slash"></i> Confirm ban</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function adminBannedHTML(b) {
+      const phones = (b.phones || []).map((p) => fmtPhone(p)).join(', ');
+      return `
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+          <div class="min-w-0">
+            <p class="font-semibold"><i class="fa-solid fa-user-slash text-red-600"></i> ${esc(b.email || 'Unknown user')}</p>
+            <p class="text-sm">${esc(b.reason)}</p>
+            <p class="text-xs text-slate-500">Banned ${esc(fmtDate(b.banned_at))} · ${Number(b.listings)} hidden listing${Number(b.listings) === 1 ? '' : 's'}${phones ? ' · Blocked phones: ' + esc(phones) : ''}</p>
+          </div>
+          <button data-admin-action="unban" data-user="${esc(b.user_id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-rotate-left"></i> Lift ban</button>
+        </div>`;
+    }
 
     function adminRequestHTML(r) {
       const theirListings = listings.filter((l) => l.ownerId === r.user_id).length;
@@ -1977,6 +2040,7 @@
               <button data-admin-action="approve" data-id="${esc(r.id)}" class="btn btn-primary"><i class="fa-solid fa-check"></i> Approve</button>
             </div>
           </div>
+          <div class="mt-3 border-t border-slate-100 pt-3">${banBoxHTML(r.user_id)}</div>
         </div>`;
     }
 
@@ -1998,6 +2062,7 @@
             <button data-admin-action="report-reviewed" data-id="${esc(r.report_id)}" class="btn btn-ghost px-3 py-1 text-xs"><i class="fa-solid fa-check"></i> Nothing wrong</button>
             <button data-admin-action="remove-listing" data-listing="${esc(r.listing_id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-trash"></i> Remove listing</button>
             ${r.owner_verified ? `<button data-admin-action="revoke" data-user="${esc(r.owner_id)}" data-report="${esc(r.report_id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-ban"></i> Withdraw owner's badge</button>` : ''}
+            ${banBoxHTML(r.owner_id)}
           </div>
         </div>`;
     }
@@ -2010,6 +2075,7 @@
             <p class="text-xs text-slate-500">Verified ${esc(fmtDate(v.verified_at))} · ${Number(v.listings)} listing${Number(v.listings) === 1 ? '' : 's'}</p>
           </div>
           <button data-admin-action="revoke" data-user="${esc(v.user_id)}" class="btn btn-danger px-3 py-1 text-xs"><i class="fa-solid fa-ban"></i> Withdraw badge</button>
+          ${banBoxHTML(v.user_id)}
         </div>`;
     }
 
@@ -2022,12 +2088,12 @@
         body.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600"><i class="fa-solid fa-lock text-2xl"></i><p class="mt-2">This page is only for TrueHome Kenya admins.</p></div>';
         return;
       }
-      const counts = { requests: adminData.requests.length, reports: adminData.reports.length, verified: adminData.verified.length };
+      const counts = { requests: adminData.requests.length, reports: adminData.reports.length, verified: adminData.verified.length, banned: adminData.banned.length };
       const tab = (k, label, icon) => `
         <button data-admin-tab="${k}" class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold ${adminTab === k ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-slate-500 hover:text-slate-800'}">
           <i class="fa-solid ${icon}"></i> ${label}${adminData.loaded ? ` <span class="ml-1 rounded-full bg-slate-100 px-1.5 text-xs">${counts[k]}</span>` : ''}
         </button>`;
-      tabs.innerHTML = tab('requests', 'Verification requests', 'fa-id-card') + tab('reports', 'Reports', 'fa-flag') + tab('verified', 'Verified listers', 'fa-shield-halved');
+      tabs.innerHTML = tab('requests', 'Verification requests', 'fa-id-card') + tab('reports', 'Reports', 'fa-flag') + tab('verified', 'Verified listers', 'fa-shield-halved') + tab('banned', 'Banned', 'fa-user-slash');
 
       if (!adminData.loaded) {
         body.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>';
@@ -2042,6 +2108,8 @@
         body.innerHTML = adminData.requests.length ? adminData.requests.map(adminRequestHTML).join('') : empty('No verification requests waiting.');
       } else if (adminTab === 'reports') {
         body.innerHTML = adminData.reports.length ? adminData.reports.map(adminReportHTML).join('') : empty('No open reports.');
+      } else if (adminTab === 'banned') {
+        body.innerHTML = adminData.banned.length ? adminData.banned.map(adminBannedHTML).join('') : empty('Nobody is banned.');
       } else {
         body.innerHTML = adminData.verified.length ? adminData.verified.map(adminVerifiedHTML).join('') : empty('No verified listers yet.');
       }
@@ -2050,6 +2118,13 @@
     async function adminAction(btn) {
       const a = btn.dataset.adminAction;
       if (a === 'refresh') { await loadAdmin(); return; }
+      if (a === 'ban-start' || a === 'ban-cancel') {
+        const box = btn.closest('[data-ban-box]');
+        box.querySelector('[data-ban-form]').hidden = a === 'ban-cancel';
+        box.querySelector('[data-admin-action="ban-start"]').hidden = a === 'ban-start';
+        if (a === 'ban-start') box.querySelector('[data-ban-reason]').focus();
+        return;
+      }
       if (a === 'doc') {
         const win = window.open('', '_blank');
         const { data, error } = await sb.storage.from('verification-docs').createSignedUrl(btn.dataset.path, 300);
@@ -2076,6 +2151,17 @@
           await adminApi.rpc('admin_revoke', { target_user: btn.dataset.user });
           if (btn.dataset.report) await adminApi.rpc('admin_set_report_status', { report_id: btn.dataset.report, new_status: 'actioned' });
           toast('Badge withdrawn.');
+        } else if (a === 'ban') {
+          const reason = btn.closest('[data-ban-box]').querySelector('[data-ban-reason]').value.trim();
+          if (reason.length < 3) { toast('Write a short reason for the ban.', 'error'); return; }
+          setBusy(btn, true, 'Banning…');
+          await adminApi.rpc('admin_ban', { target_user: btn.dataset.user, reason });
+          toast('User banned. Their listings are hidden.');
+        } else if (a === 'unban') {
+          if (!confirm('Lift this ban? Their listings will show again and they can post.')) return;
+          setBusy(btn, true, 'Lifting…');
+          await adminApi.rpc('admin_unban', { target_user: btn.dataset.user });
+          toast('Ban lifted.');
         } else if (a === 'report-reviewed') {
           setBusy(btn, true, 'Saving…');
           await adminApi.rpc('admin_set_report_status', { report_id: btn.dataset.id, new_status: 'reviewed' });
@@ -2119,6 +2205,7 @@
         v = 'check';
       }
       if (!VIEWS.includes(v)) v = 'browse';
+      if (LIVE && session && myBan && (v === 'list' || v === 'verify')) v = 'mine';
       const navView = v;
       if (v === 'check') renderCheck(code); else { clearInterval(checkTimer); checkCode = null; }
 

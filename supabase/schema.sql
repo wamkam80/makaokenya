@@ -561,3 +561,170 @@ grant execute on function public.admin_reject(uuid, text)            to authenti
 grant execute on function public.admin_revoke(uuid)                  to authenticated;
 grant execute on function public.admin_set_report_status(uuid, text) to authenticated;
 grant execute on function public.admin_verified_listers()            to authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- 9. BANNED USERS
+--    Admins ban scammers from the #admin page. A banned person can't
+--    post or edit listings, upload files or ask for verification, their
+--    listings disappear from the site, and the phone numbers they used
+--    can't be used in new listings.
+-- ---------------------------------------------------------------------
+create table if not exists public.banned_users (
+  user_id   uuid primary key references auth.users (id) on delete cascade,
+  reason    text not null check (char_length(reason) between 1 and 300),
+  phones    text[] not null default '{}',
+  banned_at timestamptz not null default now(),
+  banned_by uuid references auth.users (id) on delete set null,
+  lifted_at timestamptz            -- set when an admin lifts the ban
+);
+alter table public.banned_users add column if not exists lifted_at timestamptz;
+alter table public.banned_users enable row level security;
+drop policy if exists "Users see their own ban" on public.banned_users;
+create policy "Users see their own ban"
+  on public.banned_users for select to authenticated
+  using (user_id = (select auth.uid()) or (select public.is_admin()));
+grant select on public.banned_users to authenticated;
+revoke insert, update, delete, truncate on public.banned_users from anon, authenticated;
+
+create or replace function public.is_banned(target uuid)
+returns boolean language sql stable security definer set search_path = ''
+as $$
+  select exists (select 1 from public.banned_users where user_id = target and lifted_at is null);
+$$;
+
+create or replace function public.phone_banned(p text)
+returns boolean language sql stable security definer set search_path = ''
+as $$
+  select exists (select 1 from public.banned_users where p = any (phones) and lifted_at is null);
+$$;
+grant execute on function public.is_banned(uuid)  to anon, authenticated;
+grant execute on function public.phone_banned(text) to authenticated;
+
+drop policy if exists "Banned users can't add listings" on public.listings;
+create policy "Banned users can't add listings"
+  on public.listings as restrictive for insert to authenticated
+  with check (not public.is_banned((select auth.uid())) and not public.phone_banned(phone));
+
+drop policy if exists "Banned users can't edit listings" on public.listings;
+create policy "Banned users can't edit listings"
+  on public.listings as restrictive for update to authenticated
+  with check (not public.is_banned((select auth.uid())) and not public.phone_banned(phone));
+
+drop policy if exists "Banned users can't request verification" on public.verification_requests;
+create policy "Banned users can't request verification"
+  on public.verification_requests as restrictive for insert to authenticated
+  with check (not public.is_banned((select auth.uid())));
+
+drop policy if exists "Banned users can't upload" on storage.objects;
+create policy "Banned users can't upload"
+  on storage.objects as restrictive for insert to authenticated
+  with check (not public.is_banned((select auth.uid())));
+
+
+-- ---------------------------------------------------------------------
+-- 10. LISTING VIEW COUNTS
+--     A simple counter per listing (no personal data). Shown to owners
+--     under My listings and to admins.
+-- ---------------------------------------------------------------------
+create table if not exists public.listing_views (
+  listing_id uuid primary key references public.listings (id) on delete cascade,
+  views      bigint not null default 0
+);
+alter table public.listing_views enable row level security;
+drop policy if exists "View counts are public" on public.listing_views;
+create policy "View counts are public"
+  on public.listing_views for select using (true);
+grant select on public.listing_views to anon, authenticated;
+revoke insert, update, delete, truncate on public.listing_views from anon, authenticated;
+
+create or replace function public.record_view(lid uuid)
+returns void language sql security definer set search_path = ''
+as $$
+  insert into public.listing_views (listing_id, views)
+  select id, 1 from public.listings where id = lid
+  on conflict (listing_id) do update set views = public.listing_views.views + 1;
+$$;
+revoke execute on function public.record_view(uuid) from public;
+grant execute on function public.record_view(uuid) to anon, authenticated;
+
+-- Listings shown on the site: hide banned owners, add view counts
+create or replace view public.listings_public
+with (security_invoker = true) as
+select
+  l.*,
+  coalesce(p.verified, false) as owner_verified,
+  case when p.verified then p.public_code end as owner_code,
+  coalesce(v.views, 0) as views
+from public.listings l
+left join public.profiles p on p.id = l.owner_id
+left join public.listing_views v on v.listing_id = l.id
+where not public.is_banned(l.owner_id);
+
+grant select on public.listings_public to anon, authenticated;
+
+
+-- Admin functions for bans
+create or replace function public.admin_ban(target_user uuid, reason text)
+returns void language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  if exists (select 1 from public.admins where user_id = target_user) then
+    raise exception 'You can''t ban an admin';
+  end if;
+  if coalesce(trim(reason), '') = '' then raise exception 'Please give a reason'; end if;
+
+  insert into public.banned_users (user_id, reason, phones, banned_by)
+  values (
+    target_user, trim(reason),
+    coalesce((select array_agg(distinct phone) from public.listings where owner_id = target_user), '{}'),
+    auth.uid()
+  )
+  on conflict (user_id) do update
+    set reason = excluded.reason, phones = excluded.phones, banned_at = now(),
+        banned_by = excluded.banned_by, lifted_at = null;
+
+  if exists (select 1 from public.profiles where id = target_user and verified) then
+    perform public.revoke_verification(target_user);
+  end if;
+  update public.verification_requests
+     set status = 'rejected', review_note = 'Account suspended', reviewed_at = now()
+   where user_id = target_user and status = 'pending';
+  update public.listing_reports set status = 'actioned'
+   where status = 'open'
+     and listing_id in (select id from public.listings where owner_id = target_user);
+end;
+$$;
+
+create or replace function public.admin_unban(target_user uuid)
+returns void language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  update public.banned_users set lifted_at = now() where user_id = target_user and lifted_at is null;
+end;
+$$;
+
+create or replace function public.admin_banned_users()
+returns table (user_id uuid, email text, reason text, phones text[], banned_at timestamptz, listings bigint)
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Not allowed'; end if;
+  return query
+    select b.user_id, u.email::text, b.reason, b.phones, b.banned_at,
+           (select count(*) from public.listings l where l.owner_id = b.user_id)
+      from public.banned_users b
+      left join auth.users u on u.id = b.user_id
+     where b.lifted_at is null
+     order by b.banned_at desc;
+end;
+$$;
+
+revoke execute on function public.admin_ban(uuid, text)   from public, anon;
+revoke execute on function public.admin_unban(uuid)       from public, anon;
+revoke execute on function public.admin_banned_users()    from public, anon;
+grant execute on function public.admin_ban(uuid, text)   to authenticated;
+grant execute on function public.admin_unban(uuid)       to authenticated;
+grant execute on function public.admin_banned_users()    to authenticated;
