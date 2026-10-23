@@ -4,6 +4,91 @@
 
 export const GUIDES = [
   {
+    slug: 'how-to-list-your-property',
+    title: 'How to List Your Property on TrueHome Kenya (Free) – Landlords & Agents',
+    h1: 'How to list your property on TrueHome Kenya',
+    description: 'A 5-minute guide for landlords, agents and caretakers: list a house, apartment, bedsitter or land for free, add good photos, get the Verified badge and get tenants on WhatsApp.',
+    updated: '2026-10-23',
+    body: `
+<p class="lead">Listing on TrueHome Kenya is <strong>free</strong> and takes about <strong>5 minutes</strong> on your phone. Tenants and buyers contact you directly on WhatsApp or by phone. There are no middlemen and no commission.</p>
+
+<p><a href="/#list" class="inline-block rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white no-underline" style="color:#fff;text-decoration:none">List your property now</a></p>
+
+<h2>Before you start, have these ready</h2>
+<ul>
+  <li>An <strong>email address</strong> you can open on your phone (we send you a sign-in link, so there's no password to remember).</li>
+  <li>The <strong>rent or price</strong>, number of bedrooms and bathrooms.</li>
+  <li>Your <strong>WhatsApp number</strong>, which tenants will use to contact you.</li>
+  <li>Some <strong>photos</strong> of the property (up to 10).</li>
+</ul>
+
+<h2>Step 1: Sign in</h2>
+<ol>
+  <li>Go to <a href="/#list">truehomekenya.com/#list</a> and type your email.</li>
+  <li>Open the email from TrueHome Kenya <strong>on the same phone</strong> and tap the link. You're signed in.</li>
+  <li>No email? Check your spam or promotions folder, or try again after a minute.</li>
+</ol>
+
+<h2>Step 2: Choose who you are</h2>
+<p>Tap <strong>I'm a landlord</strong>, <strong>I'm an agent</strong>, <strong>I'm a caretaker or property manager</strong>, or <strong>I'm selling a home or land</strong>.</p>
+
+<h2>Step 3: Describe the property</h2>
+<ul>
+  <li><strong>Title:</strong> say what it is and where, e.g. "Spacious 2 bedroom apartment near Two Rivers".</li>
+  <li><strong>Rent or sale, type and kind:</strong> e.g. Rent → Apartment → Apartment / flat, or Bedsitter → Single room.</li>
+  <li><strong>Price, bedrooms, bathrooms.</strong></li>
+  <li><strong>Features:</strong> tick everything that applies, such as borehole, token meter, gated compound, DSQ, parking or near matatu stage. Tenants filter by these, so <em>more ticks = more people see your listing</em>.</li>
+</ul>
+
+<h2>Step 4: Location (no address needed)</h2>
+<ul>
+  <li>Type your <strong>estate or area</strong> (e.g. Githurai 45, Kahawa West, Nyali) and choose the <strong>county</strong>.</li>
+  <li>Add <strong>landmarks and directions</strong>, the way you'd explain it on the phone: "behind Quickmart, 5 minutes' walk from the stage".</li>
+  <li><strong>Tap the map</strong> to put the pin exactly on the building. Tenants use this pin to get directions.</li>
+</ul>
+
+<h2>Step 5: Photos that get messages</h2>
+<ul>
+  <li>Take photos in <strong>daylight</strong> with lights on and curtains open.</li>
+  <li>Hold the phone <strong>sideways (landscape)</strong> and stand in a corner to show the whole room.</li>
+  <li>Include the <strong>outside, sitting room, kitchen, each bedroom and the bathroom</strong>. Add the gate, parking or view if they're good.</li>
+  <li>Tidy up first. The <strong>first photo is the cover</strong>: make it your best one (tap "Make cover").</li>
+  <li>Only use photos of <strong>this property</strong>. Copied photos get listings removed.</li>
+</ul>
+
+<h2>Step 6: Contact details and publish</h2>
+<p>Add the name tenants should ask for and your <strong>WhatsApp number</strong>, then tap <strong>Publish listing</strong>. Your listing is live straight away.</p>
+
+<h2>Step 7: Get the Verified badge</h2>
+<p>Tenants trust verified listers more, and the badge shows on all your listings. Tap <strong>Get verified</strong> and upload:</p>
+<ul>
+  <li><strong>Landlords:</strong> your National ID and the <strong>title deed</strong> (we confirm ownership with an official land search).</li>
+  <li><strong>Agents:</strong> your National ID and your <strong>EARB registration number</strong>.</li>
+  <li><strong>Caretakers / property managers:</strong> your National ID and a <strong>signed letter from the owner</strong> authorising you.</li>
+</ul>
+<p>Your documents are stored privately and seen only by our review team. Once approved you get a <strong>badge code and QR code</strong> that tenants can check, and the phone number on your listings shows a green <strong>Verified</strong> result when tenants use <a href="/#phone">Check a landlord</a>.</p>
+
+<h2>Step 8: Share it</h2>
+<p>Every listing has a <strong>Share</strong> button for <strong>WhatsApp and Facebook</strong>. Post it in housing groups and on your WhatsApp status. The link opens your listing with photos, map and your contact buttons. Verified listers can share their badge too.</p>
+
+<h2>Keep your listing working for you</h2>
+<ul>
+  <li><strong>Rentals stay live for 60 days and sales for 90 days.</strong> When it's nearly due, tap <strong>Still available</strong> under <a href="/#mine">My listings</a> to keep it up. Editing a listing also renews it.</li>
+  <li><strong>Let or sold?</strong> Delete the listing so tenants don't keep calling.</li>
+  <li><strong>See how many people viewed it</strong> under My listings.</li>
+</ul>
+
+<h2>Our rules (short version)</h2>
+<ul>
+  <li>Only list property you own or are authorised to let or sell.</li>
+  <li>No "viewing fees" or deposits before a tenant has viewed the property.</li>
+  <li>Accurate price, photos and location. Fake listings are removed and the lister is blocked.</li>
+</ul>
+<p>Full details are in our <a href="/#terms">Terms of Use</a>. Questions? Email <a href="mailto:support@truehomekenya.com">support@truehomekenya.com</a>.</p>
+
+<p><a href="/#list" class="inline-block rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white no-underline" style="color:#fff;text-decoration:none">List your property free</a></p>`
+  },
+  {
     slug: 'how-to-avoid-rental-scams-in-kenya',
     title: 'How to Avoid House Rental Scams in Kenya (2026 Guide)',
     h1: 'How to avoid house rental scams in Kenya',
