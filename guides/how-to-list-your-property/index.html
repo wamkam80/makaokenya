@@ -13,9 +13,14 @@
   <meta property="og:url" content="https://truehomekenya.com/guides/how-to-list-your-property/">
   <meta name="twitter:card" content="summary">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How to list your property on TrueHome Kenya","description":"A 5-minute guide for landlords, agents and caretakers: list a house, apartment, bedsitter or land for free, add good photos, get the Verified badge and get tenants on WhatsApp.","dateModified":"2026-10-23","author":{"@type":"Organization","name":"TrueHome Kenya","url":"https://truehomekenya.com"},"publisher":{"@type":"Organization","name":"TrueHome Kenya"},"mainEntityOfPage":"https://truehomekenya.com/guides/how-to-list-your-property/"}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>if (window.tailwind) tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'] }, colors: { ink: '#0b1f17' } } } };</script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
+    h1, h2, h3 { text-wrap: balance; letter-spacing: -0.015em; }
     .prose h2 { font-size: 1.35rem; font-weight: 800; margin: 2rem 0 .6rem; color: #0f172a; }
     .prose p, .prose li { line-height: 1.75; color: #334155; }
     .prose p { margin: .8rem 0; }
@@ -30,20 +35,20 @@
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-  <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+  <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
     <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-      <a href="/" class="flex items-center gap-2 text-xl font-extrabold">
-        <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-600 text-white"><i class="fa-solid fa-house-circle-check"></i></span>
-        <span>TrueHome<span class="text-emerald-600"> Kenya</span></span>
+      <a href="/" class="flex shrink-0 items-center gap-2.5" aria-label="TrueHome Kenya home">
+        <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-sm"><i class="fa-solid fa-house-circle-check text-[15px]"></i></span>
+        <span class="whitespace-nowrap text-[17px] font-extrabold tracking-tight text-ink sm:text-lg">TrueHome<span class="font-semibold text-emerald-700"> Kenya</span></span>
       </a>
-      <nav class="hidden gap-5 text-sm font-medium text-slate-600 md:flex">
+      <nav class="hidden items-center gap-6 text-[15px] font-semibold text-slate-600 lg:flex" aria-label="Main">
         <a href="/#browse" class="hover:text-slate-900">Browse homes</a>
         <a href="/rent/" class="hover:text-slate-900">To rent</a>
         <a href="/buy/" class="hover:text-slate-900">For sale</a>
+        <a href="/#phone" class="hover:text-slate-900">Check a landlord</a>
         <a href="/guides/" class="hover:text-slate-900">Guides</a>
-        <a href="/#check" class="hover:text-slate-900">Check a badge</a>
       </nav>
-      <a href="/#list" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">List a property</a>
+      <a href="/#list" class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 sm:px-4"><i class="fa-solid fa-plus"></i><span class="sm:hidden">List</span><span class="hidden sm:inline">List a property</span></a>
     </div>
   </header>
   <main class="mx-auto max-w-6xl px-4 py-8">
@@ -143,12 +148,45 @@
         </div>
       </aside>
     </div></main>
-  <footer class="mx-auto max-w-6xl px-4 py-10 text-xs text-slate-500">
-    <p class="mb-2 flex flex-wrap gap-x-4 gap-y-1">
-      <a href="/rent/" class="underline">Homes to rent</a><a href="/buy/" class="underline">Homes for sale</a><a href="/guides/" class="underline">Guides</a>
-      <a href="/#terms" class="underline">Terms of Use</a><a href="/#privacy" class="underline">Privacy Policy</a>
-    </p>
-    <p>© 2026 TrueHome Kenya · Always view a property and confirm ownership before paying anything.</p>
+  <footer class="mt-8 bg-ink text-slate-400">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div>
+        <a href="/" class="flex items-center gap-2.5">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-600 text-white"><i class="fa-solid fa-house-circle-check text-[15px]"></i></span>
+          <span class="text-lg font-extrabold tracking-tight text-white">TrueHome<span class="font-semibold text-emerald-400"> Kenya</span></span>
+        </a>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed">Homes for rent and sale across Kenya, listed directly by landlords and agents whose ID and ownership we check.</p>
+        <p class="mt-4 text-sm"><i class="fa-regular fa-envelope mr-2 text-emerald-400"></i><a href="mailto:support@truehomekenya.com" class="hover:text-white">support@truehomekenya.com</a></p>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">For tenants and buyers</p>
+        <ul class="mt-3 grid gap-2 text-sm">
+          <li><a href="/#browse" class="hover:text-white">Browse homes</a></li>
+          <li><a href="/rent/" class="hover:text-white">Homes to rent</a></li>
+          <li><a href="/buy/" class="hover:text-white">Homes and land for sale</a></li>
+          <li><a href="/#phone" class="hover:text-white">Check a landlord</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">For landlords and agents</p>
+        <ul class="mt-3 grid gap-2 text-sm">
+          <li><a href="/#list" class="hover:text-white">List a property</a></li>
+          <li><a href="/#verify" class="hover:text-white">Get verified</a></li>
+          <li><a href="/guides/how-to-list-your-property/" class="hover:text-white">How to list</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">TrueHome Kenya</p>
+        <ul class="mt-3 grid gap-2 text-sm">
+          <li><a href="/guides/" class="hover:text-white">Guides</a></li>
+          <li><a href="/#terms" class="hover:text-white">Terms of Use</a></li>
+          <li><a href="/#privacy" class="hover:text-white">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/10">
+      <p class="mx-auto max-w-6xl px-4 py-5 text-xs text-slate-500">© 2026 TrueHome Kenya. Always view a property and confirm ownership before paying anything.</p>
+    </div>
   </footer>
 </body>
 </html>
